@@ -1,0 +1,8 @@
+db: 
+  db_type: 'shotgun'
+  db_addr: 'http://sg.ds.com/'
+  db_key: 'Generic'
+  db_password: 'kalyywr~ayDzxsum3bshirqea'
+component_db: ''
+
+

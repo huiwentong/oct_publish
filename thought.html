@@ -1,0 +1,458 @@
+﻿<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewPublish · 构想设计</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; font-size: 16px; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fb;
+            color: #1a1a2e;
+            line-height: 1.7;
+            overflow-x: hidden;
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+
+        .hero {
+            position: relative; min-height: 85vh;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 2rem 1.5rem;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            overflow: hidden;
+        }
+        .hero::before {
+            content: ''; position: absolute; inset: 0;
+            background: radial-gradient(ellipse 80% 60% at 50% -20%, rgba(99,102,241,.25) 0%, transparent 70%),
+                        radial-gradient(ellipse 60% 50% at 80% 90%, rgba(56,189,248,.15) 0%, transparent 60%),
+                        radial-gradient(ellipse 50% 50% at 10% 80%, rgba(167,139,250,.12) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .hero * { position: relative; z-index: 1; }
+
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .35rem 1.1rem; border-radius: 100px;
+            background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08);
+            color: #94a3b8; font-size: .8rem; font-weight: 500;
+            margin-bottom: 1.8rem; backdrop-filter: blur(4px);
+        }
+        .hero-badge .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #22c55e;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+        @keyframes pulse-dot {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .5; transform: scale(.85); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.6rem, 7vw, 4.5rem); font-weight: 700;
+            letter-spacing: -.03em; line-height: 1.15; color: #fff;
+            margin-bottom: .6rem;
+        }
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, #818cf8, #38bdf8);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .hero p {
+            font-size: clamp(1rem, 2vw, 1.2rem); color: #94a3b8;
+            max-width: 600px; margin: 0 auto 2.2rem; font-weight: 400;
+        }
+        .hero-actions { display: flex; flex-wrap: wrap; gap: .8rem; justify-content: center; }
+        .btn {
+            display: inline-flex; align-items: center; gap: .45rem;
+            padding: .7rem 1.8rem; border-radius: 50px; font-weight: 500;
+            font-size: .9rem; text-decoration: none; transition: all .25s ease; cursor: default;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff;
+            box-shadow: 0 4px 20px rgba(99,102,241,.35);
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(99,102,241,.45); }
+        .btn-outline {
+            border: 1px solid rgba(255,255,255,.18); color: #e2e8f0;
+            background: rgba(255,255,255,.04); backdrop-filter: blur(4px);
+        }
+        .btn-outline:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.3); }
+
+        .scroll-indicator {
+            position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center; gap: .3rem;
+            color: #64748b; font-size: .75rem; letter-spacing: .08em;
+            animation: bounce-down 2.4s ease-in-out infinite;
+        }
+        .scroll-indicator .arrow { font-size: 1.2rem; line-height: 1; }
+        @keyframes bounce-down {
+            0%,100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(6px); }
+        }
+
+        .container { max-width: 1120px; margin: 0 auto; padding: 0 1.5rem; }
+        section { padding: 5rem 0; }
+
+        .section-header { text-align: center; margin-bottom: 3rem; }
+        .section-header .label {
+            display: inline-block; font-size: .72rem; font-weight: 600;
+            letter-spacing: .12em; text-transform: uppercase; color: #6366f1;
+            background: rgba(99,102,241,.1); padding: .2rem 1rem;
+            border-radius: 100px; margin-bottom: .8rem;
+        }
+        .section-header h2 {
+            font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 700;
+            letter-spacing: -.02em; color: #0f172a;
+        }
+        .section-header p { color: #64748b; max-width: 540px; margin: .6rem auto 0; font-size: 1rem; }
+
+        .section-divider {
+            width: 100%; height: 1px;
+            background: linear-gradient(90deg, transparent, #e2e8f0, transparent);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .card {
+            background: #fff; border-radius: 20px; padding: 1.8rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+            transition: all .3s ease; border: 1px solid rgba(0,0,0,.03);
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,.07);
+        }
+        .card-icon {
+            width: 44px; height: 44px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.3rem; margin-bottom: 1rem;
+        }
+        .card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: .5rem; color: #0f172a; }
+        .card p { font-size: .9rem; color: #64748b; line-height: 1.7; }
+
+        .icon-purple { background: rgba(139,92,246,.12); color: #8b5cf6; }
+        .icon-blue   { background: rgba(56,189,248,.12); color: #38bdf8; }
+        .icon-green  { background: rgba(34,197,94,.12); color: #22c55e; }
+        .icon-amber  { background: rgba(245,158,11,.12); color: #f59e0b; }
+        .icon-rose   { background: rgba(244,63,94,.12); color: #f43f5e; }
+        .icon-teal   { background: rgba(20,184,166,.12); color: #14b8a6; }
+
+        .arch-wrapper {
+            display: flex; flex-wrap: wrap; align-items: stretch;
+            justify-content: center; gap: 1.2rem; margin-top: 2rem;
+        }
+        .arch-box {
+            flex: 1 1 200px; min-width: 180px; background: #fff;
+            border-radius: 20px; padding: 1.6rem 1.2rem; text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.04);
+            border: 1px solid rgba(0,0,0,.03); transition: all .3s ease;
+        }
+        .arch-box:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,.07); }
+        .arch-box .emoji { font-size: 2rem; margin-bottom: .5rem; }
+        .arch-box h4 { font-size: 1rem; font-weight: 600; color: #0f172a; margin-bottom: .3rem; }
+        .arch-box p { font-size: .82rem; color: #64748b; line-height: 1.6; }
+        .arch-connector { display: flex; align-items: center; color: #cbd5e1; font-size: 1.4rem; font-weight: 300; padding: 0 .2rem; }
+
+        .feature-list { display: flex; flex-direction: column; gap: 1.2rem; }
+        .feature-item {
+            display: flex; gap: 1rem; align-items: flex-start;
+            background: #fff; border-radius: 16px; padding: 1.2rem 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.03);
+            border: 1px solid rgba(0,0,0,.02); transition: all .2s ease;
+        }
+        .feature-item:hover { box-shadow: 0 6px 24px rgba(0,0,0,.06); }
+        .feature-item .num {
+            flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: .85rem; color: #fff;
+        }
+        .feature-item .num.n1 { background: linear-gradient(135deg,#6366f1,#8b5cf6); }
+        .feature-item .num.n2 { background: linear-gradient(135deg,#38bdf8,#2dd4bf); }
+        .feature-item .num.n3 { background: linear-gradient(135deg,#f59e0b,#f97316); }
+        .feature-item .num.n4 { background: linear-gradient(135deg,#22c55e,#10b981); }
+        .feature-item .num.n5 { background: linear-gradient(135deg,#f43f5e,#e11d48); }
+        .feature-item .content h4 { font-size: .95rem; font-weight: 600; color: #0f172a; margin-bottom: .15rem; }
+        .feature-item .content p { font-size: .85rem; color: #64748b; line-height: 1.6; }
+
+        .log-channels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem; margin-top: 1rem;
+        }
+        .log-card {
+            background: #fff; border-radius: 16px; padding: 1.4rem; text-align: center;
+            border: 1px solid rgba(0,0,0,.03);
+            box-shadow: 0 1px 3px rgba(0,0,0,.03), 0 4px 12px rgba(0,0,0,.03);
+        }
+        .log-card .icon-lg { font-size: 2rem; margin-bottom: .5rem; }
+        .log-card h4 { font-size: .95rem; font-weight: 600; color: #0f172a; }
+        .log-card p { font-size: .8rem; color: #64748b; margin-top: .2rem; }
+
+        .timeline { position: relative; padding-left: 2rem; max-width: 640px; margin: 0 auto; }
+        .timeline::before {
+            content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, #6366f1, #38bdf8, #22c55e);
+            border-radius: 4px;
+        }
+        .tl-item { position: relative; margin-bottom: 2rem; padding-left: 1.2rem; }
+        .tl-item::before {
+            content: ''; position: absolute; left: -1.65rem; top: .35rem;
+            width: 14px; height: 14px; border-radius: 50%; background: #fff;
+            border: 2px solid #6366f1;
+        }
+        .tl-item:nth-child(2)::before { border-color: #38bdf8; }
+        .tl-item:nth-child(3)::before { border-color: #22c55e; }
+        .tl-item:nth-child(4)::before { border-color: #f59e0b; }
+        .tl-item h4 { font-size: 1rem; font-weight: 600; color: #0f172a; }
+        .tl-item p { font-size: .88rem; color: #64748b; line-height: 1.6; }
+
+        footer {
+            background: #0f172a; color: #64748b; text-align: center;
+            padding: 2.5rem 1.5rem; font-size: .85rem;
+        }
+        footer strong { color: #e2e8f0; }
+
+        @media (max-width: 700px) {
+            .arch-connector { display: none; }
+            section { padding: 3rem 0; }
+            .hero { min-height: 70vh; }
+        }
+    </style>
+</head>
+<body>
+<header class="hero">
+    <div class="hero-badge"><span class="dot"></span> 构想设计 · 2026</div>
+    <h1>New<span class="highlight">Publish</span></h1>
+    <p>下一代发布工具框架 —— 融合理念、解耦架构、智能化未来</p>
+    <div class="hero-actions">
+        <a class="btn btn-primary" href="#summary">📖 了解构想</a>
+        <a class="btn btn-outline" href="#architecture">🏗️ 架构设计</a>
+    </div>
+    <div class="scroll-indicator"><span class="arrow">⌄</span><span>向下滚动</span></div>
+</header>
+
+<section id="summary">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Core Summary</span>
+            <h2>为什么要重新设计？</h2>
+            <p>原有 publish 工具框架日渐老旧，无法满足 AI 时代的需求</p>
+        </div>
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon icon-purple">🧩</div>
+                <h3>框架老化</h3>
+                <p>原有 publish 工具框架十分老旧，设计思路已不再符合日益变化的技术需求，亟需现代化重构。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-blue">🤖</div>
+                <h3>AI 接入壁垒</h3>
+                <p>纯 UI 操作式工具无法被 AI 工作流调用，AI agent 对现有界面无从下手，阻碍智能化升级。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-green">📦</div>
+                <h3>批量发布困境</h3>
+                <p>外包回收或批量发布时需手动编写重复脚本模拟操作，流程更新时所有脚本需同步修改，维护繁琐。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-amber">📋</div>
+                <h3>Log 方式滞后</h3>
+                <p>日志方式和发布设计与现代技术框架脱节，发布版本时的体验感不够顺畅。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section>
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Roadmap</span>
+            <h2>推进计划</h2>
+        </div>
+        <div class="timeline">
+            <div class="tl-item"><h4>📐 框架设计</h4><p>由架构师设计并敲定新的 publish 框架方案，确立核心规范与边界。</p></div>
+            <div class="tl-item"><h4>🚀 Demo 演示</h4><p>快速完成可运行的 Demo，向团队做演示并收集反馈意见。</p></div>
+            <div class="tl-item"><h4>🔄 迭代调整</h4><p>根据大家反馈对框架做补充修改，完善设计细节。</p></div>
+            <div class="tl-item"><h4>🧩 分步升级</h4><p>按环节分配组件开发任务，优先升级小简单环节，试行稳定后逐步推广，新旧工具可同时运行。</p></div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section>
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Design Requirements</span>
+            <h2>设计需求</h2>
+            <p>新 publish 工具需要满足的核心能力与设计原则</p>
+        </div>
+        <div class="feature-list">
+            <div class="feature-item">
+                <div class="num n1">1</div>
+                <div class="content">
+                    <h4>🖥️ UI + CLI 双模式</h4>
+                    <p>支持 UI 操作与 CLI 操作，两种方式调用相同核心逻辑。CLI 模式满足批量快速发布、外包回收等自动化场景。</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="num n2">2</div>
+                <div class="content">
+                    <h4>🗄️ 数据库日志存储</h4>
+                    <p>使用数据库存放日志，支持快速定位、查找与回溯汇总，日志也可通过命令在 UI 中展示。</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="num n3">3</div>
+                <div class="content">
+                    <h4>📝 良好注释 · AI 友好</h4>
+                    <p>尽可能做好代码与配置注释，便于 AI agent 辅助发布操作、自动抓取问题并快速分析。</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="num n4">4</div>
+                <div class="content">
+                    <h4>🧱 三层解耦架构</h4>
+                    <p>拆分为三个互不耦合的独立部分：<strong>UI 层</strong>、<strong>核心逻辑层</strong>、<strong>可自由组装的发布组件层</strong>。</p>
+                </div>
+            </div>
+            <div class="feature-item">
+                <div class="num n5">5</div>
+                <div class="content">
+                    <h4>🛠️ 后台脚本服务</h4>
+                    <p>UI 启动时可运行后台脚本服务，对目标机器远程执行 DCC 命令进行快速纠错，无需亲临工位。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section id="architecture">
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Architecture</span>
+            <h2>三层解耦架构</h2>
+            <p>UI · 核心逻辑 · 组件 —— 各司其职，独立演进</p>
+        </div>
+        <div class="arch-wrapper">
+            <div class="arch-box" style="border-top: 4px solid #6366f1;">
+                <div class="emoji">🎨</div>
+                <h4>UI 层</h4>
+                <p>QtPy 实现 · 兼容多种 Qt 框架与版本<br>界面简洁清晰，一目了然</p>
+            </div>
+            <div class="arch-connector">⟷</div>
+            <div class="arch-box" style="border-top: 4px solid #38bdf8;">
+                <div class="emoji">⚙️</div>
+                <h4>核心逻辑层</h4>
+                <p>参数入口 · 发布状态缓存<br>断点续传 · 快速 Debug 组件</p>
+            </div>
+            <div class="arch-connector">⟷</div>
+            <div class="arch-box" style="border-top: 4px solid #22c55e;">
+                <div class="emoji">🧩</div>
+                <h4>组件层</h4>
+                <p>按项目/环节隔离设计<br>轻量路径 · 可自由组装</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section>
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Core Details</span>
+            <h2>核心能力深度解析</h2>
+        </div>
+
+        <h3 style="font-size:1.2rem;font-weight:600;color:#0f172a;margin-bottom:1rem;">🎨 UI 层</h3>
+        <div class="card-grid" style="margin-bottom:3rem;">
+            <div class="card">
+                <div class="card-icon icon-purple">🖥️</div>
+                <h3>QtPy 兼容框架</h3>
+                <p>使用 QtPy 作为抽象层，兼容不同版本的 Qt 框架和 PyQt/PySide 绑定，界面结构清晰简单。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-teal">🔄</div>
+                <h3>内嵌服务组件</h3>
+                <p>UI 启动后服务同步启动直至程序退出；等待外部 Python/Cmd 指令并执行，将结果反馈给请求客户端。</p>
+            </div>
+        </div>
+
+        <h3 style="font-size:1.2rem;font-weight:600;color:#0f172a;margin-bottom:1rem;">⚙️ 核心逻辑层</h3>
+        <div class="card-grid" style="margin-bottom:3rem;">
+            <div class="card">
+                <div class="card-icon icon-blue">📥</div>
+                <h3>参数入口 &amp; 缓存</h3>
+                <p>提供标准参数入口；发布状态缓存支持失败重启后的断点续传，发布结束自动清理。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-green">🐛</div>
+                <h3>快速 Debug 组件</h3>
+                <p>在核心启动环境中可快速调用单个组件执行，并检查执行结果与 stdout 内容。</p>
+            </div>
+        </div>
+
+        <h3 style="font-size:1.2rem;font-weight:600;color:#0f172a;margin-bottom:1rem;">📋 三通道日志</h3>
+        <div class="log-channels">
+            <div class="log-card"><div class="icon-lg">🖥️</div><h4>控制台</h4><p>命令行执行时实时输出日志</p></div>
+            <div class="log-card"><div class="icon-lg">🔌</div><h4>UI 接口</h4><p>有 UI 接入时同步推送日志显示</p></div>
+            <div class="log-card"><div class="icon-lg">🗄️</div><h4>数据库</h4><p>记录使用人、时间、等级、内容</p></div>
+        </div>
+
+        <h3 style="font-size:1.2rem;font-weight:600;color:#0f172a;margin:2rem 0 1rem;">🧩 组件层</h3>
+        <div class="card-grid">
+            <div class="card">
+                <div class="card-icon icon-amber">🔒</div>
+                <h3>隔离设计</h3>
+                <p>组件按不同项目、不同环节的检查项与发布项进行隔离，互不干扰。</p>
+            </div>
+            <div class="card">
+                <div class="card-icon icon-rose">🗂️</div>
+                <h3>轻量路径</h3>
+                <p>抛弃原有繁琐的路径规则，对组件存放位置进行重新设计，更直观易用。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<section>
+    <div class="container">
+        <div class="section-header">
+            <span class="label">Keywords</span>
+            <h2>核心关键词</h2>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;max-width:640px;margin:0 auto;">
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(99,102,241,.1);color:#6366f1;font-size:.85rem;font-weight:500;">AI Agent</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(56,189,248,.1);color:#38bdf8;font-size:.85rem;font-weight:500;">CLI 批量发布</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(34,197,94,.1);color:#22c55e;font-size:.85rem;font-weight:500;">断点续传</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(245,158,11,.1);color:#f59e0b;font-size:.85rem;font-weight:500;">三层解耦</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(244,63,94,.1);color:#f43f5e;font-size:.85rem;font-weight:500;">DB 日志</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(20,184,166,.1);color:#14b8a6;font-size:.85rem;font-weight:500;">远程 DCC</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(168,85,247,.1);color:#a855f7;font-size:.85rem;font-weight:500;">QtPy</span>
+            <span style="padding:.35rem 1.1rem;border-radius:100px;background:rgba(239,68,68,.1);color:#ef4444;font-size:.85rem;font-weight:500;">快速 Debug</span>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p><strong>NewPublish</strong> · 构想设计文档 · Generated from <code>thought.md</code></p>
+    <p style="margin-top:.3rem;font-size:.8rem;">十月流程框架 · 核心发布模块</p>
+</footer>
+</body>
+</html>

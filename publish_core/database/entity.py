@@ -205,7 +205,7 @@ def get_pro_entities(pro_entity: SGEntity) -> dict[str, list]:
     """Fetch Asset / Shot / Sequence belonging to a project, grouped by type."""
     sg = FastSg().client
     pro_filter = ["project", "is", pro_entity.tiny_raw()]
-    fields = ["id", "code", "sg_status"]
+    fields = ["id", "code", "sg_status_list"]
 
     result: dict[str, list] = {}
     for etype in ("Asset", "Shot", "Sequence"):
@@ -214,18 +214,15 @@ def get_pro_entities(pro_entity: SGEntity) -> dict[str, list]:
     return result
 
 
-def get_entity_tasks(sg_entity: SGEntity) -> list[SGEntity]:
+def get_entity_tasks(sg_entity: SGEntity) -> list:
     """Fetch all Tasks linked to a given entity."""
     sg = FastSg().client
     raw_list = sg.find(
         "Task",
         [["entity", "is", {"type": sg_entity.type, "id": sg_entity.id}]],
-        ["id", "content", "sg_status_list", "task_assignees", "type"],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion"],
     )
-    return [
-        SGEntity(r.get("type"), r.get("id"))
-        for r in raw_list
-    ]
+    return raw_list
 
 def get_user(user_name=None) -> SGEntity:
     """Fetch user to a given entity."""

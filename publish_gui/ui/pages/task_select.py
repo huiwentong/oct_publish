@@ -5,48 +5,66 @@ from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QListWidget, QListWidgetItem, QFrame,
 )
-from qtpy.QtCore import Qt, Signal # type: ignore
+from qtpy.QtCore import Qt, Signal, QSize # type: ignore
 from publish_gui.ui.theme import Color, font_header
+from publish_core.database.entity import SGEntity, get_pros, get_pro_entities, get_entity_tasks, get_user
 
 
-MOCK_TASKS = [
-    {"id": 101, "name": "Modeling", "status": "Ready"},
-    {"id": 102, "name": "LookDev", "status": "In Progress"},
-    {"id": 103, "name": "Rigging", "status": "Ready"},
-    {"id": 104, "name": "Animation", "status": "Waiting"},
-    {"id": 105, "name": "Lighting", "status": "Ready"},
-    {"id": 106, "name": "FX", "status": "In Progress"},
-]
 
-
-class TaskItemWidget(QFrame):
-    def __init__(self, task, parent=None):
+class TaskItemWidget(QWidget):
+    def __init__(self, task:dict, parent=None):
         super().__init__(parent)
         self._task = task
         self.setFixedHeight(52)
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self.setStyleSheet(
             f"TaskItemWidget {{"
             f"  background: transparent;"
+            f"  border: none;"
             f"  border-bottom: 1px solid {Color.BORDER};"
             f"}}"
         )
 
         layout = QHBoxLayout(self)
         layout.setContentsMargins(16, 8, 16, 8)
+        layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-        name = QLabel(task["name"])
+        name = QLabel(task['content'])
         name.setStyleSheet(
             f"color: {Color.TEXT_PRIMARY};"
+            f"background: transparent;"
             f"font-weight: bold;"
             f"font-size: 11pt;"
         )
         layout.addWidget(name)
         layout.addStretch()
+        
+        lv_text = task['sg_latestversion']['name'] if task['sg_latestversion'] else 'no published version'
+        last_version = QLabel(lv_text)
+        last_version.setStyleSheet(
+            f"color: {Color.TEXT_SECONDARY};"
+            f"background: transparent;"
+            f"font-weight: bold;"
+            f"font-size: 11pt;"
+        )
+        layout.addWidget(last_version)
+        # layout.addStretch()
 
-        badge = QLabel(f"  {task['status']}  ")
+        step = QLabel(task['step']['name'])
+        step.setStyleSheet(
+            f"color: {Color.TEXT_SECONDARY};"
+            f"background: transparent;"
+            f"border: 1px solid {Color.BORDER};"
+            f"border-radius: 10px;"
+            f"padding: 2px 10px;"
+            f"font-size: 9pt;"
+        )
+        layout.addWidget(step)
+
+        badge = QLabel(f"  {task['sg_status_list']}  ")
         badge.setStyleSheet(
             f"color: {Color.TEXT_SECONDARY};"
-            f"background-color: {Color.SURFACE};"
+            f"background: transparent;"
             f"border: 1px solid {Color.BORDER};"
             f"border-radius: 10px;"
             f"padding: 2px 10px;"
@@ -96,7 +114,7 @@ class TaskSelectPage(QWidget):
             f"  border-radius: 8px;"
             f"}}"
         )
-        self._populate()
+        # self._populate()
         self._list.currentItemChanged.connect(self._on_selection_changed)
         outer.addWidget(self._list)
 
@@ -121,13 +139,14 @@ class TaskSelectPage(QWidget):
         outer.addLayout(bottom)
 
         self._selected = None
-        self._go_back = Signal()
+        # self._go_back = Signal()
 
-    def _populate(self):
-        for task in MOCK_TASKS:
-            item = QListWidgetItem(self._list)
+    def _populate(self, entity:SGEntity):
+        self._list.clear()
+        for task in get_entity_tasks(entity):
+            item = QListWidgetItem()
             widget = TaskItemWidget(task)
-            item.setSizeHint(widget.sizeHint())
+            item.setSizeHint(QSize(0, 52))
             self._list.addItem(item)
             self._list.setItemWidget(item, widget)
 
@@ -139,7 +158,7 @@ class TaskSelectPage(QWidget):
             return
         widget = self._list.itemWidget(current)
         self._selected = widget.task
-        self._selected_label.setText(f"Selected: {widget.task['name']}")
+        self._selected_label.setText(f"Selected: {widget.task['content']}")
         self._next_btn.setEnabled(True)
 
     def _emit_selection(self):
@@ -147,7 +166,7 @@ class TaskSelectPage(QWidget):
             self.task_selected.emit(self._selected)
 
     def set_back_callback(self, cb):
-        self._go_back.connect(cb)
+        # self._go_back.connect(cb)
         self._back_btn.clicked.connect(cb)
 
     def set_context(self, project_name, entity_type):

@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (
 from qtpy.QtCore import Qt, QSize
 from qtpy.QtGui import QIcon
 
+from publish_core.database.entity import SGEntity
 from publish_gui.ui.theme import Color, STYLESHEET
 from publish_gui.ui.widgets import StepNavBar, ToolBar
 from publish_gui.ui.dialogs import LogDialog, HistoryDialog
@@ -26,8 +27,8 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Publish Manager")
-        self.setMinimumSize(1024, 768)
-        self.resize(1280, 860)
+        self.setMinimumSize(800, 600)
+        self.resize(1000, 520)
 
         # ── Central widget ──
         central = QWidget()
@@ -63,21 +64,26 @@ class MainWindow(QMainWindow):
     # ── Page builder ──────────────────────────────────────────
     def _build_pages(self):
         # Page 0: Project
-        self._project_page = ProjectSelectPage()
-        self._project_page.project_selected.connect(self._on_project_selected)
+        self._project_page = ProjectSelectPage(self)
         self._stack.addWidget(self._project_page)
-        return
         # Page 1: Entity
-        self._entity_page = EntitySelectPage()
-        # self._entity_page.entity_selected.connect(self._on_entity_selected)
-        # self._entity_page.set_back_callback(lambda: self._go_to_page(0))
+        self._entity_page = EntitySelectPage(self)
         self._stack.addWidget(self._entity_page)
+
+
 
         # Page 2: Task
         self._task_page = TaskSelectPage()
-        # self._task_page.task_selected.connect(self._on_task_selected)
-        # self._task_page.set_back_callback(lambda: self._go_to_page(1))
         self._stack.addWidget(self._task_page)
+
+        self._project_page.project_selected.connect(self._on_project_selected)
+        self._entity_page.entity_selected.connect(self._on_entity_selected)
+        self._task_page.task_selected.connect(self._on_task_selected)
+
+        self._task_page.set_back_callback(lambda: self._go_to_page(1))
+        self._entity_page.set_back_callback(lambda: self._go_to_page(0))
+        return
+    
 
         # Page 3: Publish Form
         self._form_page = PublishFormPage()
@@ -108,11 +114,16 @@ class MainWindow(QMainWindow):
 
     # ── Signal handlers ───────────────────────────────────────
     def _on_project_selected(self, project):
-        self._selected_project = project
+        self._selected_project: SGEntity = project
+        self._toolbar.set_status(f'已选择project {project.code}')
+        self._entity_page.fill_grid(project)
         self._go_to_page(1)
 
     def _on_entity_selected(self, entity_type):
-        self._selected_entity = entity_type
+        (type, id) = entity_type
+        entity = SGEntity(type, id)
+        self._task_page._populate(entity)
+        self._toolbar.set_status(f'已选择{type}类型的 {entity.code}')
         self._go_to_page(2)
         if hasattr(self, "_selected_project"):
             self._task_page.set_context(
@@ -121,9 +132,10 @@ class MainWindow(QMainWindow):
             )
 
     def _on_task_selected(self, task):
-        self._selected_task = task
+        self._selected_task: SGEntity = task
         self._go_to_page(3)
-        self._toolbar.set_status(f"Task: {task['name']}")
+        self._toolbar.set_status(f"Task: {task['content']}")
+
 
     def _on_form_submit(self, form_data):
         self._form_data = form_data

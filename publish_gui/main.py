@@ -17,6 +17,13 @@ def run():
     app = QApplication(sys.argv)
 
     window = MainWindow()
+    # Center on screen
+    screen = app.primaryScreen()
+    if screen:
+        center = screen.availableGeometry().center()
+        frame = window.frameGeometry()
+        frame.moveCenter(center)
+        window.move(frame.topLeft())
     window.show()
 
     sys.exit(app.exec())

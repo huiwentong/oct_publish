@@ -63,7 +63,7 @@ class ToolBar(QWidget):
             btn.clicked.connect(sig.emit)
             layout.addWidget(btn)
 
-        self._status = QLabel("Selecting Task...")
+        self._status = QLabel("Selecting Project...")
         self._status.setStyleSheet(
             f"color: {Color.TEXT_MUTED};"
             f"padding: 4px 14px;"

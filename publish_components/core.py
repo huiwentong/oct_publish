@@ -2,7 +2,7 @@ from dataclasses import dataclass, fields
 from typing import Any
 from abc import ABC, abstractmethod
 from publish_core.cli import PublishCli
-from qtpy.QtWidgets import QVBoxLayout
+from qtpy.QtWidgets import QWidget
 
 
 
@@ -14,7 +14,7 @@ class Component():
 @dataclass
 class InterFace():
     cli: PublishCli
-    gui_layout: QVBoxLayout | None = None
+    ui_parent: QWidget | None = None
     dcc_file: str | None = None
     is_gui: bool = False
 

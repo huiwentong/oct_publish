@@ -12,6 +12,7 @@ from publish_gui.ui.theme import Color, STYLESHEET
 from publish_gui.ui.widgets import StepNavBar, ToolBar
 from publish_gui.ui.dialogs import LogDialog, HistoryDialog
 from publish_gui.ui.pages import (
+    MyTaskSelectPage,
     ProjectSelectPage,
     EntitySelectPage,
     TaskSelectPage,
@@ -28,7 +29,7 @@ class MainWindow(QMainWindow):
         super().__init__(parent)
         self.setWindowTitle("Publish Manager")
         self.setMinimumSize(800, 600)
-        self.resize(1000, 520)
+        self.resize(1000, 620)
 
         # ── Central widget ──
         central = QWidget()
@@ -63,47 +64,50 @@ class MainWindow(QMainWindow):
 
     # ── Page builder ──────────────────────────────────────────
     def _build_pages(self):
-        # Page 0: Project
+        # --- Page 0: Project ---
         self._project_page = ProjectSelectPage(self)
+        self._project_page.project_selected.connect(self._on_project_selected)
         self._stack.addWidget(self._project_page)
-        # Page 1: Entity
+
+        # --- Page 1: My Tasks (for selected project) ---
+        self._my_task_page = MyTaskSelectPage()
+        self._my_task_page.task_selected.connect(self._on_my_task_selected)
+        self._my_task_page.skip_requested.connect(lambda: self._go_to_page(2))
+        self._my_task_page.set_back_callback(lambda: self._go_to_page(0))
+        self._stack.addWidget(self._my_task_page)
+
+        # --- Page 2: Entity ---
         self._entity_page = EntitySelectPage(self)
+        self._entity_page.entity_selected.connect(self._on_entity_selected)
+        self._entity_page.set_back_callback(lambda: self._go_to_page(0))
         self._stack.addWidget(self._entity_page)
 
-
-
-        # Page 2: Task
+        # --- Page 3: Task ---
         self._task_page = TaskSelectPage()
-        self._stack.addWidget(self._task_page)
-
-        self._project_page.project_selected.connect(self._on_project_selected)
-        self._entity_page.entity_selected.connect(self._on_entity_selected)
         self._task_page.task_selected.connect(self._on_task_selected)
-
-        self._task_page.set_back_callback(lambda: self._go_to_page(1))
-        self._entity_page.set_back_callback(lambda: self._go_to_page(0))
+        self._task_page.set_back_callback(lambda: self._go_to_page(2))
+        self._stack.addWidget(self._task_page)
+        
         return
-    
-
-        # Page 3: Publish Form
+        # --- Page 4: Publish Form ---
         self._form_page = PublishFormPage()
-        # self._form_page.proceed_to_check.connect(self._on_form_submit)
-        # self._form_page.set_back_callback(lambda: self._go_to_page(2))
+        self._form_page.proceed_to_check.connect(self._on_form_submit)
+        self._form_page.set_back_callback(lambda: self._go_to_page(3))
         self._stack.addWidget(self._form_page)
 
-        # Page 4: Check Panel
+        # --- Page 5: Check Panel ---
         self._check_page = CheckPanelPage()
-        # self._check_page.check_done.connect(self._on_check_done)
-        # self._check_page.go_to_publish.connect(self._on_go_to_publish)
-        self._check_page.set_back_callback(lambda: self._go_to_page(3))
+        self._check_page.check_done.connect(self._on_check_done)
+        self._check_page.go_to_publish.connect(self._on_go_to_publish)
+        self._check_page.set_back_callback(lambda: self._go_to_page(4))
         self._stack.addWidget(self._check_page)
 
-        # Page 5: Publish Progress
+        # --- Page 6: Publish Progress ---
         self._progress_page = PublishProgressPage()
         self._progress_page.done.connect(lambda: self._go_to_page(0))
         self._stack.addWidget(self._progress_page)
 
-        # Start at project page
+        # Start at Project page
         self._stack.setCurrentIndex(0)
         self._navbar.set_current_step(0)
 
@@ -113,9 +117,16 @@ class MainWindow(QMainWindow):
         self._navbar.set_current_step(index)
 
     # ── Signal handlers ───────────────────────────────────────
+    def _on_my_task_selected(self, task):
+        self._selected_task = task
+        self._toolbar.set_status(f"Task: {task['content']}")
+        self._go_to_page(4)
+        # self._check_page._run_checks()
+
     def _on_project_selected(self, project):
         self._selected_project: SGEntity = project
         self._toolbar.set_status(f'已选择project {project.code}')
+        self._my_task_page.fill_grid(project)
         self._entity_page.fill_grid(project)
         self._go_to_page(1)
 
@@ -124,7 +135,7 @@ class MainWindow(QMainWindow):
         entity = SGEntity(type, id)
         self._task_page._populate(entity)
         self._toolbar.set_status(f'已选择{type}类型的 {entity.code}')
-        self._go_to_page(2)
+        self._go_to_page(3)
         if hasattr(self, "_selected_project"):
             self._task_page.set_context(
                 self._selected_project["name"],
@@ -132,14 +143,14 @@ class MainWindow(QMainWindow):
             )
 
     def _on_task_selected(self, task):
-        self._selected_task: SGEntity = task
-        self._go_to_page(3)
+        self._selected_task = task
+        self._go_to_page(4)
         self._toolbar.set_status(f"Task: {task['content']}")
 
 
     def _on_form_submit(self, form_data):
         self._form_data = form_data
-        self._go_to_page(4)
+        self._go_to_page(5)
         if form_data.get("mode") == "publish" or form_data.get("mode") == "both":
             pass  # check first, then publish later
         self._check_page._run_checks()
@@ -148,7 +159,7 @@ class MainWindow(QMainWindow):
         self._toolbar.set_status("Checks complete")
 
     def _on_go_to_publish(self, _):
-        self._go_to_page(5)
+        self._go_to_page(6)
         self._progress_page.start_publish()
         self._toolbar.set_status("Publishing\u2026")
 

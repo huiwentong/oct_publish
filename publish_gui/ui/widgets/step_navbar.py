@@ -9,8 +9,10 @@ from publish_gui.ui.theme import Color, font_body
 
 _STEPS = [
     ("🎪", "Project"),
+    ("📙", "My Tasks"),
     ("🧵", "Entity"),
     ("📚", "Task"),
+    ("📄", "Form"),
     ("🔍", "Check"),
     ("🎯", "Publish"),
     ("🎉", "Done"),

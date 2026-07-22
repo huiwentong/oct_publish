@@ -108,8 +108,6 @@ class ImageLoader(QObject):
         self.manager.get(request)
 
     def _finished(self, reply):
-        print('has reply!')
-        print(reply)
         data = reply.readAll()
         pixmap = QPixmap()
         pixmap.loadFromData(data)

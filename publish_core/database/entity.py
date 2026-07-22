@@ -220,9 +220,37 @@ def get_entity_tasks(sg_entity: SGEntity) -> list:
     raw_list = sg.find(
         "Task",
         [["entity", "is", {"type": sg_entity.type, "id": sg_entity.id}]],
-        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion"],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion", "entity"],
     )
     return raw_list
+
+
+def get_my_tasks() -> list:
+    """Fetch tasks assigned to the current user."""
+    sg = FastSg().client
+    user = get_user()
+    raw_list = sg.find(
+        "Task",
+        [["task_assignees", "is", user.tiny_raw()]],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion", "entity"],
+    )
+    return raw_list
+
+
+def get_my_project_tasks(project: SGEntity) -> list:
+    """Fetch tasks assigned to current user within a specific project."""
+    sg = FastSg().client
+    user = get_user()
+    raw_list = sg.find(
+        "Task",
+        [
+            ["task_assignees", "is", user.tiny_raw()],
+            ["project", "is", project.tiny_raw()],
+        ],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion", "entity"],
+    )
+    return raw_list
+
 
 def get_user(user_name=None) -> SGEntity:
     """Fetch user to a given entity."""
@@ -245,4 +273,5 @@ if __name__ == "__main__":
     # entity = SGEntity("Task", 120705)
     # print(entity.content)
     # print(entity.project.asd)
-    print(get_pros(get_user()))
+    project = SGEntity('Project', 142)
+    print(len(get_my_project_tasks(project)))

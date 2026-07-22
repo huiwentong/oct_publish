@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
-from publish_core.database import SGEntity
+from publish_core.database.entity import SGEntity, get_user 
 
 
 class PublishType(Enum):
@@ -21,18 +21,19 @@ class PublishStatus(str, Enum):
 
 @dataclass(slots=True)
 class PublishStack:
-    process_files: list[Path]
-    check_files: list[Path]
+    task_entity: SGEntity
     status: PublishStatus = field(init=False, default=PublishStatus.WAITING)
     message: str = field(init=False, default='starting……')
     create_time: datetime = field(init=False, default_factory=datetime.now)
+    process_files: list[Path] = field(init=False, default_factory=list) 
+    check_files: list[Path] = field(init=False, default_factory=list)
 
 
 
 @dataclass(slots=True)
 class PublishCli:
 
-    user: str
+    user: SGEntity
     task_id: int
 
     publish_type: PublishType = PublishType.DAILY
@@ -53,7 +54,8 @@ class PublishCli:
     
 
     def __post_init__(self):
-        pass
+        self.task_entity = SGEntity('Task', self.task_id)
+        self.stack = PublishStack(self.task_entity)
         
 
     @property
@@ -95,3 +97,7 @@ def entity_asdict(obj):
             for v in obj
         ]
     return obj
+
+
+if __name__ == "__main__":
+    pcli = PublishCli(get_user(), 120705)

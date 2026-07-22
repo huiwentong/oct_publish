@@ -37,6 +37,19 @@ class TaskItemWidget(QWidget):
             f"font-size: 11pt;"
         )
         layout.addWidget(name)
+
+
+        entity_name = QLabel(task['entity']['name'])
+        entity_name.setStyleSheet(
+            f"color: {Color.TEXT_SECONDARY};"
+            f"background: transparent;"
+            f"border: 1px solid {Color.BORDER};"
+            f"border-radius: 10px;"
+            f"padding: 2px 10px;"
+            f"font-size: 9pt;"
+        )
+        layout.addWidget(entity_name)
+
         layout.addStretch()
         
         lv_text = task['sg_latestversion']['name'] if task['sg_latestversion'] else 'no published version'
@@ -129,7 +142,7 @@ class TaskSelectPage(QWidget):
         self._back_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         bottom.addWidget(self._back_btn)
 
-        self._next_btn = QPushButton("Continue to Publish ->")
+        self._next_btn = QPushButton("Continue to Check ->")
         self._next_btn.setObjectName("accent")
         self._next_btn.setEnabled(False)
         self._next_btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -157,8 +170,8 @@ class TaskSelectPage(QWidget):
             self._selected_label.setText("")
             return
         widget = self._list.itemWidget(current)
-        self._selected = widget.task
-        self._selected_label.setText(f"Selected: {widget.task['content']}")
+        self._selected = widget.task #type: ignore
+        self._selected_label.setText(f"Selected: {widget.task['content']}") #type: ignore
         self._next_btn.setEnabled(True)
 
     def _emit_selection(self):

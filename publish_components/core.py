@@ -1,43 +1,356 @@
-from dataclasses import dataclass, fields
+from dataclasses import dataclass, fields, field
 from typing import Any
+import ast
 from abc import ABC, abstractmethod
-from publish_core.cli import PublishCli
 from qtpy.QtWidgets import QWidget
+import traceback
+import inspect
+import importlib
+from importlib import util
+import sys
+from pprint import pprint
+import os
+import tempfile
+from pathlib import Path
+import subprocess
+from publish_core.database.entity import SGEntity
+from publish_components.utils.register import register_component_from_db, unpack_xml
+
+DCC_COMMANDS = {
+    'cmd':
+        'rez-env oct_publish -- python {script} {scene}',
+    '.hip':
+        'rez-env oct_houdini houdini-20.5 -- hython {script} {scene}',
+
+    '.ma':
+        'rez-env maya-2024 oct_maya oct_maya_toolbox -- mayapy {script} {scene}',
+
+    '.mb':
+        'rez-env maya-2024 oct_maya oct_maya_toolbox -- mayapy {script} {scene}',
+
+    '.nk':
+        'rez-env nuke-14.1v8 oct_nuke nuke_plugins -- nukex -t {script} {scene}',
+
+    '.katana':
+        'rez-env katana-7.5v2 ktoa-4.3.7.1 oct_katana -- katanaBin -t {script} {scene}',
+}
+
+
+class Signal:
+    def __init__(self, signal_data_type, logger):
+        self.data_type = signal_data_type
+        self.logger = logger
+        self.data=None
+        self.callbacks = []
+    
+    def set_loop(self, loop):
+        self._loop = loop
+
+
+    def emit(self, signal_data):
+        
+        if not isinstance(signal_data, self.data_type):
+            raise ValueError('Wrong type!')
+        for func in self.callbacks:
+            func(signal_data)
+
+
+    def connect(self, func):
+        self.callbacks.append(func)
+
+    def disconnect(self, func):
+        self.callbacks.remove(func)
+
+
+
 
 
 
 class Component():
-    pass
+    def __init__(self, script_path, gui: bool):
+        self.script_path = Path(script_path)
+        self.import_module = set()
+        self.main_script = None
+        self.check_script()
+        if gui:
+            self.gui_register()
+
+
+    def gui_main(self, submit_data:dict, process_data:dict):
+        pass
+
+
+    def check_script(self):
+        try:
+            if not self.script_path.exists():
+                raise FileNotFoundError(self.script_path)
+            source = self.script_path.read_text(encoding="utf-8")
+            tree = ast.parse(source,filename=str(self.script_path))
+            main_node = None
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    for alias in node.names:
+                        code = "import " + alias.name
+                        if alias.asname:
+                            code += f" as {alias.asname}"
+                        self.import_module.add(code)
+                if isinstance(node, ast.ImportFrom):
+                    names = []
+                    for alias in node.names:
+                        name = alias.name
+                        if alias.asname:
+                            name += f" as {alias.asname}"
+                        names.append(name)
+                    code = f"from {node.module} import {', '.join(names)}"
+                    self.import_module.add(code)
+
+                if isinstance(node, ast.FunctionDef):
+                    if node.name == "main":
+                        main_node = node
+                        lines = source.splitlines()
+                        start = node.body[0].lineno - 1
+                        end = node.end_lineno
+                        self.main_script = "\n".join(lines[start:end])
+
+            if not main_node:
+                raise RuntimeError(
+                    "script missing main() function"
+                )
+            has_return = False
+            for node in ast.walk(main_node):
+                if isinstance(node, ast.Import):
+                    raise RuntimeError(
+                        "main() should not contain import"
+                    )
+                if isinstance(node, ast.ImportFrom):
+                    raise RuntimeError(
+                        "main() should not contain import from"
+                    )
+                if isinstance(node, ast.Return):
+                    has_return = True
+            if not has_return:
+                raise RuntimeError("main() should has return")
+            return ""
+        except Exception:
+            traceback.print_exc()
+            return traceback.format_exc()
+
+
+    def gui_register(self):
+        try:
+            spec = util.spec_from_file_location("component_script",self.script_path)
+            if spec is None:
+                raise RuntimeError(
+                    f"Cannot load module: {self.script_path}"
+                )
+            module = util.module_from_spec(spec)
+            if spec.loader is None:
+                raise RuntimeError(
+                    f"Missing loader: {self.script_path}"
+                )
+            spec.loader.exec_module(module)
+            self.gui_main = module.main
+            return ""
+        except:
+            traceback.print_exc()
+            return traceback.format_exc()
+        
 
 
 
 @dataclass
 class InterFace():
-    cli: PublishCli
+    # Data to be read from user input
+    submit_type: str | None = None
+    # Data from cli data
+    process_data:dict | None = None
+
+    input_form: dict | None = None
     ui_parent: QWidget | None = None
-    dcc_file: str | None = None
     is_gui: bool = False
+    dcc_file: str | None = None
+
+
+    process_files: list[Path] = field(init=False, default_factory=list)
+    check_files: list[Path] = field(init=False, default_factory=list)
+    check_stat:int = field(init=False, default=0)
+    proc_stat:int = field(init=False, default=0)
+
+
+    def init_process_data(self):
+        if not self.process_data:
+            raise ValueError('process_data is None')
+        task = SGEntity('Task', self.process_data['task_id'])
+        self.process_data['task_name'] = task.content
+        self.process_data['step_name'] = task.step.short_name
+        self.process_data['step_id'] = task.step.id
+        self.process_data['entity_name'] = task.entity.code
+        self.process_data['entity_id'] = task.entity.id
+        self.process_data['entity_status'] = task.entity.sg_status_list
+        self.process_data['project_name'] = task.project.code
+        self.process_data['project_id'] = task.project.id
+
+
+
+    def get_all_check_process(self):
+        if not self.submit_type:
+            raise ValueError('submit_type is None')
+        module_name = self.__class__.__module__
+        module = sys.modules.get(module_name)
+        module_file = module.__file__ if module and module.__file__ else __file__
+        runlist = Path(module_file).parent / 'runlist.xml'
+        if not runlist.exists():
+            raise FileNotFoundError(f"can not find file {runlist}")
+        self.check_files, self.process_files = unpack_xml(runlist, self.submit_type)
+
+
+    def fill_submit_form(self):
+        if not hasattr(self, 'submit_form'):
+            raise ValueError('can not found submit form')
+        
+        if (not self.is_gui) and (not self.input_form):
+            raise ValueError('need property input_form')
+        
+        if not self.input_form:
+            return
+        
+        for k,v in getattr(self, 'submit_form').items():
+            if not self.input_form.get(k):
+                raise ValueError(f'lack for submitproperty {k}')
+            getattr(self, 'submit_form')[k] = self.input_form[k]
+
+
+    def generate_publish_script(self):
+        all_imports = set()
+        all_funcs = []
+        funcs_template = """
+{import_module}
+
+def main():
+    parent_widget=None
+    submit_data = {submit_data}
+    process_data = {process_data}
+{all_funcs}
+if __name__ == "__main__":
+    res = main()
+    if res:
+        raise RuntimeError(res)
+    
+        """
+        for check in self.check_files:
+            c = Component(str(check), False)
+            all_imports.update(c.import_module)
+            all_funcs.append(c.main_script)
+        
+        for proc in self.process_files:
+            c = Component(str(proc), False)
+            all_imports.update(c.import_module)
+            all_funcs.append(c.main_script)
+
+        return funcs_template.format(
+            import_module='\n'.join(sorted(all_imports)),
+            submit_data = getattr(self, 'submit_form'),
+            process_data = self.process_data,
+            all_funcs = '\n'.join(all_funcs)
+        )
+
+
+    def run_in_cli(self):
+        
+        if not self.dcc_file:
+            raise RuntimeError(f'In no-gui mode, the dcc argument is required.')
+        if self.dcc_file != 'cmd':
+            suffix = Path(self.dcc_file).suffix.lower()
+        else:
+            suffix = 'cmd'
+        if suffix not in DCC_COMMANDS:
+            raise RuntimeError(f'Unsupported dcc file: {suffix}')
+        fd, python_script = tempfile.mkstemp(
+            suffix='.py',
+            prefix='publish_'
+        )
+        try:
+            os.close(fd)
+            with open(python_script, 'w', encoding='utf-8') as f:
+                f.write(self.generate_publish_script())
+            
+            cmd = DCC_COMMANDS[suffix].format(
+                script=python_script,
+                scene='' if suffix=='cmd' else self.dcc_file
+            )
+
+            print(cmd)
+            result = subprocess.run(
+                cmd,
+                shell=True,
+                check=True,
+                capture_output=True,
+                text=True
+            )
+
+            print(result.stdout)
+            print(result.stderr)
+        except Exception:
+            pass
+            # print(traceback.format_exc())
+        finally:
+            if os.path.exists(python_script):
+                os.unlink(python_script)
+
+
+    def check_submit_form(self):
+        for k,v in getattr(self, 'submit_form').items():
+            if not v:
+                raise ValueError(f'has no property: {k}`s value ')
+    
+
+    def gui_run_check(self):
+        if not self.process_data: return
+        self.check_submit_form()
+        for index, check in enumerate(self.check_files):
+            if self.check_stat <= index:
+                c = Component(str(check), True)
+                c.gui_main(submit_data=getattr(self, 'submit_form'), process_data=self.process_data)
+                self.check_stat = index
+
+
+    def gui_run_process(self):
+        if not self.process_data: return
+        self.check_submit_form()
+        for index, process in enumerate(self.process_files):
+            if self.proc_stat <= index:
+                c = Component(str(process), True)
+                c.gui_main(submit_data=getattr(self, 'submit_form'), process_data=self.process_data)
+                self.proc_stat = index
 
 
     @abstractmethod
-    def init_ui(self):
+    def init_ui(self, parent):
         pass
 
     
     @abstractmethod
-    def pre_interface(self):
+    def gui_pre_interface(self):
         pass
 
     
     @abstractmethod
-    def post_interface(self):
+    def gui_post_interface(self):
         pass
     
 
     def __post_init__(self):
-        self.pre_interface()
+        self.get_all_check_process()
         if self.is_gui:
-            self.init_ui()
-        self.post_interface()
+            self.gui_pre_interface()
+            self.init_ui(self.ui_parent)
+            self.gui_post_interface()
+        else:
+            self.init_process_data()
+            self.fill_submit_form()
+            self.check_submit_form()
 
     
+if __name__ == "__main__":
+    c = Component('D:/HWT/repository/newpublish/publish_components/components/mod/check/check_dcc_rv.py', True)
+    # c.gui_main({}, {})

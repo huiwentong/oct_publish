@@ -6,7 +6,7 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Qt, QSize
 from qtpy.QtGui import QIcon
-
+from publish_core.cli import PublishCli, get_user
 from publish_core.database.entity import SGEntity
 from publish_gui.ui.theme import Color, STYLESHEET
 from publish_gui.ui.widgets import StepNavBar, ToolBar
@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Publish Manager")
         self.setMinimumSize(800, 600)
         self.resize(1000, 620)
+        self._cli: PublishCli | None = None
 
         # ── Central widget ──
         central = QWidget()
@@ -71,7 +72,7 @@ class MainWindow(QMainWindow):
 
         # --- Page 1: My Tasks (for selected project) ---
         self._my_task_page = MyTaskSelectPage()
-        self._my_task_page.task_selected.connect(self._on_my_task_selected)
+        self._my_task_page.task_selected.connect(self._on_task_selected)
         self._my_task_page.skip_requested.connect(lambda: self._go_to_page(2))
         self._my_task_page.set_back_callback(lambda: self._go_to_page(0))
         self._stack.addWidget(self._my_task_page)
@@ -88,12 +89,12 @@ class MainWindow(QMainWindow):
         self._task_page.set_back_callback(lambda: self._go_to_page(2))
         self._stack.addWidget(self._task_page)
         
-        return
         # --- Page 4: Publish Form ---
         self._form_page = PublishFormPage()
         self._form_page.proceed_to_check.connect(self._on_form_submit)
         self._form_page.set_back_callback(lambda: self._go_to_page(3))
         self._stack.addWidget(self._form_page)
+        return
 
         # --- Page 5: Check Panel ---
         self._check_page = CheckPanelPage()
@@ -144,6 +145,7 @@ class MainWindow(QMainWindow):
 
     def _on_task_selected(self, task):
         self._selected_task = task
+        self._cli = PublishCli(user=get_user(), task_id=task.id, gui=True)
         self._go_to_page(4)
         self._toolbar.set_status(f"Task: {task['content']}")
 

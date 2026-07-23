@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<root>
+
+    <checkcontainer>
+        <check_group name="Daily">
+            <check type="mod" name="check_dcc_rv"/>
+        </check_group>
+        <check_group name="Submit">
+            <check type="mod" name="version_name"/>
+        </check_group>
+    </checkcontainer>
+
+
+    <processcontainer>
+        <process type="mod" name="test" mode="Daily"/>
+        <process type="mod" name="save_scene" mode="Submit"/>
+    </processcontainer>
+
+</root>

@@ -6,11 +6,11 @@ from qtpy.QtWidgets import (
     QLabel, QLineEdit, QComboBox, QTextEdit,
     QGroupBox, QFormLayout,
 )
-from qtpy.QtCore import Qt, Signal
+from qtpy.QtCore import Qt, Signal #type: ignore
 from publish_gui.ui.theme import Color, font_header
 
 
-PUBLISH_TYPES = ["Dailies", "Submit", "Publish"]
+PUBLISH_TYPES = ["Daily", "Submit", "Publish"]
 
 
 class PublishFormPage(QWidget):
@@ -136,6 +136,9 @@ class PublishFormPage(QWidget):
         }
         self.proceed_to_check.emit(data)
 
+    def _build_interface(self):
+        pass
+
     def set_back_callback(self, cb):
-        self._go_back.connect(cb)
+        # self._go_back.connect(cb)
         self._back_btn.clicked.connect(cb)

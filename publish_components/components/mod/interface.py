@@ -29,7 +29,7 @@ class CompInterface(InterFace):
 
 
 if __name__ == "__main__":
-    ci = CompInterface(submit_type='Daily', input_form={'dcc_file': 'sss', 'test': 'dd'}, 
+    ci = CompInterface(submit_type='Dailies', input_form={'dcc_file': 'sss', 'test': 'dd'}, 
                        process_data={'task_id': 143051}, 
                        dcc_file='cmd'
                        )

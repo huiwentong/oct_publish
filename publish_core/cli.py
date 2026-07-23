@@ -12,7 +12,7 @@ from publish_components.core import InterFace
 
 
 class PublishType(Enum):
-    DAILY = "Daily"
+    DAILY = "Dailies"
     SUBMIT = "Submit"
     PUBLISH = "Publish"
 

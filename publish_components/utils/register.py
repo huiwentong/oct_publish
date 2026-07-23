@@ -7,7 +7,7 @@ def register_component_from_db():
 
 
 
-def unpack_xml(xml_file: Path, publish_type='Daily') -> tuple[list[Path], list[Path]]:
+def unpack_xml(xml_file: Path, publish_type='Dailies') -> tuple[list[Path], list[Path]]:
     tree = ET.parse(xml_file)
     root = tree.getroot()
 
@@ -19,7 +19,7 @@ def unpack_xml(xml_file: Path, publish_type='Daily') -> tuple[list[Path], list[P
     if checkcontainer is not None:
         for check_group in checkcontainer.findall('check_group'):
             group_name = check_group.get('name')
-            if publish_type == "Daily" and group_name != "Daily": continue
+            if publish_type == "Dailies" and group_name != "Dailies": continue
             for check in check_group.findall('check'):
                 check_type = check.get('type') or'gen'
                 check_name = check.get('name') or ''
@@ -36,7 +36,7 @@ def unpack_xml(xml_file: Path, publish_type='Daily') -> tuple[list[Path], list[P
             proc_type = process.get('type') or'gen'
             proc_name = process.get('name') or ''
             mode = process.get('mode')
-            if publish_type == "Daily" and mode != "Daily": continue
+            if publish_type == "Dailies" and mode != "Dailies": continue
             fpath = dir_folder / proc_type / 'process' / (proc_name + '.py')
             if not fpath.exists():
                 raise FileNotFoundError(

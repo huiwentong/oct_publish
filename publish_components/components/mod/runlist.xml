@@ -2,7 +2,7 @@
 <root>
 
     <checkcontainer>
-        <check_group name="Daily">
+        <check_group name="Dailies">
             <check type="mod" name="check_dcc_rv"/>
         </check_group>
         <check_group name="Submit">
@@ -12,7 +12,7 @@
 
 
     <processcontainer>
-        <process type="mod" name="test" mode="Daily"/>
+        <process type="mod" name="test" mode="Dailies"/>
         <process type="mod" name="save_scene" mode="Submit"/>
     </processcontainer>
 

@@ -144,8 +144,8 @@ class MainWindow(QMainWindow):
             )
 
     def _on_task_selected(self, task):
-        self._selected_task = task
-        self._cli = PublishCli(user=get_user(), task_id=task.id, gui=True)
+        self._selected_task = SGEntity('Task', task['id'])
+        self._cli = PublishCli(user=get_user(), task_id=task['id'], gui=True)
         self._go_to_page(4)
         self._toolbar.set_status(f"Task: {task['content']}")
 

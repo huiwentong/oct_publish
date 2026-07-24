@@ -2,7 +2,7 @@
 Main publish window – orchestrates all wizard pages via QStackedWidget.
 """
 from qtpy.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QStackedWidget,
+    QMainWindow, QWidget, QVBoxLayout, QStackedWidget, QMessageBox, QDialog
 )
 from qtpy.QtCore import Qt, QSize
 from qtpy.QtGui import QIcon
@@ -22,7 +22,7 @@ from publish_gui.ui.pages import (
 )
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QDialog):
     """Root application window."""
 
     def __init__(self, parent=None):
@@ -33,11 +33,11 @@ class MainWindow(QMainWindow):
         self._cli: PublishCli | None = None
 
         # ── Central widget ──
-        central = QWidget()
-        central.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.setCentralWidget(central)
+        # central = QWidget()
+        # central.
+        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
-        root_layout = QVBoxLayout(central)
+        root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
         root_layout.setSpacing(0)
 
@@ -114,6 +114,12 @@ class MainWindow(QMainWindow):
 
     # ── Navigation helpers ────────────────────────────────────
     def _go_to_page(self, index):
+        # Require publish type before entering publish flow (pages 4+)
+        if index >= 1:
+            pt = self._toolbar.publish_type()
+            if not pt:
+                QMessageBox.warning(self, '警告', '需要先指定一下publish type！')
+                return
         self._stack.setCurrentIndex(index)
         self._navbar.set_current_step(index)
 
@@ -145,7 +151,17 @@ class MainWindow(QMainWindow):
 
     def _on_task_selected(self, task):
         self._selected_task = SGEntity('Task', task['id'])
-        self._cli = PublishCli(user=get_user(), task_id=task['id'], gui=True)
+        pt = self._toolbar.publish_type()
+        from publish_core.cli import PublishType
+        publish_type_enum = PublishType(pt) if pt else PublishType.DAILY
+        self._cli = PublishCli(
+            user=get_user(), 
+            task_id=task['id'], 
+            gui=True, 
+            publish_type=publish_type_enum, 
+            widget=self._form_page.files_group
+            )
+        self._form_page.build_info_page(self._cli)
         self._go_to_page(4)
         self._toolbar.set_status(f"Task: {task['content']}")
 

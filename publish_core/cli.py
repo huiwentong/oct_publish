@@ -57,6 +57,7 @@ class PublishCli:
     publish_tag_id: int | None = None
     version_num: int | None = None
     dcc_file: str | None = None
+    widget: Any | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
     notify: list[str] = field(default_factory=list)
 
@@ -103,7 +104,7 @@ class PublishCli:
                 dcc_file=self.dcc_file,
             )
         else:
-            self.interface = module.CompInterface()
+            self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget)
         
         
 

@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from publish_components.core import InterFace
+from qtpy import QtWidgets, QtCore, QtGui
 
 
 
@@ -13,6 +14,9 @@ class CompInterface(InterFace):
             "test": True
         }
     )
+    tag_list: list = field(
+        default_factory=lambda: [1130, 1129]
+    )
 
 
     def gui_pre_interface(self):
@@ -20,7 +24,15 @@ class CompInterface(InterFace):
 
 
     def init_ui(self, parent):
-        pass
+        vlay = QtWidgets.QVBoxLayout(parent)
+        vlay.setContentsMargins(0, 0, 0, 0)
+        vlay.setSpacing(0)
+        label = QtWidgets.QLabel("This is a test interface for GUI")
+        label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        vlay.addWidget(label)
+        button = QtWidgets.QPushButton("Click Me")
+        button.clicked.connect(lambda: QtWidgets.QMessageBox.information(parent, "Info", "Button Clicked!"))
+        vlay.addWidget(button)
 
 
     def gui_post_interface(self):

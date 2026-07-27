@@ -80,7 +80,7 @@ class LoadingOverlay(QWidget):
 
         # Save state, translate to spinner center, rotate, then draw
         painter.save()
-        painter.translate(center.x(), center.y() - 20)
+        painter.translate(center.x(), center.y() -60)
         painter.rotate(self._angle)
         rect = QRect(-spinner_radius, -spinner_radius,
                      2 * spinner_radius, 2 * spinner_radius)

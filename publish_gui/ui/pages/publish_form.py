@@ -103,17 +103,99 @@ class ThumbLabel(QLabel):
         super().__init__(parent)
         self.setFixedSize(130, 70)
         self.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.setScaledContents(True)
         self.setStyleSheet(
             "QLabel { background-color: " + Color.BG_LIGHT + "; border: 1px solid " + Color.BORDER
             + "; border-radius: 6px; color: " + Color.TEXT_MUTED + "; font-size: 8pt; }")
         self.setText("No preview")
         self.setCursor(Qt.CursorShape.PointingHandCursor)
 
-    
+        # ── hover overlay state ──
+        self.setMouseTracking(True)
+        self._has_image = False
+        self._hover_pos = None  # QPoint when mouse is over widget
+
+        res_dir = os.path.join(os.path.dirname(__file__), "..", "..", "resource")
+        self._cam = QPixmap(os.path.join(res_dir, "camera.png"))
+        self._cam_hi = QPixmap(os.path.join(res_dir, "camera_hi.png"))
+
+    def setPixmap(self, pixmap):
+        super().setPixmap(pixmap)
+        self._has_image = bool(pixmap and not pixmap.isNull())
+
+    def clear(self):
+        super().clear()
+        self._has_image = False
+
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
         if event.button() == Qt.MouseButton.LeftButton:
             self.clicked.emit()
+
+    def enterEvent(self, event):
+        self._hover_pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
+        self.update()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event):
+        self._hover_pos = None
+        self.update()
+        super().leaveEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self._hover_pos = event.position().toPoint() if hasattr(event, "position") else event.pos()
+        self.update()
+        super().mouseMoveEvent(event)
+
+    def _in_edge_zone(self):
+        """Return True if mouse is within 30 % of any widget edge, False = core zone."""
+        if self._hover_pos is None:
+            return False
+        w, h = self.width(), self.height()
+        if w <= 0 or h <= 0:
+            return False
+        # Normalise position to [0, 1]
+        rx = self._hover_pos.x() / w
+        ry = self._hover_pos.y() / h
+        # Distance to nearest edge on each axis
+        edge_dist = min(rx, 1.0 - rx, ry, 1.0 - ry)
+        # edge zone = within 30 % of the edge
+        return edge_dist < 0.3
+
+    def paintEvent(self, event):
+        """Paint base content, then overlay camera icon when hovering."""
+        # Let QLabel draw its pixmap / text first
+        super().paintEvent(event)
+
+        if self._hover_pos is None:
+            return
+
+        # Choose overlay icon
+        if self._in_edge_zone():
+            overlay = self._cam
+        else:
+            overlay = self._cam_hi
+
+        if overlay.isNull():
+            return
+
+        # Paint overlay centred on the widget — subtle hint, not obscuring
+        painter = QtGui.QPainter(self)
+        painter.setRenderHint(QtGui.QPainter.RenderHint.SmoothPixmapTransform)
+        painter.setOpacity(0.35)
+
+        # Scale overlay to at most 65 % of widget size, keeping aspect ratio
+        max_ow = int(self.width() * 0.65)
+        max_oh = int(self.height() * 0.65)
+        scaled_overlay = overlay.scaled(
+            max_ow, max_oh,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+        ox = (self.width() - scaled_overlay.width()) // 2
+        oy = (self.height() - scaled_overlay.height()) // 2
+        painter.drawPixmap(ox, oy, scaled_overlay)
+        painter.end()
 
 
 
@@ -178,21 +260,25 @@ class PreviewItem(QFrame):
         self.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         layout = QHBoxLayout(self)
-        layout.setContentsMargins(8, 2, 8, 2)
+        layout.setContentsMargins(8, 1, 8, 1)
         layout.setSpacing(8)
         layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
         thumb_label = QLabel()
-        thumb_label.setFixedSize(32, 32)
-        thumb_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        thumb_label.setFixedSize(22, 22)
+        thumb_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        thumb_label.setScaledContents(True)
+        thumb_label.setStyleSheet(
+            "QLabel { background: transparent; }"
+        )
         if thumb and not thumb.isNull():
-            scaled = thumb.scaled(30,30,
+            scaled = thumb.scaled(20, 20,
                 Qt.AspectRatioMode.KeepAspectRatio,
                 Qt.TransformationMode.SmoothTransformation)
             thumb_label.setPixmap(scaled)
         else:
             thumb_label.setText("[img]")
-            thumb_label.setStyleSheet("color: " + Color.TEXT_MUTED + "; font-size: 9pt;")
+            thumb_label.setStyleSheet("color: " + Color.TEXT_MUTED + "; font-size: 9pt; background: transparent;")
         layout.addWidget(thumb_label)
 
         name_label = QLabel(name)
@@ -204,9 +290,20 @@ class PreviewItem(QFrame):
         remove_btn.setFixedSize(22, 22)
         remove_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         remove_btn.setStyleSheet(
-            "QPushButton { background: transparent; color: " + Color.DANGER_DIM
-            + "; border: none; font-size: 10pt; }"
-            "QPushButton:hover { color: " + Color.DANGER + "; }"
+            "QPushButton {"
+            "  background: " + Color.BG_CARD + ";"
+            "  color: " + Color.DANGER + ";"
+            "  border: 1px solid " + Color.DANGER_DIM + ";"
+            "  border-radius: 4px;"
+            "  font-size: 9pt;"
+            "  font-weight: bold;"
+            "  padding: 0px;"
+            "}"
+            "QPushButton:hover {"
+            "  background: " + Color.DANGER_DIM + ";"
+            "  color: #ffffff;"
+            "  border-color: " + Color.DANGER + ";"
+            "}"
         )
         remove_btn.clicked.connect(lambda: self.remove_clicked.emit(self._index))
         layout.addWidget(remove_btn)
@@ -285,6 +382,13 @@ class PublishFormPage(QWidget):
         self._tag_combo.setPlaceholderText("Select or type tag...")
         self._tag_combo.addItems(["", "Final", "WIP", "Review", "Client"])
         self._tag_combo.setFixedWidth(135)
+        # Muted placeholder; brighten once a real item is picked
+        from publish_gui.ui.theme import Color as _C
+        self._tag_combo.setStyleSheet(
+            f"QComboBox {{ color: {_C.TEXT_MUTED}; }}"
+            f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
+        )
+        self._tag_combo.currentIndexChanged.connect(self._on_tag_index_changed)
         tag_row.addWidget(self._tag_combo)
         vinfo.addLayout(tag_row)
         sc.addWidget(info_group)
@@ -599,7 +703,8 @@ class PublishFormPage(QWidget):
         item = QListWidgetItem()
         widget = PreviewItem(idx, name, thumb)
         widget.remove_clicked.connect(self._remove_by_widget)
-        item.setSizeHint(widget.sizeHint())
+        item.setSizeHint(QSize(32,32))
+        item.setTextAlignment(Qt.AlignmentFlag.AlignVCenter)
         self._preview_list.addItem(item)
         self._preview_list.setItemWidget(item, widget)
         self._preview_list.setCurrentRow(idx)
@@ -702,6 +807,21 @@ class PublishFormPage(QWidget):
         for tag_id in cli.interface.tag_list:
             tag_entity = SGEntity('Tag', tag_id)
             self._tag_combo.addItem(tag_entity.name, tag_entity)
+
+    def _on_tag_index_changed(self, index):
+        """Toggle combo text color: muted for placeholder, primary for real items."""
+        from publish_gui.ui.theme import Color as _C
+        if index <= 0 and not self._tag_combo.currentData(Qt.ItemDataRole.UserRole):
+            # Placeholder / empty selection — dim text
+            self._tag_combo.setStyleSheet(
+                f"QComboBox {{ color: {_C.TEXT_MUTED}; }}"
+                f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
+            )
+        else:
+            self._tag_combo.setStyleSheet(
+                f"QComboBox {{ color: {_C.TEXT_PRIMARY}; }}"
+                f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
+            )
 
     def collect_form_info(self, cli: PublishCli):
         find_num = re.fullmatch(r"v(\d{3})", self._version_edit.text())

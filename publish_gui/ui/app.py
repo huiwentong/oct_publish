@@ -189,9 +189,6 @@ class MainWindow(QDialog):
 
         self._loading_overlay.show_overlay()
 
-        # Spin up background worker for the heavy PublishCli init.
-        # Do NOT pass the real widget (Qt object) — it lives in the main thread
-        # and would cause cross-thread QObject errors.
         self._thread = QThread(self)
         self._worker = PublishCliWorker(
             user=get_user(),

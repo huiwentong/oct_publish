@@ -2,12 +2,13 @@
 from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QLineEdit, QComboBox, QListWidget, QListWidgetItem,
-    QGroupBox, QFrame, QFileDialog, QSizePolicy, QApplication, 
+    QGroupBox, QFrame, QFileDialog, QSizePolicy, QApplication,QTextEdit,
     QScrollArea,QDialog
 )
 import tempfile
 import os
-from qtpy import QtCore
+import re 
+from qtpy import QtCore, QtWidgets, QtGui
 from qtpy.QtCore import Qt, Signal, QSize #type: ignore
 from qtpy.QtGui import QPixmap
 from publish_core.cli import PublishCli, get_user
@@ -19,6 +20,11 @@ PUBLISH_TYPES = ["Dailies", "Submit", "Publish"]
 
 LISTW_STYLE = f'''
 QListWidget {{
+    background-color: {Color.BG_LIGHT};
+    border: 1px solid {Color.BORDER};
+    border-radius: 6px;
+}}
+QWidget  {{
     background-color: {Color.BG_LIGHT};
     border: 1px solid {Color.BORDER};
     border-radius: 6px;
@@ -260,6 +266,7 @@ class PublishFormPage(QWidget):
         self._version_name_label.setStyleSheet("color: " + Color.TEXT_SECONDARY + "; background: transparent;")
         ver_row.addWidget(self._version_name_label, stretch=1)
         self._version_edit = QLineEdit()
+        self._version_edit.editingFinished.connect(self.check_version_edit)
         self._version_edit.setPlaceholderText("e.g. v003")
         self._version_edit.setFixedSize(135, 35)
         ver_row.addWidget(self._version_edit)
@@ -274,13 +281,86 @@ class PublishFormPage(QWidget):
         tag_row.addSpacing(40)
         tag_row.addStretch()
         self._tag_combo = QComboBox()
-        self._tag_combo.setEditable(True)
+        # self._tag_combo.setEditable(True)
         self._tag_combo.setPlaceholderText("Select or type tag...")
         self._tag_combo.addItems(["", "Final", "WIP", "Review", "Client"])
         self._tag_combo.setFixedWidth(135)
         tag_row.addWidget(self._tag_combo)
         vinfo.addLayout(tag_row)
         sc.addWidget(info_group)
+
+
+                # ── Comment row ──
+        comment_row = QHBoxLayout()
+        comment_row.setSpacing(8)
+        comment_label = QLabel("Comment:")
+        comment_label.setFixedWidth(100)
+        comment_label.setAlignment(Qt.AlignmentFlag.AlignTop)  # 顶部对齐，配合多行文本
+        comment_row.addWidget(comment_label)
+        comment_row.addSpacing(40)
+
+        self._comment_edit = QTextEdit()
+        self._comment_edit.setPlaceholderText("Enter publish comment here...")
+        self._comment_edit.setFixedHeight(80)
+        self._comment_edit.setStyleSheet(
+            "QTextEdit { background: transparent; border: 1px solid #555; "
+            "border-radius: 4px; padding: 4px; }"
+        )
+        comment_row.addWidget(self._comment_edit, stretch=1)
+        vinfo.addLayout(comment_row)
+
+        # ── Notify People row ──
+        notify_row = QHBoxLayout()
+        notify_row.setSpacing(8)
+        notify_label = QLabel("Notify:")
+        notify_label.setFixedWidth(100)
+        notify_row.addWidget(notify_label)
+        notify_row.addSpacing(40)
+
+        # 下拉菜单：选择人员
+        self._notify_combo = QComboBox()
+        self._notify_combo.setFixedSize(160, 35)
+        self._notify_combo.setPlaceholderText("Select person...")
+        
+        
+        self.pp_model = QtGui.QStandardItemModel()
+        self.completer = QtWidgets.QCompleter()
+        self.completer.setModel(self.pp_model)
+        self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
+        self.completer.setFilterMode(Qt.MatchFlag.MatchContains) 
+        self.completer.setCompletionMode(QtWidgets.QCompleter.CompletionMode.PopupCompletion) 
+        self.completer.setMaxVisibleItems(10) 
+        self._notify_combo.setCompleter(self.completer)
+        self._notify_combo.setModel(self.pp_model)
+        self._notify_combo.setEditable(True) 
+        notify_row.addWidget(self._notify_combo)
+        
+        for k,v in {'test1': 12, 'test2': 123, 'test3':855}.items():
+            item = QtGui.QStandardItem(k)
+            item.setData(v, Qt.ItemDataRole.UserRole)
+            self.pp_model.appendRow(item)
+
+        self._notify_scroll = QScrollArea()
+        self._notify_scroll.setFixedHeight(40)
+        self._notify_scroll.setWidgetResizable(True)
+        self._notify_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._notify_scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self._notify_scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
+
+        self._notify_container = QWidget()
+        self._notify_scroll.setStyleSheet(LISTW_STYLE)
+        self._notify_layout = QHBoxLayout(self._notify_container)
+        self._notify_layout.setContentsMargins(4, 2, 4, 2)
+        self._notify_layout.setSpacing(6)
+        self._notify_layout.addStretch() 
+        self._notify_scroll.setWidget(self._notify_container)
+
+        notify_row.addWidget(self._notify_scroll, stretch=1)
+        vinfo.addLayout(notify_row)
+
+        self._notified_people: dict[str, int] = {}
+        self._notify_combo.currentIndexChanged.connect(self._add_notify_person)
+
 
         # ── Preview ──
         preview_group = QGroupBox("Preview")
@@ -372,6 +452,54 @@ class PublishFormPage(QWidget):
         self._check_publish_btn.clicked.connect(lambda: self._proceed(mode="both"))
         bottom.addWidget(self._check_publish_btn)
         outer.addLayout(bottom)
+
+    def _add_notify_person(self, index):
+        if index == -1: 
+            self._notify_combo.setCurrentIndex(-1)
+            return
+        name = self._notify_combo.itemData(index, Qt.ItemDataRole.DisplayRole)
+        data = self._notify_combo.itemData(index, Qt.ItemDataRole.UserRole)
+        print(name)
+        print(id)
+        print(self._notified_people.get(name))
+        if self._notified_people.get(name): 
+            self._notify_combo.setCurrentIndex(-1)
+            return
+        self._notified_people[name] = data
+        btn = QPushButton(name)
+        btn.setFixedHeight(26)
+        btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn.setStyleSheet(
+            "QPushButton {"
+            "  background: #3a3a3a; color: #ddd; border: 1px solid #666;"
+            "  border-radius: 12px; padding: 2px 12px;"
+            "}"
+            "QPushButton:hover { background: #c0392b; border-color: #e74c3c; }"
+        )
+        btn.setToolTip(f"Click to remove {name}")
+        btn.clicked.connect(lambda checked=False, b=btn, n=name: self._remove_notify_person(b, n))
+        self._notify_layout.insertWidget(self._notify_layout.count() - 1, btn)
+        self._notify_combo.setCurrentIndex(-1)
+
+    def _remove_notify_person(self, btn: QPushButton, name: str):
+        if name in self._notified_people:
+            self._notified_people.pop(name)
+        self._notify_layout.removeWidget(btn)
+        btn.deleteLater()
+
+
+    def check_version_edit(self):
+        text = self._version_edit.text().strip()
+        if not re.fullmatch(r"v\d{3}", text):
+            QtWidgets.QMessageBox.warning(
+                self,
+                "格式错误",
+                f"版本号格式不正确：'{text}'\n\n要求格式：v + 3位数字，例如 v001、v012、v103",
+            )
+            self._version_edit.setFocus()
+            self._version_edit.selectAll()
+
+
 
     def _style_group(self, group):
         bg = Color.BG_MID
@@ -546,10 +674,6 @@ class PublishFormPage(QWidget):
 
     def _proceed(self, mode):
         data = {
-            "version": self._version_edit.text(),
-            "tag": self._tag_combo.currentText(),
-
-            "previews": [p["path"] for p in self._preview_items],
             "mode": mode,
         }
         self.proceed_to_check.emit(data)
@@ -564,16 +688,45 @@ class PublishFormPage(QWidget):
             vername = f'{cli.task_entity.entity.code}.{cli.task_entity.step.short_name}.{cli.task_entity.content}.'
             vernum = 1
         self._version_name_label.setText(vername)
-        self._version_edit.setText(str(vernum))
+        self._version_edit.setText('v' + str(vernum).zfill(3))
         if not cli.interface:
             raise RuntimeError(f'cli can not find interface!!!')
         
+        self.pp_model.clear()
+        for pp in cli.all_active_pp:
+            item = QtGui.QStandardItem(pp['name'])
+            item.setData(pp, Qt.ItemDataRole.UserRole)
+            self.pp_model.appendRow(item)
+
         self._tag_combo.clear()
         for tag_id in cli.interface.tag_list:
             tag_entity = SGEntity('Tag', tag_id)
             self._tag_combo.addItem(tag_entity.name, tag_entity)
 
-
+    def collect_form_info(self, cli: PublishCli):
+        find_num = re.fullmatch(r"v(\d{3})", self._version_edit.text())
+        if not find_num:
+            raise RuntimeError('版本号不符合格式')
+        num = int(find_num.group(1))
+        if not self._tag_combo.currentData(Qt.ItemDataRole.UserRole):
+            QtWidgets.QMessageBox.warning(self, '警告', '缺少发布标签，无法提交!')
+            return False
+        if not self._preview_items:
+            QtWidgets.QMessageBox.warning(self, '警告', '缺少预览图片/视频，无法提交!')
+            return False
+        if not self._comment_edit.toPlainText():
+            QtWidgets.QMessageBox.warning(self, '警告', '缺少版本注释，无法提交!')
+            return False
+        
+        cli.gui_init(
+            publish_tag_id=self._tag_combo.currentData(Qt.ItemDataRole.UserRole)['id'],
+            comment=self._comment_edit.toPlainText(),
+            preview_paths = [item['path'] for item in self._preview_items],
+            notify = [id for id in self._notified_people.values()],
+            version_num=num
+        )
+        return True
+        
 
     def set_back_callback(self, cb):
         self._back_btn.clicked.connect(cb)

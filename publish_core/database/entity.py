@@ -266,7 +266,16 @@ def get_user(user_name=None) -> SGEntity:
         raise ValueError(f'can not find user {user_name} in shotgun')
     return SGEntity('HumanUser', user.get('id'))
     
-
+def get_all_pp() -> list:
+    sg = FastSg().client
+    users = sg.find(
+        'HumanUser',
+        [['sg_status_list', 'is_not', 'dis']],
+        ['name', 'login', 'id', 'sg_dingtalk_id']
+    )
+    if not users:
+        raise RuntimeError('can not find any pp')
+    return users
 
 if __name__ == "__main__":
     from pprint import pprint

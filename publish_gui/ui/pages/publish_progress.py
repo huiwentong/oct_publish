@@ -3,10 +3,53 @@ Page 6 - Publish progress / result.
 """
 from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
-    QLabel, QProgressBar, QFrame,
+    QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
+    QProgressBar
 )
-from qtpy.QtCore import Qt, QTimer, Signal # type: ignore
+import inspect
+from publish_core.cli import PublishCli, get_user
+from publish_components.core import Component
+from qtpy.QtCore import Qt, QTimer, Signal, QObject, QThread # type: ignore
+from qtpy.QtGui import QColor
 from publish_gui.ui.theme import Color, font_header
+
+COLOR_MAP ={
+    'waiting': Color.TEXT_MUTED,
+    'failed': Color.DANGER,
+    'process': Color.WARNING_DIM,
+    'success': Color.SUCCESS
+}
+
+
+
+class ComponentWorker(QObject):
+
+    finished = Signal(Component, int)
+    final = Signal()
+    failed = Signal(str, int)
+    process = Signal(int)
+
+    def __init__(self, comps):
+        super().__init__()
+        self.comps:list[Component] = comps
+
+    def run(self):
+        try:
+            for row, comp in enumerate(self.comps):
+                if not comp.status:
+                    continue
+                self.process.emit(row)
+                comp.run()
+
+                if comp.status:
+                    self.failed.emit(comp.status, row)
+                    break
+                else:
+                    self.finished.emit(comp, row)
+            self.final.emit()
+        except Exception as e:
+            self.failed.emit(str(e), -1)
+            self.final.emit()
 
 
 class PublishProgressPage(QWidget):
@@ -26,7 +69,7 @@ class PublishProgressPage(QWidget):
         outer = QVBoxLayout(self)
         outer.setContentsMargins(48, 24, 48, 24)
         outer.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
+ 
         self._icon_label = QLabel("\u231b")
         self._icon_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._icon_label.setStyleSheet(f"color: {Color.ACCENT}; font-size: 48pt;")
@@ -53,80 +96,204 @@ class PublishProgressPage(QWidget):
         outer.addWidget(self._stage_label)
         outer.addStretch()
 
-        self._result_frame = QFrame()
-        self._result_frame.setVisible(False)
-        self._result_frame.setStyleSheet(
-            f"QFrame {{"
-            f"  background-color: {Color.BG_CARD};"
+
+        self._table = QTableWidget(1, 3)
+        self._table.itemClicked.connect(self._on_item_clicked)
+        self._table.setHorizontalHeaderLabels(["Check", "Result"])
+        self._table.horizontalHeader().setStretchLastSection(False)
+        self._table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
+        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
+        self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        self._table.verticalHeader().setVisible(False)
+        self._table.setStyleSheet(
+            f"QTableWidget {{"
+            f"  background-color: {Color.BG_LIGHT};"
             f"  border: 1px solid {Color.BORDER};"
-            f"  border-radius: 12px;"
-            f"  padding: 24px;"
+            f"  border-radius: 10px;"
+            f"}}"
+            f"QHeaderView::section {{"
+            f"  background-color: {Color.BG_MID};"
+            f"  color: {Color.TEXT_SECONDARY};"
+            f"  padding: 8px;"
+            f"  border: none;"
+            f"  border-bottom: 1px solid {Color.BORDER};"
+            f"  font-weight: bold;"
             f"}}"
         )
-        result_layout = QVBoxLayout(self._result_frame)
-        result_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        self._result_icon = QLabel("\u2714")
-        self._result_icon.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._result_icon.setStyleSheet(f"color: {Color.SUCCESS}; font-size: 36pt;")
-        result_layout.addWidget(self._result_icon)
-
-        self._result_text = QLabel("Publish Successful!")
-        self._result_text.setFont(font_header(16))
-        self._result_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._result_text.setStyleSheet(f"color: {Color.TEXT_PRIMARY};")
-        result_layout.addWidget(self._result_text)
-
-        self._result_detail = QLabel("Version 3 has been published.")
-        self._result_detail.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self._result_detail.setStyleSheet(f"color: {Color.TEXT_MUTED};")
-        result_layout.addWidget(self._result_detail)
-
-        outer.addWidget(self._result_frame, alignment=Qt.AlignmentFlag.AlignCenter)
+        outer.addWidget(self._table)
+        outer.addSpacing(20)
+        
 
         bottom = QHBoxLayout()
         bottom.addStretch()
+
+        self._process_btn = QPushButton("Publish")
+        self._process_btn.setObjectName("publish")
+        self._process_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        self._process_btn.setVisible(True)
+        self._process_btn.clicked.connect(self.start_publish)
+
         self._finish_btn = QPushButton("Finish")
         self._finish_btn.setObjectName("accent")
         self._finish_btn.setCursor(Qt.CursorShape.PointingHandCursor)
         self._finish_btn.setVisible(False)
         self._finish_btn.clicked.connect(self.done.emit)
         bottom.addWidget(self._finish_btn)
+        bottom.addWidget(self._process_btn)
         bottom.addStretch()
         outer.addLayout(bottom)
 
-        self._timer = QTimer(self)
-        self._timer.timeout.connect(self._tick)
+
+        self._worker_thread = QThread()
+        self._worker_thread.setObjectName('allcprocess!')
+        self._worker = None
         self._stage_index = 0
         self._progress_val = 0
+
 
     def start_publish(self):
         self._icon_label.setText("\u231b")
         self._icon_label.setStyleSheet(f"color: {Color.ACCENT}; font-size: 48pt;")
         self._title.setText("Publishing...")
         self._progress.setValue(0)
+        self._finish_btn.setEnabled(False)
+        self._process_btn.setEnabled(False)
         self._stage_index = 0
         self._progress_val = 0
-        self._result_frame.setVisible(False)
-        self._finish_btn.setVisible(False)
-        self._stage_label.setText(self.STAGES[0])
-        self._timer.start(80)
+        self._run_stage()
 
-    def _tick(self):
-        self._progress_val += 1
-        self._progress.setValue(min(self._progress_val, 100))
-        idx = min(self._progress_val // (100 // len(self.STAGES)), len(self.STAGES) - 1)
-        if idx != self._stage_index:
-            self._stage_index = idx
-            self._stage_label.setText(self.STAGES[idx])
-        if self._progress_val >= 100:
-            self._timer.stop()
-            self._show_result()
 
     def _show_result(self):
         self._icon_label.setStyleSheet(f"color: {Color.SUCCESS}; font-size: 48pt;")
         self._icon_label.setText("\u2714")
         self._title.setText("Publish Complete")
         self._stage_label.setText("")
-        self._result_frame.setVisible(True)
         self._finish_btn.setVisible(True)
+        self._finish_btn.setEnabled(True)
+        self._process_btn.setVisible(False)
+
+
+
+    def _run_stage(self):
+        all_comps = []
+        for row in range(self._table.rowCount()):
+            item_main = self._table.item(row, 0)
+            if not item_main:
+                raise RuntimeError('no status item')
+            comp:Component = item_main.data(Qt.ItemDataRole.UserRole)
+            all_comps.append(comp)
+
+
+        self.worker = ComponentWorker(all_comps)
+        self.worker.moveToThread(self._worker_thread)
+        self.worker.finished.connect(self.on_component_finished)
+        self.worker.process.connect(self.on_component_processing)
+        self.worker.failed.connect(self.on_component_failed)
+        self.worker.final.connect(self.on_all_components_finnal)
+        self.worker.final.connect(self._worker_thread.quit)
+        self.worker.final.connect(self.worker.deleteLater)
+        self._worker_thread.started.connect(self.worker.run)
+        self._worker_thread.start()
+
+
+
+    def set_step(self, row):
+        step = int(100/self._table.rowCount()) * (row+1)
+        self._progress_val = step
+        if self._progress_val >= 98:self._progress_val = 100
+        self._progress.setValue(self._progress_val)
+        if self._progress_val >= 100:
+            self._show_result()
+
+
+    def on_all_components_finnal(self):
+        print('all finnal')
+        self._process_btn.setEnabled(True)
+
+
+    def on_component_finished(self, comp, row):
+        item_status = self._table.item(row, 2)
+        item_desc = self._table.item(row, 1)
+        item_main = self._table.item(row, 0)
+        if not item_status or not item_desc or not item_main:
+            raise RuntimeError('can not find item_status')
+        item_status.setForeground(QColor(COLOR_MAP['success']))
+        item_main.setForeground(QColor(COLOR_MAP['success']))
+        item_desc.setForeground(QColor(COLOR_MAP['success']))
+        item_status.setText('success')
+        self.set_step(row)
+
+    
+    def on_component_failed(self, msg, row):
+        item_status = self._table.item(row, 2)
+        item_desc = self._table.item(row, 1)
+        item_main = self._table.item(row, 0)
+        if not item_status or not item_desc or not item_main:
+            raise RuntimeError('can not find item_status')
+        item_status.setForeground(QColor(COLOR_MAP['failed']))
+        item_main.setForeground(QColor(COLOR_MAP['failed']))
+        item_desc.setForeground(QColor(COLOR_MAP['failed']))
+        item_status.setText(msg)
+
+    def on_component_processing(self, row):
+        item_status = self._table.item(row, 2)
+        item_desc = self._table.item(row, 1)
+        item_main = self._table.item(row, 0)
+        if not item_status or not item_desc or not item_main:
+            raise RuntimeError('can not find item_status')
+        item_status.setForeground(QColor(COLOR_MAP['process']))
+        item_main.setForeground(QColor(COLOR_MAP['process']))
+        item_desc.setForeground(QColor(COLOR_MAP['process']))
+        item_status.setText('processing...')
+
+    def _on_item_clicked(self, item: QTableWidgetItem):
+        row = item.row()
+        main_item = self._table.item(row,0)
+        if not main_item:
+            return
+        comp:Component = main_item.data(Qt.ItemDataRole.UserRole)
+        if comp:
+            comp.gui_reload()
+            comp.run()
+
+
+
+
+
+    def _fill(self, cli: PublishCli):
+
+        self._progress.setValue(0)
+        self._progress_val = 0
+        self._process_btn.setEnabled(True)
+        self._icon_label.setText("\u231b")
+        self._title.setText('Publishing...')
+        self._process_btn.setVisible(True)
+        self._finish_btn.setEnabled(False)
+        self._finish_btn.setVisible(False)
+        if not cli.interface:
+            raise RuntimeWarning('can not found check files!')
+        self._table.clear()
+
+        self._table.setHorizontalHeaderLabels(["process name", "description", "status"])
+        self._table.horizontalHeader().setStretchLastSection(False)
+        self._table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self._table.setRowCount(len(cli.interface.check_files))
+
+        cli.interface.gui_build_process()
+
+
+        for row, comp in enumerate(cli.interface.process_comps):
+            main_item = QTableWidgetItem(comp.name)
+            main_item.setToolTip(str(comp.script_path))
+            main_item.setData(Qt.ItemDataRole.UserRole, comp)
+            self._table.setItem(row, 0, main_item)
+            desc = inspect.getdoc(comp.gui_main)
+            if not desc:
+                raise RuntimeError(f'can not find {comp.name} description')
+            self._table.setItem(row, 1, QTableWidgetItem(desc))
+            r_item = QTableWidgetItem(comp.status)
+            r_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            r_item.setForeground(QColor(COLOR_MAP['waiting']))
+            self._table.setItem(row, 2, r_item)

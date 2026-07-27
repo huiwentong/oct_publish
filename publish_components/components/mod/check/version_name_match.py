@@ -6,13 +6,10 @@ import time
 
 def main(submit_data:dict, process_data:dict, parent_widget=None):
     """
-    这是一个用来检查dcc是否有rv的检查项
+检查版本名称的合法性
     """
     try:
-        print('check dcc!!!!!!')
+        print('version_name_match !!!!!')
         time.sleep(2)
     except:
         return traceback.format_exc()
-
-
-

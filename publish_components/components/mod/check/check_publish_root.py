@@ -6,13 +6,12 @@ import time
 
 def main(submit_data:dict, process_data:dict, parent_widget=None):
     """
-    这是一个用来检查dcc是否有rv的检查项
+用来检查发布根路径
     """
     try:
-        print('check dcc!!!!!!')
+        pprint(process_data)
+        print('check_publish_root!!!!!!')
         time.sleep(2)
+        raise RuntimeError('test error')
     except:
         return traceback.format_exc()
-
-
-

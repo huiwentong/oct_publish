@@ -17,8 +17,10 @@ from publish_core.database.entity import SGEntity
 from publish_components.utils.register import register_component_from_db, unpack_xml
 
 DCC_COMMANDS = {
+    
     'cmd':
         'rez-env oct_publish -- python {script} {scene}',
+
     '.hip':
         'rez-env oct_houdini houdini-20.5 -- hython {script} {scene}',
 
@@ -67,16 +69,23 @@ class Signal:
 
 
 class Component():
-    def __init__(self, script_path, gui: bool):
+    def __init__(self, parent, script_path, gui: bool):
+        self.parent = parent
         self.script_path = Path(script_path)
+        self.name = self.script_path.stem
         self.import_module = set()
         self.main_script = None
+        self.status = 'waiting'
         self.check_script()
         if gui:
             self.gui_register()
 
 
-    def gui_main(self, submit_data:dict, process_data:dict):
+    def run(self):
+        self.status = self.gui_main(self.parent.submit_form, self.parent.process_data, self.parent.ui_parent)
+
+
+    def gui_main(self, submit_data:dict, process_data:dict, parent_widget=None):
         pass
 
 
@@ -138,7 +147,10 @@ class Component():
 
     def gui_register(self):
         try:
-            spec = util.spec_from_file_location("component_script",self.script_path)
+            spec = util.spec_from_file_location(
+                "component_script",
+                self.script_path
+            )
             if spec is None:
                 raise RuntimeError(
                     f"Cannot load module: {self.script_path}"
@@ -149,12 +161,36 @@ class Component():
                     f"Missing loader: {self.script_path}"
                 )
             spec.loader.exec_module(module)
+            self.gui_module = module
             self.gui_main = module.main
             return ""
-        except:
+        except Exception:
             traceback.print_exc()
             return traceback.format_exc()
-        
+    
+    def gui_reload(self):
+        try:
+            spec = util.spec_from_file_location(
+                "component_script",
+                self.script_path
+            )
+            if spec is None:
+                raise RuntimeError(
+                    f"Cannot load module: {self.script_path}"
+                )
+            module = util.module_from_spec(spec)
+            if spec.loader is None:
+                raise RuntimeError(
+                    f"Missing loader: {self.script_path}"
+                )
+            spec.loader.exec_module(module)
+            self.gui_module = module
+            self.gui_main = module.main
+            return ""
+
+        except Exception:
+            traceback.print_exc()
+            return traceback.format_exc()
 
 
 
@@ -165,16 +201,20 @@ class InterFace():
     # Data from cli data
     process_data:dict | None = None
 
-    input_form: dict | None = None
     ui_parent: QWidget | None = None
     is_gui: bool = False
     dcc_file: str | None = None
+    input_form: dict = field(default_factory=dict)
 
 
     process_files: list[Path] = field(init=False, default_factory=list)
     check_files: list[Path] = field(init=False, default_factory=list)
+
     check_stat:int = field(init=False, default=0)
     proc_stat:int = field(init=False, default=0)
+
+    process_comps:list = field(default_factory=list)
+    check_comps:list = field(default_factory=list)
 
 
     def init_process_data(self):
@@ -238,12 +278,12 @@ if __name__ == "__main__":
     
         """
         for check in self.check_files:
-            c = Component(str(check), False)
+            c = Component(self, str(check), False)
             all_imports.update(c.import_module)
             all_funcs.append(c.main_script)
         
         for proc in self.process_files:
-            c = Component(str(proc), False)
+            c = Component(self, str(proc), False)
             all_imports.update(c.import_module)
             all_funcs.append(c.main_script)
 
@@ -304,24 +344,25 @@ if __name__ == "__main__":
                 raise ValueError(f'has no property: {k}`s value ')
     
 
-    def gui_run_check(self):
+    def gui_build_check(self):
+        self.check_comps.clear()
         if not self.process_data: return
         self.check_submit_form()
         for index, check in enumerate(self.check_files):
             if self.check_stat <= index:
-                c = Component(str(check), True)
-                c.gui_main(submit_data=getattr(self, 'submit_form'), process_data=self.process_data)
-                self.check_stat = index
+                c = Component(self, str(check), True)
+                self.check_comps.append(c)
+                
 
-
-    def gui_run_process(self):
+    def gui_build_process(self):
+        self.process_comps.clear()
         if not self.process_data: return
         self.check_submit_form()
         for index, process in enumerate(self.process_files):
             if self.proc_stat <= index:
-                c = Component(str(process), True)
-                c.gui_main(submit_data=getattr(self, 'submit_form'), process_data=self.process_data)
-                self.proc_stat = index
+                c = Component(self, str(process), True)
+                self.process_comps.append(c)
+                
 
 
     @abstractmethod

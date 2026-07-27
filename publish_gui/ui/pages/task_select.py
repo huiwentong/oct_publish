@@ -128,7 +128,7 @@ class TaskSelectPage(QWidget):
             f"}}"
         )
         # self._populate()
-        self._list.currentItemChanged.connect(self._on_selection_changed)
+        self._list.itemClicked.connect(self._on_selection_changed)
         outer.addWidget(self._list)
 
         bottom = QHBoxLayout()
@@ -163,16 +163,17 @@ class TaskSelectPage(QWidget):
             self._list.addItem(item)
             self._list.setItemWidget(item, widget)
 
-    def _on_selection_changed(self, current, previous):
-        if current is None:
+    def _on_selection_changed(self, item):
+        if item is None:
             self._selected = None
             self._next_btn.setEnabled(False)
             self._selected_label.setText("")
             return
-        widget = self._list.itemWidget(current)
+        widget = self._list.itemWidget(item)
         self._selected = widget.task #type: ignore
         self._selected_label.setText(f"Selected: {widget.task['content']}") #type: ignore
         self._next_btn.setEnabled(True)
+        self.task_selected.emit(self._selected)
 
     def _emit_selection(self):
         if self._selected:

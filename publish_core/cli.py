@@ -7,7 +7,7 @@ from pprint import pprint
 import inspect
 import importlib
 from importlib import util
-from publish_core.database.entity import SGEntity, get_user 
+from publish_core.database.entity import SGEntity, get_user, get_all_pp
 from publish_components.core import InterFace
 
 
@@ -32,9 +32,6 @@ class PublishStack:
     message: str = field(init=False, default='starting……')
     create_time: datetime = field(init=False, default_factory=datetime.now)
     
-    # process_files: list[Path] = field(init=False, default_factory=list) 
-    # check_files: list[Path] = field(init=False, default_factory=list)
-
     def __post_init__(self):
         pass
         
@@ -60,6 +57,7 @@ class PublishCli:
     widget: Any | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
     notify: list[str] = field(default_factory=list)
+    all_active_pp: list[dict] = field(default_factory=list)
 
 
     # User inputs derived from stack template, which vary depending on the template.
@@ -104,18 +102,30 @@ class PublishCli:
                 dcc_file=self.dcc_file,
             )
         else:
+            self.all_active_pp = get_all_pp()
             self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget)
         
         
 
-    def gui_init(self):
-        pass
+    def gui_init(self, publish_tag_id, comment, preview_paths, notify, version_num):
+         if not self.interface:
+             raise RuntimeError('can not found interface!')
+         self.publish_tag_id = publish_tag_id
+         self.tag_entity = SGEntity('Tag', self.publish_tag_id)
+         self.comment = comment
+         self.notify = notify
+         self.version_num = version_num
+         self.preview_paths = preview_paths
+         self.interface.process_data = self.to_dict()
+
 
     def to_dict(self):
         process_data = {}
         for field in fields(self):
             k = field.name
             v = getattr(self, k)
+            if k == 'all_active_pp':
+                continue
             if isinstance(v, SGEntity):
                 continue
             elif is_dataclass(v):

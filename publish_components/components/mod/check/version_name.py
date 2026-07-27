@@ -5,7 +5,7 @@ import datetime
 
 def main(submit_data:dict, process_data:dict, parent_widget=None):
     """
-    description:
+   检查版本名称！
 
     """
     try:

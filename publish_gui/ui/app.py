@@ -94,7 +94,6 @@ class MainWindow(QDialog):
         self._form_page.proceed_to_check.connect(self._on_form_submit)
         self._form_page.set_back_callback(lambda: self._go_to_page(3))
         self._stack.addWidget(self._form_page)
-        return
 
         # --- Page 5: Check Panel ---
         self._check_page = CheckPanelPage()
@@ -166,19 +165,28 @@ class MainWindow(QDialog):
         self._toolbar.set_status(f"Task: {task['content']}")
 
 
-    def _on_form_submit(self, form_data):
-        self._form_data = form_data
-        self._go_to_page(5)
-        if form_data.get("mode") == "publish" or form_data.get("mode") == "both":
-            pass  # check first, then publish later
-        self._check_page._run_checks()
+    def _on_form_submit(self, mode):
+        if not self._cli:
+            raise RuntimeError('can not find cli')
+        ret = self._form_page.collect_form_info(self._cli)
+        if not ret: return
+        self._check_page._fill(self._cli)
+        self._progress_page._fill(self._cli)
+        if mode['mode'] == 'both':
+            self._go_to_page(5)
+            self._check_page._run_checks(auto=True)
+        else:
+            self._go_to_page(5)
+
+        
 
     def _on_check_done(self, result):
         self._toolbar.set_status("Checks complete")
 
-    def _on_go_to_publish(self, _):
+    def _on_go_to_publish(self, auto=False):
         self._go_to_page(6)
-        self._progress_page.start_publish()
+        if auto:
+            self._progress_page.start_publish()
         self._toolbar.set_status("Publishing\u2026")
 
     # ── Toolbar dialogs ───────────────────────────────────────

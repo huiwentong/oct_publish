@@ -4,6 +4,8 @@
     <checkcontainer>
         <check_group name="Dailies">
             <check type="mod" name="check_dcc_rv"/>
+            <check type="mod" name="check_publish_root"/>
+            <check type="mod" name="version_name_match"/>
         </check_group>
         <check_group name="Submit">
             <check type="mod" name="version_name"/>
@@ -13,6 +15,8 @@
 
     <processcontainer>
         <process type="mod" name="test" mode="Dailies"/>
+        <process type="mod" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="mod" name="copy_work_file_to_v_dir" mode="Dailies"/>
         <process type="mod" name="save_scene" mode="Submit"/>
     </processcontainer>
 

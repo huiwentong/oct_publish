@@ -10,10 +10,10 @@ class CompInterface(InterFace):
 
     submit_form: dict = field(
         default_factory=lambda: {
-            "dcc_file": "",
             "test": True
         }
     )
+
     tag_list: list = field(
         default_factory=lambda: [1130, 1129]
     )
@@ -33,6 +33,10 @@ class CompInterface(InterFace):
         button = QtWidgets.QPushButton("Click Me")
         button.clicked.connect(lambda: QtWidgets.QMessageBox.information(parent, "Info", "Button Clicked!"))
         vlay.addWidget(button)
+        editline = QtWidgets.QLineEdit()
+        vlay.addWidget(editline)
+
+        editline.textChanged.connect(lambda x: self.input_form.update({'test': x}))
 
 
     def gui_post_interface(self):

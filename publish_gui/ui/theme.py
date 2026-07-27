@@ -458,4 +458,58 @@ QCheckBox::indicator:checked {
 
 }
 
+QListWidget { background-color: #2b2f3a; border: 1px solid #383d4b; border-radius: 6px;}
+QListWidget::item {
+padding: 4px 8px;
+}
+QListWidget::item:selected {
+background-color: #4a6bcc;
+}
+QListWidget::item:focus {
+outline: none;
+}
+QScrollBar:vertical {
+background: transparent;
+width: 8px;
+margin: 0;
+}
+QScrollBar::handle:vertical {
+background: #383d4b;
+border-radius: 4px;
+min-height: 30px;
+}
+QScrollBar::handle:vertical:hover {
+background: #636878;
+}
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical {
+height: 0;
+}
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+background: transparent;
+}
+QScrollBar:horizontal {
+background: transparent;
+height: 8px;
+margin: 0;
+}
+QScrollBar::handle:horizontal {
+background: #383d4b;
+border-radius: 4px;
+min-width: 30px;
+}
+QScrollBar::handle:horizontal:hover {
+background: #636878;
+}
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal {
+width: 0;
+height: 0;
+}
+QScrollBar::add-page:horizontal,
+QScrollBar::sub-page:horizontal {
+background: transparent;
+}
+
 """

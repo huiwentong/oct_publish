@@ -118,7 +118,7 @@ class MyTaskSelectPage(QWidget):
         # self._list.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         # self._list.setSelectionBehavior(QListWidget.SelectionBehavior.SelectItems)
         # self._list.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
-        self._list.currentItemChanged.connect(self._on_selection_changed)
+        self._list.itemClicked.connect(self._on_selection_changed)
         
         outer.addWidget(self._list)
 
@@ -168,18 +168,18 @@ class MyTaskSelectPage(QWidget):
         
 
 
-    def _on_selection_changed(self, current, previous):
-        print(current)
-        print(previous)
-        if current is None:
+    def _on_selection_changed(self, item):
+        # if not previous: return
+        if item is None:
             self._selected = None
             self._next_btn.setEnabled(False)
             self._selected_label.setText("")
             return
-        widget = self._list.itemWidget(current)
+        widget = self._list.itemWidget(item)
         self._selected = widget.task #type: ignore
         self._selected_label.setText(f"Selected: {widget.task['content']}") #type: ignore
         self._next_btn.setEnabled(True)
+        self.task_selected.emit(self._selected)
 
     def _emit_selection(self):
         if self._selected:

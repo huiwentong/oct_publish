@@ -718,7 +718,7 @@ class PublishFormPage(QWidget):
             QtWidgets.QMessageBox.warning(self, '警告', '缺少版本注释，无法提交!')
             return False
         
-        cli.gui_init(
+        cli.form_init(
             publish_tag_id=self._tag_combo.currentData(Qt.ItemDataRole.UserRole)['id'],
             comment=self._comment_edit.toPlainText(),
             preview_paths = [item['path'] for item in self._preview_items],

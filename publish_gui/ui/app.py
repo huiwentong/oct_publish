@@ -4,12 +4,13 @@ Main publish window – orchestrates all wizard pages via QStackedWidget.
 from qtpy.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QStackedWidget, QMessageBox, QDialog
 )
-from qtpy.QtCore import Qt, QSize
+from qtpy.QtCore import Qt, QSize, QThread, Signal, QObject #type:ignore
 from qtpy.QtGui import QIcon
+from publish_core.cli import PublishCli
 from publish_core.cli import PublishCli, get_user
 from publish_core.database.entity import SGEntity
 from publish_gui.ui.theme import Color, STYLESHEET
-from publish_gui.ui.widgets import StepNavBar, ToolBar
+from publish_gui.ui.widgets import StepNavBar, ToolBar, LoadingOverlay
 from publish_gui.ui.dialogs import LogDialog, HistoryDialog
 from publish_gui.ui.pages import (
     MyTaskSelectPage,
@@ -20,6 +21,35 @@ from publish_gui.ui.pages import (
     CheckPanelPage,
     PublishProgressPage,
 )
+
+
+class PublishCliWorker(QObject):
+    """Creates PublishCli in a background thread so the GUI stays responsive."""
+    finished = Signal(object)  # emits PublishCli instance
+    error = Signal(str)
+
+    def __init__(self, user, task_id, publish_type, widget, parent=None):
+        super().__init__(parent)
+        self._user = user
+        self._task_id = task_id
+        self._publish_type = publish_type
+        self._widget = widget
+
+    def run(self):
+        try:
+            cli = PublishCli(
+                user=self._user,
+                task_id=self._task_id,
+                gui=True,
+                publish_type=self._publish_type,
+                widget=self._widget,
+            )
+            if cli.task_entity:
+                load = cli.task_entity.sg_last_version
+
+            self.finished.emit(cli)
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class MainWindow(QDialog):
@@ -59,6 +89,9 @@ class MainWindow(QDialog):
 
         # ── Build pages ──
         self._build_pages()
+
+        # ── Loading overlay (hidden by default)
+        self._loading_overlay = LoadingOverlay(self)
 
         # ── Apply global stylesheet ──
         self.setStyleSheet(STYLESHEET)
@@ -153,16 +186,43 @@ class MainWindow(QDialog):
         pt = self._toolbar.publish_type()
         from publish_core.cli import PublishType
         publish_type_enum = PublishType(pt) if pt else PublishType.DAILY
-        self._cli = PublishCli(
-            user=get_user(), 
-            task_id=task['id'], 
-            gui=True, 
-            publish_type=publish_type_enum, 
-            widget=self._form_page.files_group
-            )
+
+        self._loading_overlay.show_overlay()
+
+        # Spin up background worker for the heavy PublishCli init.
+        # Do NOT pass the real widget (Qt object) — it lives in the main thread
+        # and would cause cross-thread QObject errors.
+        self._thread = QThread(self)
+        self._worker = PublishCliWorker(
+            user=get_user(),
+            task_id=task['id'],
+            publish_type=publish_type_enum,
+            widget=None,
+        )
+        self._worker.moveToThread(self._thread)
+        self._thread.started.connect(self._worker.run)
+        self._worker.finished.connect(self._on_cli_ready)
+        self._worker.error.connect(self._on_cli_error)
+        self._worker.finished.connect(self._thread.quit)
+        self._worker.finished.connect(self._worker.deleteLater)
+        self._thread.finished.connect(self._thread.deleteLater)
+        self._thread.start()
+
+    def _on_cli_ready(self, cli):
+        """Called on main thread when PublishCli (except interface) is ready.
+        Rebuild the interface on the main thread with the real widget parent.
+        """
+        self._cli:PublishCli = cli
+        self._cli.init_interface_parent(self._form_page.files_group)
+        self._loading_overlay.hide_overlay()
         self._form_page.build_info_page(self._cli)
         self._go_to_page(4)
-        self._toolbar.set_status(f"Task: {task['content']}")
+        self._toolbar.set_status(f"Task: {self._selected_task.content}")
+
+    def _on_cli_error(self, err_msg):
+        """Called on main thread when PublishCli creation fails."""
+        self._loading_overlay.hide_overlay()
+        QMessageBox.critical(self, "错误", f"加载任务失败:\n{err_msg}")
 
 
     def _on_form_submit(self, mode):

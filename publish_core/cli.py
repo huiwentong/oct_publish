@@ -106,8 +106,14 @@ class PublishCli:
             self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget)
         
         
+    def init_interface_parent(self, widget):
+        if not self.interface:
+            raise RuntimeError('can not found interface!')
+        self.interface.ui_parent = self.widget = widget
+        self.interface.gui_init()
 
-    def gui_init(self, publish_tag_id, comment, preview_paths, notify, version_num):
+
+    def form_init(self, publish_tag_id, comment, preview_paths, notify, version_num):
          if not self.interface:
              raise RuntimeError('can not found interface!')
          self.publish_tag_id = publish_tag_id
@@ -147,7 +153,8 @@ class PublishCli:
         return self.task_entity
     
 
-    
+    def notify_pp(self):
+        pass
 
 
 

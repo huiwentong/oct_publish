@@ -379,19 +379,20 @@ if __name__ == "__main__":
     def gui_post_interface(self):
         pass
     
+    def gui_init(self):
+        self.gui_pre_interface()
+        self.init_ui(self.ui_parent)
+        self.gui_post_interface()
 
     def __post_init__(self):
         self.get_all_check_process()
-        if self.is_gui:
-            self.gui_pre_interface()
-            self.init_ui(self.ui_parent)
-            self.gui_post_interface()
-        else:
+        if not self.is_gui:
             self.init_process_data()
             self.fill_submit_form()
             self.check_submit_form()
 
     
 if __name__ == "__main__":
-    c = Component('D:/HWT/repository/newpublish/publish_components/components/mod/check/check_dcc_rv.py', True)
+    pass
+    # c = Component('D:/HWT/repository/newpublish/publish_components/components/mod/check/check_dcc_rv.py', True)
     # c.gui_main({}, {})

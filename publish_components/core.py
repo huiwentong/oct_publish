@@ -25,18 +25,26 @@ DCC_COMMANDS = {
         'rez-env oct_houdini houdini-20.5 -- hython {script} {scene}',
 
     '.ma':
-        'rez-env maya-2024 oct_maya oct_maya_toolbox -- mayapy {script} {scene}',
+        'rez-env maya-2024 oct_maya -- mayapy {script} {scene}',
 
     '.mb':
-        'rez-env maya-2024 oct_maya oct_maya_toolbox -- mayapy {script} {scene}',
+        'rez-env maya-2024 oct_maya -- mayapy {script} {scene}',
 
     '.nk':
         'rez-env nuke-14.1v8 oct_nuke nuke_plugins -- nukex -t {script} {scene}',
 
     '.katana':
-        'rez-env katana-7.5v2 ktoa-4.3.7.1 oct_katana -- katanaBin -t {script} {scene}',
+        'rez-env katana-7.5v2 ktoa-4.3.7.1 oct_katana -- katanaBin --script {script} {scene}',
 }
 
+DCC_OPENSCEN = {
+    'cmd': ['', ''],
+    '.hip': ['', '    scene = sys.argv[1]\n    hou.hipFile.load(scene,suppress_save_prompt=False,ignore_load_warnings=False)'],
+    '.mb': ['import maya.standalone\nmaya.standalone.initialize(name="python")', '    scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
+    '.ma': ['import maya.standalone\nmaya.standalone.initialize(name="python")', '    scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
+    '.nk': ['', '    scene = sys.argv[1]\n    nuke.scriptOpen(scene)'],
+    '.katana': ['', '    scene = sys.argv[1]\n    KatanaFile.Load(scene)'],
+}
 
 class Signal:
     def __init__(self, signal_data_type, logger):
@@ -260,13 +268,23 @@ class InterFace():
             getattr(self, 'submit_form')[k] = self.input_form[k]
 
 
-    def generate_publish_script(self):
+    def generate_publish_script(self, scene_name):
+        if scene_name != 'cmd':
+            suffix = Path(scene_name).suffix.lower()
+        else:
+            suffix = 'cmd'
+        head, body = DCC_OPENSCEN[suffix]
+        
+
         all_imports = set()
         all_funcs = []
         funcs_template = """
+import sys
 {import_module}
+{maya_standalone}
 
 def main():
+    {load_file}
     parent_widget=None
     submit_data = {submit_data}
     process_data = {process_data}
@@ -288,10 +306,12 @@ if __name__ == "__main__":
             all_funcs.append(c.main_script)
 
         return funcs_template.format(
+            maya_standalone = head,
             import_module='\n'.join(sorted(all_imports)),
             submit_data = getattr(self, 'submit_form'),
             process_data = self.process_data,
-            all_funcs = '\n'.join(all_funcs)
+            all_funcs = '\n'.join(all_funcs),
+            load_file=body
         )
 
 
@@ -312,7 +332,7 @@ if __name__ == "__main__":
         try:
             os.close(fd)
             with open(python_script, 'w', encoding='utf-8') as f:
-                f.write(self.generate_publish_script())
+                f.write(self.generate_publish_script(self.dcc_file))
             
             cmd = DCC_COMMANDS[suffix].format(
                 script=python_script,

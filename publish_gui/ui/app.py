@@ -60,7 +60,6 @@ class MainWindow(QDialog):
         self.setWindowTitle("Publish Manager")
         self.setMinimumSize(800, 600)
         self.resize(1000, 620)
-        self._cli: PublishCli | None = None
 
         # ── Central widget ──
         # central = QWidget()

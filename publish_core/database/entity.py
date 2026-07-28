@@ -270,7 +270,7 @@ def get_all_pp() -> list:
     sg = FastSg().client
     users = sg.find(
         'HumanUser',
-        [['sg_status_list', 'is_not', 'dis']],
+        [['sg_status_list', 'is_not', 'dis'], ['sg_dingtalk_id', 'is_not', None]],
         ['name', 'login', 'id', 'sg_dingtalk_id']
     )
     if not users:

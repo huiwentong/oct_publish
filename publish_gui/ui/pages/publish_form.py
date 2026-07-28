@@ -351,6 +351,11 @@ class PublishFormPage(QWidget):
         vinfo.setContentsMargins(12, 20, 12, 10)
         vinfo.setSpacing(10)
 
+
+        subvlay = QVBoxLayout()
+        subhlay = QHBoxLayout()
+        subhlay.addLayout(subvlay)
+
         # Version row
         ver_row = QHBoxLayout()
         ver_row.setSpacing(8)
@@ -367,7 +372,7 @@ class PublishFormPage(QWidget):
         self._version_edit.setPlaceholderText("e.g. v003")
         self._version_edit.setFixedSize(135, 35)
         ver_row.addWidget(self._version_edit)
-        vinfo.addLayout(ver_row)
+        subvlay.addLayout(ver_row)
 
         # Tag row
         tag_row = QHBoxLayout()
@@ -379,29 +384,33 @@ class PublishFormPage(QWidget):
         tag_row.addStretch()
         self._tag_combo = QComboBox()
         # self._tag_combo.setEditable(True)
-        self._tag_combo.setPlaceholderText("Select or type tag...")
+        self._tag_combo.setPlaceholderText("Select tag...")
         self._tag_combo.addItems(["", "Final", "WIP", "Review", "Client"])
         self._tag_combo.setFixedWidth(135)
         # Muted placeholder; brighten once a real item is picked
         from publish_gui.ui.theme import Color as _C
         self._tag_combo.setStyleSheet(
             f"QComboBox {{ color: {_C.TEXT_MUTED}; }}"
+            f"QComboBox::drop-down {{ border: none; width: 24px; }}"
+            f"QComboBox::down-arrow {{ image: none; width: 0px; height: 0px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #9ca0b0; }}"
             f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
         )
         self._tag_combo.currentIndexChanged.connect(self._on_tag_index_changed)
         tag_row.addWidget(self._tag_combo)
-        vinfo.addLayout(tag_row)
+        subvlay.addLayout(tag_row)
+
+
         sc.addWidget(info_group)
 
 
                 # ── Comment row ──
-        comment_row = QHBoxLayout()
+        comment_row = QVBoxLayout()
         comment_row.setSpacing(8)
         comment_label = QLabel("Comment:")
         comment_label.setFixedWidth(100)
         comment_label.setAlignment(Qt.AlignmentFlag.AlignTop)  # 顶部对齐，配合多行文本
         comment_row.addWidget(comment_label)
-        comment_row.addSpacing(40)
+        comment_row.addSpacing(3)
 
         self._comment_edit = QTextEdit()
         self._comment_edit.setPlaceholderText("Enter publish comment here...")
@@ -411,7 +420,15 @@ class PublishFormPage(QWidget):
             "border-radius: 4px; padding: 4px; }"
         )
         comment_row.addWidget(self._comment_edit, stretch=1)
-        vinfo.addLayout(comment_row)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.VLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
+        subhlay.addWidget(separator)
+        subhlay.addSpacing(8)
+        subhlay.addLayout(comment_row)
+        subhlay.addSpacing(8)
+        vinfo.addLayout(subhlay)
 
         # ── Notify People row ──
         notify_row = QHBoxLayout()
@@ -424,9 +441,7 @@ class PublishFormPage(QWidget):
         # 下拉菜单：选择人员
         self._notify_combo = QComboBox()
         self._notify_combo.setFixedSize(160, 35)
-        self._notify_combo.setPlaceholderText("Select person...")
-        
-        
+
         self.pp_model = QtGui.QStandardItemModel()
         self.completer = QtWidgets.QCompleter()
         self.completer.setModel(self.pp_model)
@@ -436,13 +451,23 @@ class PublishFormPage(QWidget):
         self.completer.setMaxVisibleItems(10) 
         self._notify_combo.setCompleter(self.completer)
         self._notify_combo.setModel(self.pp_model)
-        self._notify_combo.setEditable(True) 
+        self._notify_combo.setEditable(True)
         notify_row.addWidget(self._notify_combo)
-        
+
         for k,v in {'test1': 12, 'test2': 123, 'test3':855}.items():
             item = QtGui.QStandardItem(k)
             item.setData(v, Qt.ItemDataRole.UserRole)
             self.pp_model.appendRow(item)
+
+        self._notify_combo.setCurrentIndex(-1)  # show placeholder after populating
+        # Editable combo placeholder must be set on the internal line edit
+        le = self._notify_combo.lineEdit()
+        le.setPlaceholderText("选择人员")
+        le.setContentsMargins(4,15,4,15)
+        le.setStyleSheet(
+            "QLineEdit { background: transparent; border: none; color: " + Color.TEXT_PRIMARY + "; }"
+            "QLineEdit::placeholder { color: " + Color.TEXT_MUTED + "; }"
+        )
 
         self._notify_scroll = QScrollArea()
         self._notify_scroll.setFixedHeight(40)
@@ -456,6 +481,13 @@ class PublishFormPage(QWidget):
         self._notify_layout = QHBoxLayout(self._notify_container)
         self._notify_layout.setContentsMargins(4, 2, 4, 2)
         self._notify_layout.setSpacing(6)
+        # Placeholder text shown when no person is selected
+        self._notify_placeholder = QLabel("通知人员列表")
+        self._notify_placeholder.setFixedHeight(26)
+        self._notify_placeholder.setStyleSheet(
+            "color: " + Color.TEXT_MUTED + "; background: transparent; font-size: 9pt;"
+        )
+        self._notify_layout.addWidget(self._notify_placeholder)
         self._notify_layout.addStretch() 
         self._notify_scroll.setWidget(self._notify_container)
 
@@ -559,17 +591,15 @@ class PublishFormPage(QWidget):
 
     def _add_notify_person(self, index):
         if index == -1: 
-            self._notify_combo.setCurrentIndex(-1)
             return
         name = self._notify_combo.itemData(index, Qt.ItemDataRole.DisplayRole)
         data = self._notify_combo.itemData(index, Qt.ItemDataRole.UserRole)
-        print(name)
-        print(id)
-        print(self._notified_people.get(name))
-        if self._notified_people.get(name): 
+        if self._notified_people.get(name):
             self._notify_combo.setCurrentIndex(-1)
             return
         self._notified_people[name] = data
+        # Hide placeholder when at least one person is added
+        self._notify_placeholder.hide()
         btn = QPushButton(name)
         btn.setFixedHeight(26)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -589,6 +619,10 @@ class PublishFormPage(QWidget):
         if name in self._notified_people:
             self._notified_people.pop(name)
         self._notify_layout.removeWidget(btn)
+        btn.deleteLater()
+        # Show placeholder when no people remain
+        if not self._notified_people:
+            self._notify_placeholder.show()
         btn.deleteLater()
 
 
@@ -644,8 +678,9 @@ class PublishFormPage(QWidget):
             "}"
             "QGroupBox QComboBox::drop-down {"
             "  border: none;"
-            "  width: 20px;"
+            "  width: 24px;"
             "}"
+            "QGroupBox QComboBox::down-arrow { image: none; width: 0px; height: 0px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #9ca0b0; }"
             "QGroupBox QComboBox QAbstractItemView {"
             "  background-color: " + bg_card + ";"
             "  border: 1px solid " + border + ";"
@@ -797,11 +832,14 @@ class PublishFormPage(QWidget):
         if not cli.interface:
             raise RuntimeError(f'cli can not find interface!!!')
         
+        self._notify_combo.blockSignals(True)
         self.pp_model.clear()
         for pp in cli.all_active_pp:
             item = QtGui.QStandardItem(pp['name'])
             item.setData(pp, Qt.ItemDataRole.UserRole)
             self.pp_model.appendRow(item)
+        self._notify_combo.setCurrentIndex(-1)
+        self._notify_combo.blockSignals(False)
 
         self._tag_combo.clear()
         for tag_id in cli.interface.tag_list:
@@ -814,12 +852,16 @@ class PublishFormPage(QWidget):
         if index <= 0 and not self._tag_combo.currentData(Qt.ItemDataRole.UserRole):
             # Placeholder / empty selection — dim text
             self._tag_combo.setStyleSheet(
-                f"QComboBox {{ color: {_C.TEXT_MUTED}; }}"
+                f"QComboBox {{ color: {_C.TEXT_PRIMARY}; }}"
+                f"QComboBox::drop-down {{ border: none; width: 24px; }}"
+                f"QComboBox::down-arrow {{ image: none; width: 0px; height: 0px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #9ca0b0; }}"
                 f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
             )
         else:
             self._tag_combo.setStyleSheet(
                 f"QComboBox {{ color: {_C.TEXT_PRIMARY}; }}"
+                f"QComboBox::drop-down {{ border: none; width: 24px; }}"
+                f"QComboBox::down-arrow {{ image: none; width: 0px; height: 0px; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid #9ca0b0; }}"
                 f"QComboBox QAbstractItemView {{ color: {_C.TEXT_PRIMARY}; }}"
             )
 

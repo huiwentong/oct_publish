@@ -4,5 +4,6 @@ db:
   db_key: 'Generic'
   db_password: 'kalyywr~ayDzxsum3bshirqea'
 component_db: ''
+log_db: ''
 
 

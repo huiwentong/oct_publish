@@ -23,15 +23,16 @@ class CompInterface(InterFace):
         pass
 
 
-    def init_ui(self, parent):
-        vlay = QtWidgets.QVBoxLayout(parent)
+    def init_ui(self, parent:QtWidgets.QWidget):
+        
+        vlay = QtWidgets.QVBoxLayout(parent.files_group)
         vlay.setContentsMargins(0, 0, 0, 0)
         vlay.setSpacing(0)
         label = QtWidgets.QLabel("This is a test interface for GUI")
         label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         vlay.addWidget(label)
         button = QtWidgets.QPushButton("Click Me")
-        button.clicked.connect(lambda: QtWidgets.QMessageBox.information(parent, "Info", "Button Clicked!"))
+        button.clicked.connect(lambda: parent._version_edit.setText('v088'))
         vlay.addWidget(button)
         editline = QtWidgets.QLineEdit()
         vlay.addWidget(editline)

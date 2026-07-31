@@ -123,6 +123,7 @@ class PublishCli:
          self.version_num = version_num
          self.preview_paths = preview_paths
          self.interface.process_data = self.to_dict()
+         self.interface.fill_submit_form()
 
 
     def to_dict(self):

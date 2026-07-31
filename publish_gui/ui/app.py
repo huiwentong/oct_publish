@@ -209,7 +209,7 @@ class MainWindow(QDialog):
         Rebuild the interface on the main thread with the real widget parent.
         """
         self._cli:PublishCli = cli
-        self._cli.init_interface_parent(self._form_page.files_group)
+        self._cli.init_interface_parent(self._form_page)
         self._loading_overlay.hide_overlay()
         self._form_page.build_info_page(self._cli)
         self._go_to_page(4)
@@ -226,8 +226,15 @@ class MainWindow(QDialog):
             raise RuntimeError('can not find cli')
         ret = self._form_page.collect_form_info(self._cli)
         if not ret: return
+
+        for comp in self._cli.interface.check_comps:
+            comp.status = 'waiting'
+        for comp in self._cli.interface.process_comps:
+            comp.status = 'waiting'
+
         self._check_page._fill(self._cli)
         self._progress_page._fill(self._cli)
+        
         if mode['mode'] == 'both':
             self._go_to_page(5)
             self._check_page._run_checks(auto=True)

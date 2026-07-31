@@ -268,8 +268,10 @@ class CheckPanelPage(QWidget):
             return
         comp = main_item.data(Qt.ItemDataRole.UserRole)
         if comp:
+            temp_status = comp.status
             comp.gui_reload()
             comp.run()
+            comp.status = temp_status
 
 
 

@@ -5,14 +5,16 @@ from qtpy.QtWidgets import (
     QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHBoxLayout, QLabel, QHeaderView,
 )
+from publish_core.database.entity import SGEntity, get_history_version
 from qtpy.QtCore import Qt
 from publish_gui.ui.theme import Color
+from datetime import datetime
 
 
 class HistoryDialog(QDialog):
     COLUMNS = ["Version", "Status", "Comment", "Date", "User"]
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, task:SGEntity|None=None):
         super().__init__(parent)
         self.setWindowTitle("Version History")
         self.setMinimumSize(760, 440)
@@ -57,7 +59,8 @@ class HistoryDialog(QDialog):
         )
         layout.addWidget(self._table)
 
-        self._populate_mock()
+        if task:
+            self._populate(task)
 
         btn_row = QHBoxLayout()
         btn_row.addStretch()
@@ -67,15 +70,19 @@ class HistoryDialog(QDialog):
         btn_row.addWidget(close_btn)
         layout.addLayout(btn_row)
 
-    def _populate_mock(self):
-        self._table.setRowCount(3)
-        mock = [
-            ("v003", "Published", "Final lighting pass", "2026-07-21", "Alice"),
-            ("v002", "Published", "Address review notes", "2026-07-20", "Bob"),
-            ("v001", "Draft", "Initial publish", "2026-07-19", "Alice"),
-        ]
-        for row, (ver, status, comment, date, user) in enumerate(mock):
-            for col, val in enumerate([ver, status, comment, date, user]):
+    def _populate(self, task):
+        mock = get_history_version(task)
+        self._table.setRowCount(len(mock))
+        for row, v_dict in enumerate(mock):
+            # print(created_at)
+            # dt = datetime.fromisoformat(created_at.replace("Z", "+00:00"))
+            code = v_dict['code']
+            sg_version_type = v_dict['sg_version_type']
+            description = v_dict['description']
+            created_at = v_dict['created_at']
+            user = v_dict['user']
+
+            for col, val in enumerate([code, sg_version_type, description, created_at.strftime("%Y-%m-%d %H:%M:%S"), user['name']]):
                 item = QTableWidgetItem(val)
                 item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self._table.setItem(row, col, item)

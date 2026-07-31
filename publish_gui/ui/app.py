@@ -155,11 +155,6 @@ class MainWindow(QDialog):
         self._navbar.set_current_step(index)
 
     # ── Signal handlers ───────────────────────────────────────
-    def _on_my_task_selected(self, task):
-        self._selected_task = task
-        self._toolbar.set_status(f"Task: {task['content']}")
-        self._go_to_page(4)
-        # self._check_page._run_checks()
 
     def _on_project_selected(self, project):
         self._selected_project: SGEntity = project
@@ -264,7 +259,9 @@ class MainWindow(QDialog):
         dlg.exec()
 
     def _show_history(self):
-        dlg = HistoryDialog(parent=self)
+        task = None
+        if hasattr(self, '_selected_task'): task = self._selected_task
+        dlg = HistoryDialog(parent=self, task=task)
         dlg.exec()
 
     def _show_settings(self):

@@ -1,6 +1,8 @@
 from typing import Any
 from publish_core.database.core import ThreadSafeShotgun, FastSg
 import getpass
+from pprint import pprint
+
 
 class SGEntity:
     """
@@ -251,6 +253,18 @@ def get_my_project_tasks(project: SGEntity) -> list:
     )
     return raw_list
 
+def get_history_version(task: SGEntity) -> list:
+    sg = FastSg().client
+    raw_list = sg.find(
+        "Version",
+        [
+            ["sg_task", "is", task.tiny_raw()],
+            ["sg_status_list", "is_not", 'omt'],
+        ],
+        ["sg_version_type", "code", "user", "created_at", "description"],
+    )
+    pprint(raw_list)
+    return raw_list
 
 def get_user(user_name=None) -> SGEntity:
     """Fetch user to a given entity."""

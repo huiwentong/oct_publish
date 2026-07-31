@@ -212,6 +212,7 @@ class InterFace():
     ui_parent: QWidget | None = None
     is_gui: bool = False
     dcc_file: str | None = None
+    runlist: str | None = None
     input_form: dict = field(default_factory=dict)
 
 
@@ -246,7 +247,12 @@ class InterFace():
         module_name = self.__class__.__module__
         module = sys.modules.get(module_name)
         module_file = module.__file__ if module and module.__file__ else __file__
-        runlist = Path(module_file).parent / 'runlist.xml'
+
+        if self.runlist:
+            runlist = Path(self.runlist)
+        else:
+            runlist = Path(module_file).parent / 'runlist.xml'
+            
         if not runlist.exists():
             raise FileNotFoundError(f"can not find file {runlist}")
         self.check_files, self.process_files = unpack_xml(runlist, self.submit_type)

@@ -54,6 +54,7 @@ class PublishCli:
     publish_tag_id: int | None = None
     version_num: int | None = None
     dcc_file: str | None = None
+    runlist: str | None = None
     widget: Any | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
     notify: list[str] = field(default_factory=list)
@@ -103,7 +104,7 @@ class PublishCli:
             )
         else:
             self.all_active_pp = get_all_pp()
-            self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget)
+            self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
         
         
     def init_interface_parent(self, widget):

@@ -50,6 +50,8 @@ def run(task_id, parent=None):
     ret = ChooseType(parent).exec_()
     print(ret)
     window = MainWindow()
+    window._toolbar._type_combo.setEnabled(False)
+    window._form_page._back_btn.setEnabled(False)
     window._toolbar._type_combo.setCurrentIndex(ret)
     task = {'id': task_id}
     window._on_task_selected(task)

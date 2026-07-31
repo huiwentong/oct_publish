@@ -263,7 +263,6 @@ def get_history_version(task: SGEntity) -> list:
         ],
         ["sg_version_type", "code", "user", "created_at", "description"],
     )
-    pprint(raw_list)
     return raw_list
 
 def get_user(user_name=None) -> SGEntity:

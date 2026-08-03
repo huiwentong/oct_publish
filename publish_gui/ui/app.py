@@ -6,7 +6,8 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Qt, QSize, QThread, Signal, QObject #type:ignore
 from qtpy.QtGui import QIcon
-from publish_core.cli import PublishCli
+from publish_core.cli import PublishCli, PublishStack
+from publish_core.log.core import PublishLog
 from publish_core.cli import PublishCli, get_user
 from publish_core.database.entity import SGEntity
 from publish_gui.ui.theme import Color, STYLESHEET
@@ -57,6 +58,8 @@ class MainWindow(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.log:PublishLog
+
         self.setWindowTitle("Publish Manager")
         self.setMinimumSize(800, 600)
         self.resize(1000, 620)
@@ -65,6 +68,7 @@ class MainWindow(QDialog):
         # central = QWidget()
         # central.
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+        self._dlg_log = None
 
         root_layout = QVBoxLayout(self)
         root_layout.setContentsMargins(0, 0, 0, 0)
@@ -72,6 +76,7 @@ class MainWindow(QDialog):
 
         # ── Toolbar ──
         self._toolbar = ToolBar()
+        self.build_log_widget()
         self._toolbar.log_requested.connect(self._show_log)
         self._toolbar.history_requested.connect(self._show_history)
         self._toolbar.settings_requested.connect(self._show_settings)
@@ -159,6 +164,7 @@ class MainWindow(QDialog):
     def _on_project_selected(self, project):
         self._selected_project: SGEntity = project
         self._toolbar.set_status(f'已选择project {project.code}')
+        self.log.info(f'已选择project {project.code}')
         self._my_task_page.fill_grid(project)
         self._entity_page.fill_grid(project)
         self._go_to_page(1)
@@ -168,6 +174,7 @@ class MainWindow(QDialog):
         entity = SGEntity(type, id)
         self._task_page._populate(entity)
         self._toolbar.set_status(f'已选择{type}类型的 {entity.code}')
+        self.log.info(f'已选择{type}类型的 {entity.code}')
         self._go_to_page(3)
         if hasattr(self, "_selected_project"):
             self._task_page.set_context(
@@ -177,6 +184,7 @@ class MainWindow(QDialog):
 
     def _on_task_selected(self, task):
         self._selected_task = SGEntity('Task', task['id'])
+        self.log.info(f'selected task {task["id"]}')
         pt = self._toolbar.publish_type()
         from publish_core.cli import PublishType
         publish_type_enum = PublishType(pt) if pt else PublishType.DAILY
@@ -205,6 +213,9 @@ class MainWindow(QDialog):
         """
         self._cli:PublishCli = cli
         self._cli.init_interface_parent(self._form_page)
+        if not self._cli.task_entity or not self.log:
+            raise RuntimeError('can not find log or cli`s task entity!')
+        self._cli.stack = PublishStack(self._cli.task_entity, self.log)
         self._loading_overlay.hide_overlay()
         self._form_page.build_info_page(self._cli)
         self._go_to_page(4)
@@ -229,7 +240,8 @@ class MainWindow(QDialog):
 
         self._check_page._fill(self._cli)
         self._progress_page._fill(self._cli)
-        
+
+        self.log.info('form is submit!')
         if mode['mode'] == 'both':
             self._go_to_page(5)
             self._check_page._run_checks(auto=True)
@@ -248,15 +260,20 @@ class MainWindow(QDialog):
         self._toolbar.set_status("Publishing\u2026")
 
     # ── Toolbar dialogs ───────────────────────────────────────
+    def build_log_widget(self):
+        self._dlg_log = LogDialog(
+                        parent=self
+                    )
+        self.log = PublishLog(self._dlg_log)
+
+
     def _show_log(self):
-        dlg = LogDialog(
-            log_text="[2026-07-21 10:00:00] INFO  Publish session started\\n"
-                      "[2026-07-21 10:00:05] INFO  Validating inputs\\n"
-                      "[2026-07-21 10:00:08] WARN  Preview path not set\\n"
-                      "[2026-07-21 10:00:10] INFO  Checks passed\\n",
-            parent=self,
-        )
-        dlg.exec()
+        if not self._dlg_log:
+            raise RuntimeError('no log dialog!')
+        if self._dlg_log.isHidden():
+            self._dlg_log.show()
+
+
 
     def _show_history(self):
         task = None

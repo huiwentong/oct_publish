@@ -3,7 +3,22 @@ db:
   db_addr: 'http://sg.ds.com/'
   db_key: 'Generic'
   db_password: 'kalyywr~ayDzxsum3bshirqea'
-component_db: ''
-log_db: ''
+
+runlist_db: 
+  db_type: 'postgresql'
+  db_addr: '192.168.30.3'
+  db_port: 5432
+  db_user: 'my_database'
+  db_name: 'runlist'
+  db_password: '123456'
+
+
+log_db:
+  db_type: 'postgresql'
+  db_addr: '192.168.30.3'
+  db_port: 5432
+  db_user: 'my_database'
+  db_name: 'publish_log'
+  db_password: '123456'
 
 

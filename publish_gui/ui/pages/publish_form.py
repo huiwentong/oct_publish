@@ -825,7 +825,7 @@ class PublishFormPage(QWidget):
             vername = '.'.join(cli.task_entity.sg_last_version.code.split('.')[:-1]) + '.'
             vernum = int(cli.task_entity.sg_last_version.code.split('.')[-1][1:])
         else:
-            vername = f'{cli.task_entity.entity.code}.{cli.task_entity.step.short_name}.{cli.task_entity.content}.'
+            vername = f'{cli.task_entity.entity.code}.{cli.task_entity.step.short_name.lower()}.{cli.task_entity.content}.'
             vernum = 1
         self._version_name_label.setText(vername)
         self._version_edit.setText('v' + str(vernum).zfill(3))

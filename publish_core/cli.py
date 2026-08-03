@@ -9,6 +9,7 @@ import importlib
 from importlib import util
 from publish_core.database.entity import SGEntity, get_user, get_all_pp
 from publish_components.core import InterFace
+from publish_core.log.core import PublishLog
 
 
 class PublishType(Enum):
@@ -27,6 +28,7 @@ class PublishStatus(str, Enum):
 @dataclass(slots=True)
 class PublishStack:
     task_entity: SGEntity
+    log: PublishLog
 
     status: PublishStatus = field(init=False, default=PublishStatus.WAITING)
     message: str = field(init=False, default='starting……')
@@ -74,7 +76,7 @@ class PublishCli:
 
     def __post_init__(self):
         self.task_entity = SGEntity('Task', self.task_id)
-        self.stack = PublishStack(self.task_entity)
+
 
         # build interface based on the step of the task
         stepname = str(self.task_entity.step.short_name).lower()
@@ -93,6 +95,7 @@ class PublishCli:
         
         
         if not self.gui:
+            self.stack = PublishStack(self.task_entity, PublishLog())
             if not self.dcc_file or not self.publish_tag_id or not self.comment or not self.preview_paths:
                 raise RuntimeError(f'In no-gui mode, the dcc_file, publish_tag_id, comment, and preview_paths arguments are required.')
             self.tag_entity = SGEntity('Tag', self.publish_tag_id)

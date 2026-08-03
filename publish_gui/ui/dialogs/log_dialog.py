@@ -49,5 +49,6 @@ class LogDialog(QDialog):
         btn_row.addWidget(close_btn)
         layout.addLayout(btn_row)
 
+
     def append_log(self, text):
         self._log.append(text)

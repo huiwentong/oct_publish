@@ -77,6 +77,9 @@ class PublishCli:
             raise RuntimeError(
                 f"Cannot load component interface: {module_path}"
             ) from e
+        
+        importlib.reload(module)
+        
         if not hasattr(module, "CompInterface"):
             raise RuntimeError(
                 f"{module_path} missing CompInterface"

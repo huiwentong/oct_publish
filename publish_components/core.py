@@ -255,6 +255,7 @@ class InterFace():
     is_gui: bool = False
     dcc_file: str | None = None
     runlist: str | None = None
+    all_complete: bool = False
     input_form: dict = field(default_factory=dict)
 
 
@@ -335,15 +336,18 @@ from publish_core.log.core import PublishLog
 {import_module}
 {maya_standalone}
 
+
+logger = PublishLog(name="TEMP_PYTHON")
 def main():
     {load_file}
     parent_widget=None
     submit_data = {submit_data}
     process_data = {process_data}
-    logger = PublishLog()
+    
 {all_funcs}
 if __name__ == "__main__":
     res = main()
+    logger.error(res)
     if res:
         raise RuntimeError(res)
     
@@ -401,15 +405,11 @@ if __name__ == "__main__":
                     capture_output=True,
                     text=True
                 )
-
                 if result.stdout:
                     self.log.info(f"stdout: {result.stdout}")
-
-                if result.stderr:
-                    self.log.warning(f"stderror: {result.stdout}")
-
+                self.all_complete = True
             except subprocess.CalledProcessError as e:
-                self.log.error(f"stderror: {e.stdout}")
+                self.log.error(f"stdout: {e.stdout}")
                 self.log.error(f"stderror: {e.stderr}")
                 
             

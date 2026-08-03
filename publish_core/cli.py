@@ -221,7 +221,9 @@ if __name__ == "__main__":
     pcli.log.info('cli初始化完毕')
     pcli.interface.run_in_cli()
     pcli.log.info('cli程序运行完毕！')
-    # pcli.notify_pp()
+    if pcli.interface.all_complete:
+        pcli.log.info('全部运行成功！')
+        pcli.notify_pp()
 
 
     # pprint(entity_asdict(pcli))

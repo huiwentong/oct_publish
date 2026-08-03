@@ -2,8 +2,6 @@ from publish_core.config import Config
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
-def register_component_from_db():
-    pass
 
 
 

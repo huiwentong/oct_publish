@@ -14,7 +14,8 @@ import tempfile
 from pathlib import Path
 import subprocess
 from publish_core.database.entity import SGEntity
-from publish_components.utils.register import register_component_from_db, unpack_xml
+from publish_components.utils.register import unpack_xml
+from publish_components.utils.runlist_db import RunListDB
 
 DCC_COMMANDS = {
     
@@ -296,7 +297,10 @@ class InterFace():
             
         if not runlist.exists():
             raise FileNotFoundError(f"can not find file {runlist}")
-        self.check_files, self.process_files = unpack_xml(runlist, self.submit_type)
+        
+        db = RunListDB(runlist_file=runlist, file_first=True if self.runlist else False, publish_type=self.submit_type, step=Path(module_file).parent.stem)
+        self.check_files = db.check_files
+        self.process_files = db.process_files
 
 
     def fill_submit_form(self):

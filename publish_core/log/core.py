@@ -148,11 +148,11 @@ class PublishLog:
         cls._initialized = True
 
 
-    def __init__(self, log_widget=None) -> None:
+    def __init__(self, log_widget=None, name="PUBLISHER") -> None:
         self._logger = None
         if not PublishLog._initialized:
-            PublishLog.setup(log_widget=log_widget)
-        self._logger = logging.getLogger("PUBLISHER")
+            PublishLog.setup(log_widget=log_widget, name=name)
+        self._logger = logging.getLogger(name)
         self._user = getpass.getuser()
         if not self.logDB:
             self.info('没有连接日志数据库！')

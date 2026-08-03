@@ -409,8 +409,8 @@ if __name__ == "__main__":
                     self.log.warning(f"stderror: {result.stdout}")
 
             except subprocess.CalledProcessError as e:
-                self.log.error(e.stdout)
-                self.log.error(e.stderr)
+                self.log.error(f"stderror: {e.stdout}")
+                self.log.error(f"stderror: {e.stderr}")
                 
             
         except Exception:

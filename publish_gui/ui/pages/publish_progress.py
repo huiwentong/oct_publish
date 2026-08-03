@@ -12,6 +12,7 @@ from publish_components.core import Component
 from qtpy.QtCore import Qt, QTimer, Signal, QObject, QThread # type: ignore
 from qtpy.QtGui import QColor
 from publish_gui.ui.theme import Color, font_header
+import time 
 
 COLOR_MAP ={
     'waiting': Color.TEXT_MUTED,
@@ -24,10 +25,10 @@ COLOR_MAP ={
 
 class ComponentWorker(QObject):
 
-    finished = Signal(Component, int)
+    finished = Signal(Component, int, int)
     final = Signal()
-    failed = Signal(str, int)
-    process = Signal(int)
+    failed = Signal(Component, int)
+    process = Signal(Component, int)
 
     def __init__(self, comps):
         super().__init__()
@@ -38,14 +39,15 @@ class ComponentWorker(QObject):
             for row, comp in enumerate(self.comps):
                 if not comp.status:
                     continue
-                self.process.emit(row)
+                self.process.emit(comp, row)
+                t = time.time()
                 comp.run()
 
                 if comp.status:
-                    self.failed.emit(comp.status, row)
+                    self.failed.emit(comp, row)
                     break
                 else:
-                    self.finished.emit(comp, row)
+                    self.finished.emit(comp, row, time.time() - t)
             self.final.emit()
         except Exception as e:
             self.failed.emit(str(e), -1)
@@ -212,7 +214,8 @@ class PublishProgressPage(QWidget):
         self._process_btn.setEnabled(True)
 
 
-    def on_component_finished(self, comp, row):
+    def on_component_finished(self, comp, row, usetime):
+        comp.log.success(f'finish process {comp.name}, total use: {usetime:.2f}s')
         item_status = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
@@ -225,7 +228,8 @@ class PublishProgressPage(QWidget):
         self.set_step(row)
 
     
-    def on_component_failed(self, msg, row):
+    def on_component_failed(self, comp, row):
+        comp.log.warning(f'process failed!: {comp.status}')
         item_status = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
@@ -234,9 +238,10 @@ class PublishProgressPage(QWidget):
         item_status.setForeground(QColor(COLOR_MAP['failed']))
         item_main.setForeground(QColor(COLOR_MAP['failed']))
         item_desc.setForeground(QColor(COLOR_MAP['failed']))
-        item_status.setText(msg)
+        item_status.setText(comp.status)
 
-    def on_component_processing(self, row):
+    def on_component_processing(self, comp, row):
+        comp.log.info(f'start process {comp.name}')
         item_status = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)

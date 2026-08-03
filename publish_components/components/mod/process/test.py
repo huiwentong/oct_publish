@@ -3,7 +3,7 @@ from glob import glob
 import time
 
 
-def main(submit_data:dict, process_data:dict, parent_widget=None):
+def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 测试用
     """

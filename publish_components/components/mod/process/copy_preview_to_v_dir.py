@@ -2,7 +2,7 @@ import traceback
 import inspect
 import time
 
-def main(submit_data:dict, process_data:dict, parent_widget=None):
+def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 复制预览图到版本文件夹
     """

@@ -25,17 +25,6 @@ class PublishStatus(str, Enum):
     FAILED = "failed"
 
 
-@dataclass(slots=True)
-class PublishStack:
-    task_entity: SGEntity
-    log: PublishLog
-
-    status: PublishStatus = field(init=False, default=PublishStatus.WAITING)
-    message: str = field(init=False, default='starting……')
-    create_time: datetime = field(init=False, default_factory=datetime.now)
-    
-    def __post_init__(self):
-        pass
         
 
 
@@ -58,6 +47,7 @@ class PublishCli:
     dcc_file: str | None = None
     runlist: str | None = None
     widget: Any | None = None
+    log: PublishLog | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
     notify: list[str] = field(default_factory=list)
     all_active_pp: list[dict] = field(default_factory=list)
@@ -69,7 +59,6 @@ class PublishCli:
     # auto build after initial
     task_entity: SGEntity | None = field(init=False, default=None)
     tag_entity: SGEntity | None = field(init=False, default=None)
-    stack: PublishStack | None = field(init=False, default=None)
     interface: InterFace | None = field(init=False, default=None)
 
     
@@ -95,11 +84,13 @@ class PublishCli:
         
         
         if not self.gui:
-            self.stack = PublishStack(self.task_entity, PublishLog())
+            self.log = PublishLog()
+            self.log.info('publish cli initial!!')
             if not self.dcc_file or not self.publish_tag_id or not self.comment or not self.preview_paths:
                 raise RuntimeError(f'In no-gui mode, the dcc_file, publish_tag_id, comment, and preview_paths arguments are required.')
             self.tag_entity = SGEntity('Tag', self.publish_tag_id)
             self.interface = module.CompInterface(
+                log=self.log,
                 submit_type=self.publish_type.value,
                 input_form=self.input_form,
                 process_data=self.to_dict(),
@@ -107,7 +98,7 @@ class PublishCli:
             )
         else:
             self.all_active_pp = get_all_pp()
-            self.interface = module.CompInterface(submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
+            self.interface = module.CompInterface(log=self.log, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
         
         
     def init_interface_parent(self, widget):

@@ -1,9 +1,43 @@
 """
 Dialog: view publish log output.
 """
+import html
+import re
+
 from qtpy.QtWidgets import QDialog, QVBoxLayout, QTextEdit, QPushButton, QHBoxLayout, QLabel
 from qtpy.QtCore import Qt
+from qtpy.QtGui import QTextCursor
 from publish_gui.ui.theme import Color, font_mono
+
+_LEVEL_PATTERN = re.compile(r"\[(DEBUG|INFO|SUCCESS|WARNING|ERROR|CRITICAL)\]", re.IGNORECASE)
+
+_LEVEL_COLORS = {
+    "DEBUG": Color.TEXT_MUTED,
+    "INFO": Color.ACCENT,
+    "SUCCESS": Color.SUCCESS,
+    "WARNING": Color.WARNING,
+    "ERROR": Color.DANGER,
+    "CRITICAL": Color.DANGER,
+}
+
+
+def _colorize_line(line):
+    """Return HTML for one log line, tinted by its log level."""
+    match = _LEVEL_PATTERN.search(line)
+    if not match:
+        return html.escape(line)
+    color = _LEVEL_COLORS.get(match.group(1).upper(), Color.TEXT_PRIMARY)
+    prefix, tag, suffix = line[: match.start()], match.group(0), line[match.end():]
+    return (
+        f'<span style="color:{Color.TEXT_MUTED}">{html.escape(prefix)}</span>'
+        f'<span style="color:{color}; font-weight:600;">{html.escape(tag)}</span>'
+        f'<span style="color:{color}">{html.escape(suffix)}</span>'
+    )
+
+
+def _render_log_text(text):
+    """Convert plain log text to HTML with per-level colors."""
+    return "<br/>".join(_colorize_line(line) for line in text.splitlines())
 
 
 class LogDialog(QDialog):
@@ -29,7 +63,7 @@ class LogDialog(QDialog):
         self._log = QTextEdit()
         self._log.setReadOnly(True)
         self._log.setFont(font_mono(10))
-        self._log.setPlainText(log_text or "No log output yet.\n")
+        self._log.setHtml(_render_log_text(log_text or "No log output yet.\n"))
         self._log.setStyleSheet(
             f"QTextEdit {{"
             f"  background-color: {Color.BG_LIGHT};"
@@ -49,6 +83,11 @@ class LogDialog(QDialog):
         btn_row.addWidget(close_btn)
         layout.addLayout(btn_row)
 
-
     def append_log(self, text):
-        self._log.append(text)
+        cursor = self._log.textCursor()
+        cursor.movePosition(QTextCursor.MoveOperation.End)
+        if not self._log.document().isEmpty():
+            cursor.insertBlock()
+        cursor.insertHtml(_render_log_text(text))
+        self._log.setTextCursor(cursor)
+        self._log.ensureCursorVisible()

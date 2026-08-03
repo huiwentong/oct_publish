@@ -77,24 +77,38 @@ class Signal:
 
 
 class Component():
-    def __init__(self, parent, script_path, gui: bool):
+    def __init__(self, parent, script_path, gui: bool, log):
         self.parent = parent
         self.script_path = Path(script_path)
         self.name = self.script_path.stem
         self.import_module = set()
         self.main_script = None
         self.status = 'waiting'
+        self.log = log
         self.check_script()
         if gui:
             self.gui_register()
 
 
     def run(self):
-        self.status = self.gui_main(self.parent.submit_form, self.parent.process_data, self.parent.ui_parent)
+        self.status = self.gui_main(self.parent.submit_form, self.parent.process_data, self.parent.ui_parent, self.log)
 
 
-    def gui_main(self, submit_data:dict, process_data:dict, parent_widget=None):
+    def gui_main(self, submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         pass
+
+
+
+    def get_function_doc(self, node: ast.FunctionDef):
+        if (
+            node.body
+            and isinstance(node.body[0], ast.Expr)
+            and isinstance(node.body[0].value, ast.Constant)
+            and isinstance(node.body[0].value.value, str)
+        ):
+            return node.body[0].value.value
+
+        return None
 
 
     def check_script(self):
@@ -131,22 +145,48 @@ class Component():
 
             if not main_node:
                 raise RuntimeError(
-                    "script missing main() function"
+                    f"component file error {self.script_path}, script missing main() function"
                 )
+
+            expected_args = [
+                "submit_data",
+                "process_data",
+                "parent_widget",
+                "logger",
+            ]
+
+            param_names = [
+                arg.arg
+                for arg in main_node.args.args
+            ]
+
+            if param_names != expected_args:
+                raise RuntimeError(
+                    f"component file error {self.script_path}.\n"
+                    f"main() signature mismatch.\n"
+                    f"Expected: {expected_args}\n"
+                    f"Got: {param_names}"
+                )
+
+            doc = self.get_function_doc(main_node)
+
+            if not doc:
+                raise RuntimeError(f"component file error {self.script_path}, main() should have docstring")
+            
             has_return = False
             for node in ast.walk(main_node):
                 if isinstance(node, ast.Import):
                     raise RuntimeError(
-                        "main() should not contain import"
+                        f"component file error {self.script_path}, main() should not contain import"
                     )
                 if isinstance(node, ast.ImportFrom):
                     raise RuntimeError(
-                        "main() should not contain import from"
+                        f"component file error {self.script_path}, main() should not contain import from"
                     )
                 if isinstance(node, ast.Return):
                     has_return = True
             if not has_return:
-                raise RuntimeError("main() should has return")
+                raise RuntimeError(f"component file error {self.script_path} main() should has return")
             return ""
         except Exception:
             traceback.print_exc()
@@ -161,12 +201,12 @@ class Component():
             )
             if spec is None:
                 raise RuntimeError(
-                    f"Cannot load module: {self.script_path}"
+                    f"component file error {self.script_path}, Cannot load module: {self.script_path}"
                 )
             module = util.module_from_spec(spec)
             if spec.loader is None:
                 raise RuntimeError(
-                    f"Missing loader: {self.script_path}"
+                    f"component file error {self.script_path}, Missing loader: {self.script_path}"
                 )
             spec.loader.exec_module(module)
             self.gui_module = module
@@ -205,6 +245,7 @@ class Component():
 @dataclass
 class InterFace():
     # Data to be read from user input
+    log: Any
     submit_type: str | None = None
     # Data from cli data
     process_data:dict | None = None
@@ -302,12 +343,12 @@ if __name__ == "__main__":
     
         """
         for check in self.check_files:
-            c = Component(self, str(check), False)
+            c = Component(self, str(check), False, self.log)
             all_imports.update(c.import_module)
             all_funcs.append(c.main_script)
         
         for proc in self.process_files:
-            c = Component(self, str(proc), False)
+            c = Component(self, str(proc), False, self.log)
             all_imports.update(c.import_module)
             all_funcs.append(c.main_script)
 
@@ -345,7 +386,7 @@ if __name__ == "__main__":
                 scene='' if suffix=='cmd' else self.dcc_file
             )
 
-            print(cmd)
+            self.log.info(cmd)
             result = subprocess.run(
                 cmd,
                 shell=True,
@@ -354,11 +395,10 @@ if __name__ == "__main__":
                 text=True
             )
 
-            print(result.stdout)
-            print(result.stderr)
+            self.log.info(result.stdout)
+            self.log.info(result.stderr)
         except Exception:
-            pass
-            # print(traceback.format_exc())
+            self.log.error(traceback.format_exc())
         finally:
             if os.path.exists(python_script):
                 os.unlink(python_script)
@@ -376,7 +416,7 @@ if __name__ == "__main__":
         self.check_submit_form()
         for index, check in enumerate(self.check_files):
             if self.check_stat <= index:
-                c = Component(self, str(check), True)
+                c = Component(self, str(check), True, self.log)
                 self.check_comps.append(c)
                 
 
@@ -386,7 +426,7 @@ if __name__ == "__main__":
         self.check_submit_form()
         for index, process in enumerate(self.process_files):
             if self.proc_stat <= index:
-                c = Component(self, str(process), True)
+                c = Component(self, str(process), True, self.log)
                 self.process_comps.append(c)
                 
 

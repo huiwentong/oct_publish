@@ -846,6 +846,7 @@ class PublishFormPage(QWidget):
             tag_entity = SGEntity('Tag', tag_id)
             self._tag_combo.addItem(tag_entity.name, tag_entity)
 
+
     def _on_tag_index_changed(self, index):
         """Toggle combo text color: muted for placeholder, primary for real items."""
         from publish_gui.ui.theme import Color as _C

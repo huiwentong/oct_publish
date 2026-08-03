@@ -109,8 +109,12 @@ class PublishLog:
         logger = logging.getLogger(name)
         logger.setLevel(level)
 
+        SUCCESS = logging.INFO + 1
+        logging.addLevelName(SUCCESS, "SUCCESS")
+
         if logger.handlers:
             return
+
 
         formatter = logging.Formatter(
             fmt=(
@@ -207,3 +211,35 @@ class PublishLog:
         )
 
 
+    def debug(self, msg):
+        if not self._logger:
+            raise RuntimeError('can not find logger!')
+        self._logger.debug(
+            msg,
+            extra={
+                'user': self._user
+            }
+        )
+
+
+    def critical(self, msg):
+        if not self._logger:
+            raise RuntimeError('can not find logger!')
+        self._logger.critical(
+            msg,
+            extra={
+                'user': self._user
+            }
+        )
+
+
+    def success(self, msg):
+        if not self._logger:
+            raise RuntimeError('can not find logger!')
+        self._logger.log(
+            logging.INFO + 1,
+            msg,
+            extra={
+                'user': self._user
+            }
+        )

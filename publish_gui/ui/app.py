@@ -6,7 +6,7 @@ from qtpy.QtWidgets import (
 )
 from qtpy.QtCore import Qt, QSize, QThread, Signal, QObject #type:ignore
 from qtpy.QtGui import QIcon
-from publish_core.cli import PublishCli, PublishStack
+from publish_core.cli import PublishCli
 from publish_core.log.core import PublishLog
 from publish_core.cli import PublishCli, get_user
 from publish_core.database.entity import SGEntity
@@ -29,17 +29,19 @@ class PublishCliWorker(QObject):
     finished = Signal(object)  # emits PublishCli instance
     error = Signal(str)
 
-    def __init__(self, user, task_id, publish_type, widget, parent=None):
+    def __init__(self, user, task_id, publish_type, widget, log, parent=None):
         super().__init__(parent)
         self._user = user
         self._task_id = task_id
         self._publish_type = publish_type
         self._widget = widget
+        self._log = log
 
     def run(self):
         try:
             cli = PublishCli(
                 user=self._user,
+                log=self._log,
                 task_id=self._task_id,
                 gui=True,
                 publish_type=self._publish_type,
@@ -197,6 +199,7 @@ class MainWindow(QDialog):
             task_id=task['id'],
             publish_type=publish_type_enum,
             widget=None,
+            log=self.log,
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
@@ -212,12 +215,11 @@ class MainWindow(QDialog):
         Rebuild the interface on the main thread with the real widget parent.
         """
         self._cli:PublishCli = cli
+        self._form_page.build_info_page(self._cli)
         self._cli.init_interface_parent(self._form_page)
         if not self._cli.task_entity or not self.log:
             raise RuntimeError('can not find log or cli`s task entity!')
-        self._cli.stack = PublishStack(self._cli.task_entity, self.log)
         self._loading_overlay.hide_overlay()
-        self._form_page.build_info_page(self._cli)
         self._go_to_page(4)
         self._toolbar.set_status(f"Task: {self._selected_task.content}")
 

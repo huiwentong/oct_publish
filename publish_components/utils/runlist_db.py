@@ -12,9 +12,11 @@ class RunListDB():
             self.check_files, self.process_files = unpack_xml(runlist_file, publish_type)
         else:
             RunListDB.connect_db(Config())
-            self.check_files, self.process_files = self.find_file_from_db(step, publish_type)
-            if not self.runlist_pool:
+            if self.runlist_pool:
+                self.check_files, self.process_files = self.find_file_from_db(step, publish_type)
+            else:
                 self.check_files, self.process_files = unpack_xml(runlist_file, publish_type)
+                
         if not self.check_files or not self.process_files:
             raise RuntimeError('failed to find runlist data!')
 

@@ -23,7 +23,8 @@ requires = [
     'requests',
     'shotgun_api3',
     'oct',
-    'psycopg2_binary'
+    'psycopg2_binary',
+    'requests',
 ]
 
 def commands():

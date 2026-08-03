@@ -8,6 +8,7 @@ import inspect
 import importlib
 from importlib import util
 from publish_core.database.entity import SGEntity, get_user, get_all_pp
+from publish_core.message_utils.message import send_simple_message
 from publish_components.core import InterFace
 from publish_core.log.core import PublishLog
 
@@ -49,7 +50,7 @@ class PublishCli:
     widget: Any | None = None
     log: PublishLog | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
-    notify: list[str] = field(default_factory=list)
+    notify: list[dict] = field(default_factory=list)
     all_active_pp: list[dict] = field(default_factory=list)
 
 
@@ -133,6 +134,10 @@ class PublishCli:
                 continue
             if isinstance(v, SGEntity):
                 continue
+            elif isinstance(v, PublishType):
+                process_data[k] = v.value
+            elif isinstance(v, PublishLog):
+                continue
             elif is_dataclass(v):
                 continue
             elif is_dataclass(v):
@@ -153,7 +158,20 @@ class PublishCli:
     
 
     def notify_pp(self):
-        pass
+        if not self.task_entity:
+            raise RuntimeError('can not find cli task entity!')
+        
+        vername = f'{self.task_entity.entity.code}.{self.task_entity.step.short_name.lower()}.{self.task_entity.content}.v{str(self.version_num).zfill(3)}'
+        msg_data = {
+            'message': self.comment,
+            'type': self.publish_type,
+            'vname': vername,
+            'tname': self.task_entity.content,
+            'ename': self.task_entity.entity.code,
+        }
+        for user_dict in self.notify:
+            print(user_dict)
+            send_simple_message(msg_data, '来自发布者的提醒', user_dict)
 
 
 
@@ -185,15 +203,25 @@ def entity_asdict(obj):
 
 
 if __name__ == "__main__":
-
+    notify_pp = [
+        {'id': 419, 'login': 'huiwentong', 'name': '惠文通', 'sg_dingtalk_id': '034822000124675411', 'type': 'HumanUser'}
+    ]
     pcli = PublishCli(
         user=get_user(), 
         task_id=143051, 
         input_form={'dcc_file': 'sss', 'test': 'dd'},
         gui=False,
-        comment='asdasdasd', 
+        comment='asdasssssdasd', 
         publish_tag_id=282, 
         dcc_file='cmd', 
+        notify=notify_pp,
         preview_paths=['C:/Users/huiwentong/Pictures/873558788-86207417.png'])
     
-    pprint(entity_asdict(pcli))
+    # print('?????')
+    pcli.log.info('cli初始化完毕')
+    pcli.interface.run_in_cli()
+    pcli.log.info('cli程序运行完毕！')
+    # pcli.notify_pp()
+
+
+    # pprint(entity_asdict(pcli))

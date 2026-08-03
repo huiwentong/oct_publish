@@ -98,7 +98,7 @@ class PublishLog:
     @classmethod
     def setup(
         cls,
-        name="app",
+        name="PUBLISHER",
         log_widget=None,
         level=logging.DEBUG
     ):
@@ -152,7 +152,7 @@ class PublishLog:
         self._logger = None
         if not PublishLog._initialized:
             PublishLog.setup(log_widget=log_widget)
-        self._logger = logging.getLogger("app")
+        self._logger = logging.getLogger("PUBLISHER")
         self._user = getpass.getuser()
         if not self.logDB:
             self.info('没有连接日志数据库！')

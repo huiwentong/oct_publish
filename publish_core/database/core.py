@@ -44,6 +44,10 @@ class ThreadSafeShotgun:
         with self.lock:
             return self._sg.find_one(*arges, **kwargs)
 
+    def upload(self, *arges, **kwargs):
+        with self.lock:
+            return self._sg.upload(*arges, **kwargs)
+
 
 
 class FastSg(object):

@@ -56,6 +56,7 @@ class ComponentWorker(QObject):
 
 class PublishProgressPage(QWidget):
     done = Signal()
+    all_success = Signal()
     STAGES = [
         "Validating inputs...",
         "Uploading files...",
@@ -174,6 +175,8 @@ class PublishProgressPage(QWidget):
         self._finish_btn.setVisible(True)
         self._finish_btn.setEnabled(True)
         self._process_btn.setVisible(False)
+        self.all_success.emit()
+        
 
 
 

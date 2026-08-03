@@ -331,6 +331,7 @@ class InterFace():
         all_funcs = []
         funcs_template = """
 import sys
+from publish_core.log.core import PublishLog
 {import_module}
 {maya_standalone}
 
@@ -339,6 +340,7 @@ def main():
     parent_widget=None
     submit_data = {submit_data}
     process_data = {process_data}
+    logger = PublishLog()
 {all_funcs}
 if __name__ == "__main__":
     res = main()
@@ -386,21 +388,31 @@ if __name__ == "__main__":
                 f.write(self.generate_publish_script(self.dcc_file))
             
             cmd = DCC_COMMANDS[suffix].format(
-                script=python_script,
+                script=str(Path(python_script).resolve()),
                 scene='' if suffix=='cmd' else self.dcc_file
             )
 
             self.log.info(cmd)
-            result = subprocess.run(
-                cmd,
-                shell=True,
-                check=True,
-                capture_output=True,
-                text=True
-            )
+            try:
+                result = subprocess.run(
+                    cmd,
+                    shell=True,
+                    check=True,
+                    capture_output=True,
+                    text=True
+                )
 
-            self.log.info(result.stdout)
-            self.log.info(result.stderr)
+                if result.stdout:
+                    self.log.info(f"stdout: {result.stdout}")
+
+                if result.stderr:
+                    self.log.warning(f"stderror: {result.stdout}")
+
+            except subprocess.CalledProcessError as e:
+                self.log.error(e.stdout)
+                self.log.error(e.stderr)
+                
+            
         except Exception:
             self.log.error(traceback.format_exc())
         finally:

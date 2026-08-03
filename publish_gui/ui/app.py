@@ -144,12 +144,17 @@ class MainWindow(QDialog):
         # --- Page 6: Publish Progress ---
         self._progress_page = PublishProgressPage()
         self._progress_page.done.connect(lambda: self._go_to_page(0))
+        self._progress_page.all_success.connect(self.notify_pp)
         self._stack.addWidget(self._progress_page)
 
         # Start at Project page
         self._stack.setCurrentIndex(0)
         self._navbar.set_current_step(0)
 
+    def notify_pp(self):
+        self._cli.notify_pp()
+
+        
     # ── Navigation helpers ────────────────────────────────────
     def _go_to_page(self, index):
         # Require publish type before entering publish flow (pages 4+)

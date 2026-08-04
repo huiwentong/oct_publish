@@ -86,11 +86,54 @@ class MyTableView(QtWidgets.QTableView):
         super(MyTableView, self).__init__(parent)
         self.sg = FastSg().client
         self.interface = interface
+        self.setMinimumHeight(400)
         self.task:SGEntity = interface.task_entity
         self._model = MyTableModel(sg=self.sg, task=self.task, parent=self)
         self.setModel(self._model)
         self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.setAlternatingRowColors(True)
+        self.setStyleSheet("""
+QTableView {
+    background-color: #252525;
+    alternate-background-color: #2d2d2d;
+    color: #dddddd;
+
+    gridline-color: #3a3a3a;
+
+    border: 1px solid #444444;
+    border-radius: 4px;
+
+    selection-background-color: #3d6ea8;
+    selection-color: white;
+}
+
+QTableView::item {
+    padding: 6px;
+    border: none;
+}
+
+QTableView::item:hover {
+    background-color: #383838;
+}
+
+QTableView::item:selected {
+    background-color: #3d6ea8;
+    color: white;
+}
+
+QHeaderView::section {
+    background-color: #333333;
+    color: #dddddd;
+
+    padding: 6px;
+
+    border: none;
+    border-right: 1px solid #444444;
+    border-bottom: 1px solid #444444;
+
+    font-weight: bold;
+}
+                """)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)

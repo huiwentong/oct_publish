@@ -70,24 +70,24 @@ class DatabaseHandler(logging.Handler):
 
 class WidgetHandler(logging.Handler):
     def __init__(self, logwidget):
-            super().__init__()
-            self.widget = logwidget
+        super().__init__()
+        self.widget = logwidget
 
     def emit(self, record):
-            try:
-                log_data = {
-                    "level": record.levelname,
-                    "message": record.getMessage(),
-                    "logger": record.name,
-                    "file": record.filename,
-                    "line": record.lineno,
-                    "user": getattr(record, "user", "")
-                }
-                msg = self.format(record)
-                self.widget.append_log(msg)
+        try:
+            log_data = {
+                "level": record.levelname,
+                "message": record.getMessage(),
+                "logger": record.name,
+                "file": record.filename,
+                "line": record.lineno,
+                "user": getattr(record, "user", "")
+            }
+            msg = self.format(record)
+            self.widget.append_log(msg)
 
-            except Exception:
-                self.handleError(record)
+        except Exception:
+            self.handleError(record)
 
 
 
@@ -152,6 +152,14 @@ class PublishLog:
         self._logger = None
         if not PublishLog._initialized:
             PublishLog.setup(log_widget=log_widget, name=name)
+        else:
+            self._logger = logging.getLogger(name)
+            if log_widget:
+                for handler in self._logger.handlers:
+                    if isinstance(handler, WidgetHandler):
+                        handler.widget = log_widget
+                        break
+
         self._logger = logging.getLogger(name)
         self._user = getpass.getuser()
         if not self.logDB:

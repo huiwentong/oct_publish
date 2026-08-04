@@ -111,6 +111,9 @@ class PublishCli:
             raise RuntimeError('can not found interface!')
         self.interface.ui_parent = self.widget = widget
         self.interface.gui_init()
+        if self.publish_type == PublishType.DAILY:
+            self.log.info('publish daily!')
+            widget.files_group.setEnabled(False)
 
 
     def form_init(self, publish_tag_id, comment, preview_paths, notify, version_num):

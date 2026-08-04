@@ -247,6 +247,7 @@ class Component():
 class InterFace():
     # Data to be read from user input
     log: Any
+    task_entity: SGEntity
     submit_type: str | None = None
     # Data from cli data
     process_data:dict | None = None

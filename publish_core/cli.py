@@ -95,6 +95,7 @@ class PublishCli:
             self.tag_entity = SGEntity('Tag', self.publish_tag_id)
             self.interface = module.CompInterface(
                 log=self.log,
+                task_entity=self.task_entity,
                 submit_type=self.publish_type.value,
                 input_form=self.input_form,
                 process_data=self.to_dict(),
@@ -102,7 +103,7 @@ class PublishCli:
             )
         else:
             self.all_active_pp = get_all_pp()
-            self.interface = module.CompInterface(log=self.log, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
+            self.interface = module.CompInterface(log=self.log, task_entity=self.task_entity, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
         
         
     def init_interface_parent(self, widget):

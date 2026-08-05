@@ -208,9 +208,9 @@ class CheckPanelPage(QWidget):
 
 
     def set_step(self, row):
-        step = int(100/self._table.rowCount()) * (row+1)
+        step =  (row+1) / self._table.rowCount() * 100
         self._progress_val = step
-        if self._progress_val >= 98:self._progress_val = 100
+        if self._progress_val >= 92:self._progress_val = 100
         self._progress.setValue(self._progress_val)
         if self._progress_val >= 100:
             self._checked = True

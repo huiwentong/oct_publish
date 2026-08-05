@@ -823,7 +823,7 @@ class PublishFormPage(QWidget):
             raise RuntimeError(f'cli can not find task entity!!!')
         if cli.task_entity.sg_last_version:
             vername = '.'.join(cli.task_entity.sg_last_version.code.split('.')[:-1]) + '.'
-            vernum = int(cli.task_entity.sg_last_version.code.split('.')[-1][1:])
+            vernum = int(cli.task_entity.sg_last_version.code.split('.')[-1][1:]) + 1
         else:
             vername = f'{cli.task_entity.entity.code}.{cli.task_entity.step.short_name.lower()}.{cli.task_entity.content}.'
             vernum = 1

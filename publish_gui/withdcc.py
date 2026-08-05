@@ -36,22 +36,23 @@ class ChooseType(QtWidgets.QDialog):
         button_box.rejected.connect(self.reject)
         vlay.addWidget(button_box)
 
-        self._selected_type = "Dailies"
+        self._selected_type = 0
 
     def accept(self):
-        self._selected_type = self._type_combo.currentText()
+        self._selected_type = self._type_combo.currentIndex()
         super().accept()
 
-    def publish_type(self) -> str:
+    def publish_type(self) -> int:
         return self._selected_type
 
 
 def run(task_id, dcc=None, parent=None):
-    ret = ChooseType(parent).exec_()
+    choose = ChooseType(parent)
+    choose.exec_()
     window = MainWindow(dcc)
-    window._toolbar._type_combo.setEnabled(False)
     window._form_page._back_btn.setEnabled(False)
-    window._toolbar._type_combo.setCurrentIndex(ret)
+    window._toolbar._type_combo.setCurrentIndex(choose.publish_type()+1)
+    window._toolbar._type_combo.setEnabled(False)
     task = {'id': task_id}
     window._on_task_selected(task)
     window.show()
@@ -62,7 +63,7 @@ def run(task_id, dcc=None, parent=None):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
-    window = run(120703)
+    window = run(120703, 'Houdini')
     if screen:
         center = screen.availableGeometry().center()
         frame = window.frameGeometry()

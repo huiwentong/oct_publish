@@ -127,7 +127,7 @@ class PublishCli:
          self.notify = notify
          self.version_num = version_num
          self.preview_paths = preview_paths
-         self.interface.process_data = self.to_dict()
+         self.interface.process_data.update(self.to_dict())
          self.interface.fill_submit_form()
 
 

@@ -78,8 +78,9 @@ class Signal:
 
 
 class Component():
-    def __init__(self, parent, script_path, gui: bool, log):
+    def __init__(self, parent, script_path, gui: bool, log, ctype="Dailies"):
         self.parent = parent
+        self.type = ctype
         self.script_path = Path(script_path)
         self.name = self.script_path.stem
         self.import_module = set()
@@ -304,6 +305,7 @@ class InterFace():
         db = RunListDB(runlist_file=runlist, file_first=True if self.runlist else False, publish_type=self.submit_type, step=Path(module_file).parent.stem)
         self.check_files = db.check_files
         self.process_files = db.process_files
+        self.process_data = {'filetypes': db.file_types}
 
 
     def fill_submit_form(self):
@@ -434,7 +436,7 @@ if __name__ == "__main__":
         self.check_submit_form()
         for index, check in enumerate(self.check_files):
             if self.check_stat <= index:
-                c = Component(self, str(check), True, self.log)
+                c = Component(self, str(check), True, self.log, self.process_data['filetypes'][0][index])
                 self.check_comps.append(c)
                 
 
@@ -444,7 +446,7 @@ if __name__ == "__main__":
         self.check_submit_form()
         for index, process in enumerate(self.process_files):
             if self.proc_stat <= index:
-                c = Component(self, str(process), True, self.log)
+                c = Component(self, str(process), True, self.log, self.process_data['filetypes'][1][index])
                 self.process_comps.append(c)
                 
 

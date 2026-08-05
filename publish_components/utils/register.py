@@ -5,13 +5,14 @@ from pathlib import Path
 
 
 
-def unpack_xml(xml_file: Path, publish_type='Dailies') -> tuple[list[Path], list[Path]]:
+def unpack_xml(xml_file: Path, publish_type='Dailies') -> tuple[list[Path], list[Path], list[list]]:
     tree = ET.parse(xml_file)
     root = tree.getroot()
 
     dir_folder = Path(__file__).parent.parent / 'components'
     check_files = []
     process_files = []
+    file_types = [[], []]
 
     checkcontainer = root.find('checkcontainer')
     if checkcontainer is not None:
@@ -27,6 +28,7 @@ def unpack_xml(xml_file: Path, publish_type='Dailies') -> tuple[list[Path], list
                         f'file {fpath} not exists!'
                     )
                 check_files.append(fpath)
+                file_types[0].append(group_name)
 
     processcontainer = root.find('processcontainer')
     if processcontainer is not None:
@@ -41,5 +43,6 @@ def unpack_xml(xml_file: Path, publish_type='Dailies') -> tuple[list[Path], list
                     f'file {fpath} not exists!'
                 )
             process_files.append(fpath)
+            file_types[1].append(mode)
 
-    return check_files, process_files
+    return check_files, process_files, file_types

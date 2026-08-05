@@ -102,7 +102,7 @@ class CheckPanelPage(QWidget):
         outer.addWidget(self._status_label)
         outer.addSpacing(12)
 
-        self._table = QTableWidget(1, 3)
+        self._table = QTableWidget(1, 4)
         self._table.itemClicked.connect(self._on_item_clicked)
         self._table.setHorizontalHeaderLabels(["Check", "Result"])
         self._table.horizontalHeader().setStretchLastSection(False)
@@ -228,13 +228,15 @@ class CheckPanelPage(QWidget):
 
     def on_component_finished(self, comp, row, usetime):
         comp.log.success(f'finish check {comp.name}, total use: {usetime:.2f}s')
-        item_status = self._table.item(row, 2)
+        item_status = self._table.item(row, 3)
+        item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
         if not item_status or not item_desc or not item_main:
             raise RuntimeError('can not find item_status')
         item_status.setForeground(QColor(COLOR_MAP['success']))
         item_main.setForeground(QColor(COLOR_MAP['success']))
+        item_type.setForeground(QColor(COLOR_MAP['success']))
         item_desc.setForeground(QColor(COLOR_MAP['success']))
         item_status.setText('success')
         self.set_step(row)
@@ -242,11 +244,13 @@ class CheckPanelPage(QWidget):
     
     def on_component_failed(self, comp, row):
         comp.log.warning(f'check failed!: {comp.status}')
-        item_status = self._table.item(row, 2)
+        item_status = self._table.item(row, 3)
+        item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
         if not item_status or not item_desc or not item_main:
             raise RuntimeError('can not find item_status')
+        item_type.setForeground(QColor(COLOR_MAP['failed']))
         item_status.setForeground(QColor(COLOR_MAP['failed']))
         item_main.setForeground(QColor(COLOR_MAP['failed']))
         item_desc.setForeground(QColor(COLOR_MAP['failed']))
@@ -254,11 +258,13 @@ class CheckPanelPage(QWidget):
 
     def on_component_processing(self, comp, row):
         comp.log.info(f'start check {comp.name}')
-        item_status = self._table.item(row, 2)
+        item_status = self._table.item(row, 3)
+        item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
         if not item_status or not item_desc or not item_main:
             raise RuntimeError('can not find item_status')
+        item_type.setForeground(QColor(COLOR_MAP['process']))
         item_status.setForeground(QColor(COLOR_MAP['process']))
         item_main.setForeground(QColor(COLOR_MAP['process']))
         item_desc.setForeground(QColor(COLOR_MAP['process']))
@@ -296,14 +302,15 @@ class CheckPanelPage(QWidget):
             raise RuntimeWarning('can not found check files!')
         self._table.clear()
 
-        self._table.setHorizontalHeaderLabels(["check name", "description","status"])
+        self._table.setHorizontalHeaderLabels(["check name", "type", "description","status"])
         self._table.horizontalHeader().setStretchLastSection(False)
         self._table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
+        self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
+        self._table.horizontalHeader().setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
         self._table.setRowCount(len(cli.interface.check_files))
 
         cli.interface.gui_build_check()
-
+        print(cli.interface.check_comps)
 
         for row, comp in enumerate(cli.interface.check_comps):
             main_item = QTableWidgetItem(comp.name)
@@ -313,8 +320,9 @@ class CheckPanelPage(QWidget):
             desc = inspect.getdoc(comp.gui_main)
             if not desc:
                 raise RuntimeError(f'can not find {comp.name} description')
-            self._table.setItem(row, 1, QTableWidgetItem(desc))
+            self._table.setItem(row, 1, QTableWidgetItem(comp.type))
+            self._table.setItem(row, 2, QTableWidgetItem(desc))
             r_item = QTableWidgetItem(comp.status)
             r_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             r_item.setForeground(QColor(COLOR_MAP['waiting']))
-            self._table.setItem(row, 2, r_item)
+            self._table.setItem(row, 3, r_item)

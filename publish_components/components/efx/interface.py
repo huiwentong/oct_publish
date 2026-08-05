@@ -2,6 +2,7 @@ from dataclasses import dataclass, field, asdict
 from publish_components.core import InterFace
 from qtpy import QtWidgets, QtCore, QtGui
 from qtpy.QtCore import Qt
+from pprint import pprint
 from publish_core.database.entity import FastSg, SGEntity
 
 import hou
@@ -146,6 +147,7 @@ QHeaderView::section {
             if i.type().name() == 'huiwentong::oct_component':
                 components.append(i)
         self._model.populate(components)
+        self.refresh_submit_info()
 
     def on_right_click(self, pos):
 
@@ -223,10 +225,21 @@ QHeaderView::section {
                 self._model.removeRow(row)
             print(self._model.rowCount())
 
-        self.interface.refresh_asset_info()
+        self.refresh_submit_info()
 
+    def refresh_submit_info(self):
+        print('refresh me!')
+        self.interface.input_form = {'components': {}}
+        for i in range(self._model.rowCount()):
+            comp_item = self._model.item(i, 0)
+            cache_item = self._model.item(i, 1)
+            type_item = self._model.item(i, 2)
 
-
+            self.interface.input_form['components'][comp_item.text()] = {
+                'cache_node': cache_item.data(Qt.UserRole),
+                'cache_type': type_item.text(),
+            }
+        pprint(self.interface.input_form)
 @dataclass
 class CompInterface(InterFace):
 
@@ -251,8 +264,7 @@ class CompInterface(InterFace):
         tableView = MyTableView(parent, self)
         vlay.addWidget(tableView)
 
-    def refresh_submit_info(self):
-        pass
+
 
     def gui_post_interface(self):
         pass

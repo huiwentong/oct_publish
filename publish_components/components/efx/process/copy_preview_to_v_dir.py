@@ -11,7 +11,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 向版本文件夹 拷贝/创建 版本预览mov文件
     """
-
     try:
         task = SGEntity('Task', process_data['task_id'])
         v_dir_preview = process_data['v_dir'] + '/preview'

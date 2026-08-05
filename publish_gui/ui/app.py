@@ -58,10 +58,10 @@ class PublishCliWorker(QObject):
 class MainWindow(QDialog):
     """Root application window."""
 
-    def __init__(self, parent=None):
+    def __init__(self, dcc, parent=None):
         super().__init__(parent)
         self.log:PublishLog
-
+        self.dcc = dcc
         self.setWindowTitle("Publish Manager")
         self.setMinimumSize(800, 600)
         self.resize(1000, 620)

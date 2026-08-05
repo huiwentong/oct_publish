@@ -46,10 +46,9 @@ class ChooseType(QtWidgets.QDialog):
         return self._selected_type
 
 
-def run(task_id, parent=None):
+def run(task_id, dcc=None, parent=None):
     ret = ChooseType(parent).exec_()
-    print(ret)
-    window = MainWindow()
+    window = MainWindow(dcc)
     window._toolbar._type_combo.setEnabled(False)
     window._form_page._back_btn.setEnabled(False)
     window._toolbar._type_combo.setCurrentIndex(ret)

@@ -255,6 +255,7 @@ class InterFace():
     ui_parent: QWidget | None = None
     is_gui: bool = False
     dcc_file: str | None = None
+    dcc: str | None = None
     runlist: str | None = None
     all_complete: bool = False
     input_form: dict = field(default_factory=dict)

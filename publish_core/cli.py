@@ -49,6 +49,7 @@ class PublishCli:
     runlist: str | None = None
     widget: Any | None = None
     log: PublishLog | None = None
+    dcc:str | None = None
     preview_paths: list[str | Path] = field(default_factory=list)
     notify: list[dict] = field(default_factory=list)
     all_active_pp: list[dict] = field(default_factory=list)
@@ -95,6 +96,7 @@ class PublishCli:
             self.tag_entity = SGEntity('Tag', self.publish_tag_id)
             self.interface = module.CompInterface(
                 log=self.log,
+                dcc=self.dcc,
                 task_entity=self.task_entity,
                 submit_type=self.publish_type.value,
                 input_form=self.input_form,
@@ -103,7 +105,7 @@ class PublishCli:
             )
         else:
             self.all_active_pp = get_all_pp()
-            self.interface = module.CompInterface(log=self.log, task_entity=self.task_entity, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist)
+            self.interface = module.CompInterface(log=self.log, task_entity=self.task_entity, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist, dcc=self.dcc)
         
         
     def init_interface_parent(self, widget):
@@ -113,7 +115,7 @@ class PublishCli:
         self.interface.gui_init()
         if self.publish_type == PublishType.DAILY:
             self.log.info('publish daily!')
-            widget.files_group.setEnabled(False)
+            # widget.files_group.setEnabled(False)
 
 
     def form_init(self, publish_tag_id, comment, preview_paths, notify, version_num):

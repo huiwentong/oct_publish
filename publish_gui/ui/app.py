@@ -29,10 +29,11 @@ class PublishCliWorker(QObject):
     finished = Signal(object)  # emits PublishCli instance
     error = Signal(str)
 
-    def __init__(self, user, task_id, publish_type, widget, log, parent=None):
+    def __init__(self, user, task_id, publish_type, widget, log, parent=None, dcc=None):
         super().__init__(parent)
         self._user = user
         self._task_id = task_id
+        self.dcc = dcc
         self._publish_type = publish_type
         self._widget = widget
         self._log = log
@@ -41,6 +42,7 @@ class PublishCliWorker(QObject):
         try:
             cli = PublishCli(
                 user=self._user,
+                dcc=self.dcc,
                 log=self._log,
                 task_id=self._task_id,
                 gui=True,
@@ -205,6 +207,7 @@ class MainWindow(QDialog):
             publish_type=publish_type_enum,
             widget=None,
             log=self.log,
+            dcc=self.dcc
         )
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)

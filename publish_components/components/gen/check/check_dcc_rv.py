@@ -9,8 +9,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 
     try:
-        print("@"*100)
-        print(process_data)
         dcc_rv = "C:/Program Files/Shotgun/RV-7.7.0/bin/rv.exe"
         dcc_rvio = "C:/Program Files/Shotgun/RV-7.7.0/bin/rvio_hw.exe"
         dcc_rvls = "C:/Program Files/Shotgun/RV-7.7.0/bin/rvls.exe"

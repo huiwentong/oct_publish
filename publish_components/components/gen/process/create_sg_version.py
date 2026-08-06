@@ -86,9 +86,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         else:
             logger.info('no preview file: {}'.format(v_dir_preview))
 
-        if tc.task_name == 'tex_view':
-            return ''
-
         ############################################# Connection Playlist###############################################
 
         cur_time = time.gmtime()

@@ -3,10 +3,10 @@
 
     <checkcontainer>
         <check_group name="Dailies">
-            <!-- <check type="gen" name="version_name" /> -->
-            <!-- <check type="efx" name="version_up_going" /> -->
-            <!-- <check type="gen" name="check_selected_preview" />
-            <check type="gen" name="check_status" /> -->
+             <check type="gen" name="version_name" />
+             <check type="gen" name="version_up_going" />
+            <check type="gen" name="check_selected_preview" />
+            <check type="gen" name="check_status" />
             <check type="efx" name="check_publish_root" />
         </check_group>
         <check_group name="Submit">
@@ -17,17 +17,15 @@
 
 
     <processcontainer>
-        <!-- <process type="gen" name="create_v_dir" mode="Dailies"/> -->
-        <process type="efx" name="copy_preview_to_v_dir" mode="Dailies"/>
-        <!-- <process type="gen" name="copy_preview_imgs" mode="Dailies"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
 
-        <process type="efx" name="gener_broken_asset" mode="Submit"/>
-        <process type="efx" name="copy_efx_cache" mode="Submit"/>
-        <process type="efx" name="efx_gener_usd_file" mode="Submit"/>
+<!--        <process type="efx" name="gener_broken_asset" mode="Submit"/>-->
+<!--        <process type="efx" name="copy_efx_cache" mode="Submit"/>-->
+<!--        <process type="efx" name="efx_gener_usd_file" mode="Submit"/>-->
         <process type="efx" name="upload" mode="Dailies"/>
-
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
-        <process type="gen" name="sym_link_no_num_version" mode="Submit"/> -->
+        <process type="gen" name="sym_link_no_num_version" mode="Submit"/>
     </processcontainer>
 
 </root>

@@ -309,7 +309,9 @@ class PublishProgressPage(QWidget):
             self._table.setItem(row, 0, main_item)
             desc = inspect.getdoc(comp.gui_main)
             if not desc:
-                raise RuntimeError(f'can not find {comp.name} description')
+                print(comp.gui_main)
+                print(desc)
+                raise RuntimeError(f'can not find {comp.script_path} description')
             self._table.setItem(row, 1, QTableWidgetItem(comp.type))
             self._table.setItem(row, 2, QTableWidgetItem(desc))
             r_item = QTableWidgetItem(comp.status)

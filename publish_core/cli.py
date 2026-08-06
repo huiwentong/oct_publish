@@ -139,7 +139,7 @@ class PublishCli:
             if k == 'all_active_pp':
                 continue
             if isinstance(v, SGEntity):
-                continue
+                process_data[k] = v.tiny_raw()
             elif isinstance(v, PublishType):
                 process_data[k] = v.value
             elif isinstance(v, PublishLog):

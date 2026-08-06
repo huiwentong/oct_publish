@@ -2,7 +2,7 @@ import traceback
 from pprint import pprint
 import os
 from publish_core.database.entity import SGEntity
-
+from oct.pipeline.path_acs import make_dirs
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -26,7 +26,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         if not os.path.isdir(path_schema):
             try:
-                from oct.pipeline.path_acs import make_dirs
+
                 make_dirs(path_schema)
             except Exception:
                 return u'版本的目录文件夹创建失败!:\n' + path_schema + traceback.format_exc()

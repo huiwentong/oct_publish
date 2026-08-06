@@ -13,6 +13,9 @@ import os
 import tempfile
 from pathlib import Path
 import subprocess
+
+from shiboken6.Shiboken import Object
+
 from publish_core.database.entity import SGEntity
 from publish_components.utils.register import unpack_xml
 from publish_components.utils.runlist_db import RunListDB
@@ -198,7 +201,7 @@ class Component():
     def gui_register(self):
         try:
             spec = util.spec_from_file_location(
-                "component_script",
+                f"component_script_{self.script_path.stem}",
                 self.script_path
             )
             if spec is None:

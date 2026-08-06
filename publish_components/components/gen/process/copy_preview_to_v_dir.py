@@ -2,7 +2,7 @@
 import os
 import shutil
 import traceback
-from tk_oct_publish.proc import create_shot_mov
+from publish_components.utils import create_shot_mov
 from publish_core.database.entity import SGEntity
 from oct.pipeline.path_acs import old_get_path, unlock_path, make_dirs
 

@@ -25,7 +25,7 @@ def run():
     tray.setToolTip("Publish Manager")
     tray.show()
 
-    window = MainWindow()
+    window = MainWindow(dcc="Standalone")
     window.setWindowIcon(icon)
 
     screen = app.primaryScreen()

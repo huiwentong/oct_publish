@@ -109,6 +109,9 @@ class PublishCli:
         else:
             self.all_active_pp = get_all_pp()
             self.interface = module.CompInterface(log=self.log, task_entity=self.task_entity, submit_type=self.publish_type.value, is_gui=True, ui_parent=self.widget, runlist=self.runlist, dcc=self.dcc)
+            if self.interface.downstream_dcc_only and self.publish_type != PublishType.DAILY:
+                if self.interface.downstream_dcc_only != self.dcc:
+                    raise RuntimeError(f'in the downstream type, publishing of this step must be in the dcc software {self.dcc} with gui')
         
         
     def init_interface_parent(self, widget):

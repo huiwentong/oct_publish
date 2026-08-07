@@ -222,7 +222,7 @@ def get_entity_tasks(sg_entity: SGEntity) -> list:
     raw_list = sg.find(
         "Task",
         [["entity", "is", {"type": sg_entity.type, "id": sg_entity.id}]],
-        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion", "entity"],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_last_version", "entity"],
     )
     return raw_list
 
@@ -249,7 +249,7 @@ def get_my_project_tasks(project: SGEntity) -> list:
             ["task_assignees", "is", user.tiny_raw()],
             ["project", "is", project.tiny_raw()],
         ],
-        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_latestversion", "entity"],
+        ["id", "content", "sg_status_list", "task_assignees", "step", "sg_last_version", "entity"],
     )
     return raw_list
 

@@ -51,8 +51,7 @@ class TaskItemWidget(QWidget):
         layout.addWidget(entity_name)
 
         layout.addStretch()
-        
-        lv_text = task['sg_latestversion']['name'] if task['sg_latestversion'] else 'no published version'
+        lv_text = task['sg_last_version']['name'] if task['sg_last_version'] else 'no published version'
         last_version = QLabel(lv_text)
         last_version.setStyleSheet(
             f"color: {Color.TEXT_SECONDARY};"

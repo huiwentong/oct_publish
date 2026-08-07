@@ -240,13 +240,17 @@ class CompInterface(InterFace):
         default_factory=lambda: [283, 282]
     )
 
+    downstream_dcc_only:str | None = 'Houdini'
+
 
     def gui_pre_interface(self):
         pass
 
 
     def init_ui(self, parent:QtWidgets.QWidget):
-        
+        if self.submit_type == 'Dailies':
+            self.input_form['components'] = ['default']
+            return
         vlay = QtWidgets.QVBoxLayout(parent.files_group)
         tableView = ThisUi(self)
         vlay.addWidget(tableView)

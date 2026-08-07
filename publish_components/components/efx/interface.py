@@ -5,7 +5,7 @@ from qtpy.QtCore import Qt
 from pprint import pprint
 from publish_core.database.entity import FastSg, SGEntity
 
-import hou
+
 
 
 TYPE_MAP = {
@@ -45,6 +45,8 @@ class MyTableModel(QtGui.QStandardItemModel):
             self.appendRow([comp_item, cache_item, type_item])
 
     def populate(self, components):
+
+        import hou
         for i in components:
             comp_node:hou.SopNode = i
             comp_name = comp_node.parm('comp_selected').evalAsString()
@@ -84,6 +86,7 @@ class MyTableModel(QtGui.QStandardItemModel):
 
 class MyTableView(QtWidgets.QTableView):
     def __init__(self, parent, interface:InterFace):
+        import hou
         super(MyTableView, self).__init__(parent)
         self.sg = FastSg().client
         self.interface = interface
@@ -164,7 +167,7 @@ class MyTableView(QtWidgets.QTableView):
         self.refresh_submit_info()
 
     def on_right_click(self, pos):
-
+        import hou
         menu = QtWidgets.QMenu()
         all_main_items = {}
         for i in self.selectedIndexes():
@@ -254,6 +257,7 @@ class MyTableView(QtWidgets.QTableView):
                 'cache_type': type_item.text(),
             }
         pprint(self.interface.input_form)
+
 @dataclass
 class CompInterface(InterFace):
 
@@ -267,13 +271,16 @@ class CompInterface(InterFace):
         default_factory=lambda: [283, 282]
     )
 
+    downstream_dcc_only:str | None = 'Houdini'
 
     def gui_pre_interface(self):
         pass
 
 
     def init_ui(self, parent:QtWidgets.QWidget):
-        
+        if self.submit_type == 'Dailies':
+            self.input_form['components'] = ['default']
+            return
         vlay = QtWidgets.QVBoxLayout(parent.files_group)
         tableView = MyTableView(parent, self)
         vlay.addWidget(tableView)

@@ -2,13 +2,11 @@ from dataclasses import dataclass, field, asdict
 from publish_components.core import InterFace
 from qtpy import QtWidgets, QtCore, QtGui, QtUiTools
 import os
-from oct_hou import get_ass_file_path
-from oct_hou.utils.alembic import check_broken
+
 from qtpy.QtCore import Qt
 from pprint import pprint
 from publish_core.database.entity import FastSg, SGEntity
 from pathlib import Path
-import hou
 from .publish_file_ui import Ui_Form
 
 
@@ -87,7 +85,7 @@ class ChoiceDialog(QtWidgets.QDialog, Ui_ChoicesDialog):
 class ThisUi(QtWidgets.QWidget, Ui_Form):
     def __init__(self, parent=None, interface=None):
         super(ThisUi, self).__init__(parent)
-        self.interface = interface
+        self.interface:InterFace = interface
 
         self.setupUi(self)
 
@@ -102,6 +100,8 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
             self.interface.input_form["up_verisons"] = ['default']
 
     def build_view(self, node=None):
+        import hou
+
         if not node:
             node = hou.node('/obj/workplace/cfx_rig_node')
         if not node: return
@@ -112,6 +112,7 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
         self.enter_upstream_version(node)
 
     def enter_upstream_version(self, node: hou.SopNode):
+        import hou
         self.textEdit.clear()
         comment = node.comment()
         if not comment:
@@ -130,10 +131,12 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
 
     @staticmethod
     def all_rig_nodes():
+        import hou
         return hou.sopNodeTypeCategory().nodeType('huiwentong::cfx_rig_node').instances()
 
     @staticmethod
     def all_vdb_nodes():
+        import hou
         nodes = []
         for node in hou.sopNodeTypeCategory().nodeType('oct_filecache_2').instances():
             path = Path(node.parm('file').eval())
@@ -145,6 +148,8 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
     @staticmethod
     def all_ass_nodes():
         # 关于这块需要重新写
+        
+        import hou 
 
         dirPath = get_ass_file_path()
         if not os.path.isdir(dirPath):
@@ -183,6 +188,10 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
 
     @staticmethod
     def node_display_text(node):
+        from oct_hou.utils.alembic import check_broken
+        from oct_hou import get_ass_file_path
+        
+
         dirPath = get_ass_file_path()
         if 'filecache' in node.type().name():
             file_path = Path(node.parm('file').eval())
@@ -208,6 +217,7 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
         return text
 
     def on_pick_abc(self):
+        import hou
         choices = []
 
         for node in self.all_rig_nodes():
@@ -247,13 +257,18 @@ class CompInterface(InterFace):
         default_factory=lambda: [283, 282]
     )
 
+    downstream_dcc_only:str | None = 'Houdini'
+
 
     def gui_pre_interface(self):
         pass
 
 
     def init_ui(self, parent:QtWidgets.QWidget):
-        
+        if self.submit_type == 'Dailies':
+            self.input_form['rig_path'] = 'default'
+            self.input_form['up_verisons'] = ['default']
+            return
         vlay = QtWidgets.QVBoxLayout(parent.files_group)
         tableView = ThisUi(parent, self)
         vlay.addWidget(tableView)

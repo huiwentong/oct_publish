@@ -111,6 +111,8 @@ class CompInterface(InterFace):
         default_factory=lambda: [1130, 1129]
     )
 
+    downstream_dcc_only:str | None = 'Maya'
+
 
     def gui_pre_interface(self):
         pass

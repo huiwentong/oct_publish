@@ -124,6 +124,8 @@ class PublishCli:
     def form_init(self, publish_tag_id, comment, preview_paths, notify, version_num):
          if not self.interface:
              raise RuntimeError('can not found interface!')
+         if len(comment) < 15:
+             raise RuntimeError('comment must be longer than 15 characters!')
          self.publish_tag_id = publish_tag_id
          self.tag_entity = SGEntity('Tag', self.publish_tag_id)
          self.comment = comment

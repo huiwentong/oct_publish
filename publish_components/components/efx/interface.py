@@ -94,47 +94,61 @@ class MyTableView(QtWidgets.QTableView):
         self.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
         self.setAlternatingRowColors(True)
         self.setStyleSheet("""
-QTableView {
-    background-color: #252525;
-    alternate-background-color: #2d2d2d;
-    color: #dddddd;
+            QTableView {
+                background-color: #202124;
+                alternate-background-color: #24272b;
+                color: #e8eaed;
+                gridline-color: #3c4043;
+                border: 1px solid #3c4043;
+                border-radius: 6px;
+                selection-background-color: #3b82f6;
+                selection-color: white;
+            }
 
-    gridline-color: #3a3a3a;
+            QTableView::item {
+                padding: 6px;
+                border: none;
+            }
 
-    border: 1px solid #444444;
-    border-radius: 4px;
+            QTableView::item:hover {
+                background-color: #303134;
+            }
 
-    selection-background-color: #3d6ea8;
-    selection-color: white;
-}
+            QTableView::item:selected {
+                background-color: #2563eb;
+                color: white;
+            }
 
-QTableView::item {
-    padding: 6px;
-    border: none;
-}
+            QHeaderView::section {
+                background-color: #18191a;
+                color: #d1d5db;
+                padding: 8px;
+                border: none;
+                border-right: 1px solid #3c4043;
+                font-weight: bold;
+            }
 
-QTableView::item:hover {
-    background-color: #383838;
-}
+            QTableCornerButton::section {
+                background-color: #18191a;
+                border: none;
+            }
 
-QTableView::item:selected {
-    background-color: #3d6ea8;
-    color: white;
-}
+            QScrollBar:vertical {
+                background: #202124;
+                width: 10px;
+                margin: 0;
+            }
 
-QHeaderView::section {
-    background-color: #333333;
-    color: #dddddd;
+            QScrollBar::handle:vertical {
+                background: #5f6368;
+                border-radius: 5px;
+                min-height: 30px;
+            }
 
-    padding: 6px;
-
-    border: none;
-    border-right: 1px solid #444444;
-    border-bottom: 1px solid #444444;
-
-    font-weight: bold;
-}
-                """)
+            QScrollBar::handle:vertical:hover {
+                background: #80868b;
+            }
+        """)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
         self.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)

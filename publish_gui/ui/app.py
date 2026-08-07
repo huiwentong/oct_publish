@@ -1,6 +1,8 @@
 """
 Main publish window – orchestrates all wizard pages via QStackedWidget.
 """
+import traceback
+
 from qtpy.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QStackedWidget, QMessageBox, QDialog
 )
@@ -54,6 +56,7 @@ class PublishCliWorker(QObject):
 
             self.finished.emit(cli)
         except Exception as e:
+            self._log.error(traceback.format_exc())
             self.error.emit(str(e))
 
 

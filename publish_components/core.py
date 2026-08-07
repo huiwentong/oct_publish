@@ -13,9 +13,6 @@ import os
 import tempfile
 from pathlib import Path
 import subprocess
-
-from shiboken6.Shiboken import Object
-
 from publish_core.database.entity import SGEntity
 from publish_components.utils.register import unpack_xml
 from publish_components.utils.runlist_db import RunListDB

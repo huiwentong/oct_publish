@@ -880,6 +880,9 @@ class PublishFormPage(QWidget):
         if not self._comment_edit.toPlainText():
             QtWidgets.QMessageBox.warning(self, '警告', '缺少版本注释，无法提交!')
             return False
+        if len(self._comment_edit.toPlainText()) < 15:
+            QtWidgets.QMessageBox.warning(self, '警告', '注释需要不少于15字，请详细完善注释内容')
+            return False
         
         cli.form_init(
             publish_tag_id=self._tag_combo.currentData(Qt.ItemDataRole.UserRole)['id'],

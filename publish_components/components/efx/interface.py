@@ -250,7 +250,7 @@ class CompInterface(InterFace):
     )
 
     tag_list: list = field(
-        default_factory=lambda: [1130, 1129]
+        default_factory=lambda: [283, 282]
     )
 
 

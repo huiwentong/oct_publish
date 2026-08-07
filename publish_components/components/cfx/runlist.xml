@@ -3,15 +3,18 @@
 
     <checkcontainer>
         <check_group name="Dailies">
-             <check type="gen" name="version_name" />
-             <check type="gen" name="version_up_going" />
+            <check type="gen" name="version_name" />
+            <check type="gen" name="version_up_going" />
             <check type="gen" name="check_selected_preview" />
             <check type="gen" name="check_status" />
-            <check type="efx" name="check_publish_root" />
+            <check type="cfx" name="check_publish_root_cfx_ass" />
         </check_group>
         <check_group name="Submit">
-            <check type="efx" name="check_frame_range" />
-            <check type="efx" name="check_output_files" />
+            <check type="cfx" name="check_file_ver" />
+            <check type="cfx" name="check_proxy_file" />
+            <check type="cfx" name="check_ext_hda" />
+            <check type="cfx" name="check_rig_node" />
+            <check type="cfx" name="check_hou_file" />
         </check_group>
     </checkcontainer>
 
@@ -20,9 +23,9 @@
         <process type="gen" name="create_v_dir" mode="Dailies"/>
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
 
-        <process type="efx" name="gener_broken_asset" mode="Submit"/>
-        <process type="efx" name="copy_efx_cache" mode="Submit"/>
-        <process type="efx" name="efx_gener_usd_file" mode="Submit"/>
+        <process type="cfx" name="copy_rig_file" mode="Submit"/>
+        <process type="cfx" name="gener_usd_file" mode="Submit"/>
+
         <process type="efx" name="upload" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
         <process type="gen" name="sym_link_no_num_version" mode="Submit"/>

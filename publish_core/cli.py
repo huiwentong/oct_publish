@@ -71,6 +71,9 @@ class PublishCli:
 
         # build interface based on the step of the task
         stepname = str(self.task_entity.step.short_name).lower()
+        if self.task_entity.step.id == 290:
+            stepname = 'dyn'
+
         module_path = f'publish_components.components.{stepname}.interface'
         try:
             module = importlib.import_module(module_path)

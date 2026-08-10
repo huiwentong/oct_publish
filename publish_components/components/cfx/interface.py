@@ -9,6 +9,12 @@ from publish_core.database.entity import FastSg, SGEntity
 from pathlib import Path
 from .publish_file_ui import Ui_Form
 
+try:
+    import hou
+    from oct_hou.utils.alembic import check_broken
+    from oct_hou import get_ass_file_path
+except:
+    pass
 
 class Ui_ChoicesDialog(object):
     def setupUi(self, ChoicesDialog):
@@ -100,7 +106,6 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
             self.interface.input_form["up_verisons"] = ['default']
 
     def build_view(self, node=None):
-        import hou
 
         if not node:
             node = hou.node('/obj/workplace/cfx_rig_node')
@@ -112,7 +117,6 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
         self.enter_upstream_version(node)
 
     def enter_upstream_version(self, node: hou.SopNode):
-        import hou
         self.textEdit.clear()
         comment = node.comment()
         if not comment:
@@ -131,12 +135,10 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
 
     @staticmethod
     def all_rig_nodes():
-        import hou
         return hou.sopNodeTypeCategory().nodeType('huiwentong::cfx_rig_node').instances()
 
     @staticmethod
     def all_vdb_nodes():
-        import hou
         nodes = []
         for node in hou.sopNodeTypeCategory().nodeType('oct_filecache_2').instances():
             path = Path(node.parm('file').eval())
@@ -149,7 +151,6 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
     def all_ass_nodes():
         # 关于这块需要重新写
         
-        import hou 
 
         dirPath = get_ass_file_path()
         if not os.path.isdir(dirPath):
@@ -188,8 +189,7 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
 
     @staticmethod
     def node_display_text(node):
-        from oct_hou.utils.alembic import check_broken
-        from oct_hou import get_ass_file_path
+
         
 
         dirPath = get_ass_file_path()
@@ -217,7 +217,6 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
         return text
 
     def on_pick_abc(self):
-        import hou
         choices = []
 
         for node in self.all_rig_nodes():

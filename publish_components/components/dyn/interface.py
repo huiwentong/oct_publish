@@ -5,7 +5,10 @@ from qtpy.QtCore import Qt, Signal
 from pprint import pprint
 from publish_core.database.entity import FastSg, SGEntity
 from .publish_file_cfx_shot_ui import Ui_Form
-
+try:
+    import hou
+except:
+    pass
 
 def analysis_upstream(upstream='model: 241174,hair: 244698,dynamic: 244806,animation: 243969', sg=None):
     if not sg:
@@ -171,11 +174,12 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
         self.set_bind()
         if self.interface.submit_type == "Dailies":
             self.interface.input_form['components'] = {'default': 'default'}
+        else:
+            self.interface.input_form['components'] = {}
 
     def initial(self):
         in_hou = False
         try:
-            import hou
             in_hou = True
         except:
             pass
@@ -210,7 +214,6 @@ class ThisUi(QtWidgets.QWidget, Ui_Form):
             }
 
     def fill_in(self):
-        import hou
         for i in range(self.tableView.model.rowCount()):
             comp_item = self.tableView.model.item(i, 0)
             upstream_item = self.tableView.model.item(i, 1)

@@ -4,7 +4,10 @@ from qtpy import QtWidgets, QtCore, QtGui
 from qtpy.QtCore import Qt
 from pprint import pprint
 from publish_core.database.entity import FastSg, SGEntity
-
+try:
+    import hou
+except:
+    pass
 
 
 
@@ -46,7 +49,6 @@ class MyTableModel(QtGui.QStandardItemModel):
 
     def populate(self, components):
 
-        import hou
         for i in components:
             comp_node:hou.SopNode = i
             comp_name = comp_node.parm('comp_selected').evalAsString()
@@ -86,7 +88,6 @@ class MyTableModel(QtGui.QStandardItemModel):
 
 class MyTableView(QtWidgets.QTableView):
     def __init__(self, parent, interface:InterFace):
-        import hou
         super(MyTableView, self).__init__(parent)
         self.sg = FastSg().client
         self.interface = interface
@@ -167,7 +168,6 @@ class MyTableView(QtWidgets.QTableView):
         self.refresh_submit_info()
 
     def on_right_click(self, pos):
-        import hou
         menu = QtWidgets.QMenu()
         all_main_items = {}
         for i in self.selectedIndexes():

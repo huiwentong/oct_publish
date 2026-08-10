@@ -12,7 +12,7 @@
         <check_group name="Submit">
             <check type="cfx" name="check_file_ver" />
             <check type="cfx" name="check_ext_hda" />
-            <check type="cfx" name="check_cfx_cache" />
+            <check type="dyn" name="check_cfx_cache" />
             <check type="cfx" name="check_hou_file" />
         </check_group>
     </checkcontainer>
@@ -22,9 +22,9 @@
         <process type="gen" name="create_v_dir" mode="Dailies"/>
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
 
-        <process type="cfx" name="copy_cfx_cache" mode="Submit"/>
-        <process type="cfx" name="gen_xgd_file" mode="Submit"/>
-        <process type="cfx" name="gen_cfx_shot_usd_file" mode="Submit"/>
+        <process type="dyn" name="copy_cfx_cache" mode="Submit"/>
+        <process type="dyn" name="gen_xgd_file" mode="Submit"/>
+        <process type="dyn" name="gen_cfx_shot_usd_file" mode="Submit"/>
 
         <process type="efx" name="upload" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>

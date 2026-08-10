@@ -203,9 +203,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             shot = task.entity
 
             logger.info('gener asset!!!')
-            logger.info(broken_asset_name, project_name)
-            ass = check_create_broken_asset(sg, broken_asset_name, project_name, shot)
-            cache = comp_node.parm('lopoutput').eval()
+            logger.info(str([broken_asset_name, project_name]))
+            ass = check_create_broken_asset(sg, broken_asset_name, task.project, shot)
+
+
+            cache = comp_node.parm('lopoutput').evalAtFrame(hou.playbar.frameRange()[0])
             logger.info('gener version!!!!')
             create_version(sg, ass, cache)
 

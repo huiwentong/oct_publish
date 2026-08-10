@@ -32,7 +32,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 entity_type=task.entity.type.lower(),
                 entity_name=task.entity.code,
                 entity_link=link,
-                step_name=step_map[task.step.name]
+                step_name=step_map[task.step.code]
             )
             logger.info('************/ create path! {}'.format(path_schema))
             make_dirs(path_schema)

@@ -18,15 +18,19 @@ publish的工程中不能包含本地私有的hda，否则其他人在打开工�
     """
     try:
         hdas = find_all_installed_hdas()
-        root = hou.node("/obj")
-        for n in root.allSubChildren():
-            definition = n.type().definition()
-            if not definition:
-                continue
-            logger.info(definition)
-            if definition in hdas.values():
-                return "当前工程中有用到公共环境中不存在的私有hda，请确保publish的工程没有这些hda！\n私有hda节点：{}".format(
-                    n.path())
+        private_defs = set(hdas.values())
+        for node in hou.node("/obj").allSubChildren():
+            try:
+                node_type = node.type()
+                definition = node_type.definition()
+                if not definition:
+                    continue
+                if definition in private_defs:
+                    return "当前工程中有私有HDA:\n{}".format(node.path())
 
+            except hou.ObjectWasDeleted:
+                continue
+            except Exception:
+                continue
     except:
         return traceback.format_exc()

@@ -26,7 +26,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         publish_root = old_get_path(mount_point='publish', show_name=project_name, entity_type="Task", id=task_id)
 
         version_dir = publish_root + '/' + version_name
-        version_dir_no_num = publish_root + '/' + version_key
+        version_dir_no_num = publish_root + '/' + version_key[:-1]
         v_dir_preview = version_dir + '/preview/' + version_name + '.mov'
         v_dir_gpu = version_dir + '/gpu'
         v_dir_abc = version_dir + '/alembic'

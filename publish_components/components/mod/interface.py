@@ -108,7 +108,7 @@ class CompInterface(InterFace):
     )
 
     tag_list: list = field(
-        default_factory=lambda: [1130, 1129]
+        default_factory=lambda: [1050, 1129, 1130]
     )
 
     downstream_dcc_only:str | None = 'Maya'

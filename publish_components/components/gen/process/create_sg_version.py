@@ -15,15 +15,19 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
     try:
         user = get_user().tiny_raw()
-        tc = TaskContext(process_data.get("task_id"))
+        task_id = process_data.get("task_id")
+        tc = TaskContext(task_id) or TaskContext.from_env()
         version_dir = process_data.get("version_dir")
         version_name = process_data.get("version_name")
         v_dir_preview = process_data.get("v_dir_preview")
         publish_mode = process_data.get("publish_type")
         comment = process_data.get("comment")
-        auto_comment = process_data.get("auto_comment")
-        if auto_comment:
-            comment += '\n{ ' + auto_comment + ' }'
+        auto_description = process_data.get("auto_description", {})
+        if auto_description:
+            texts = []
+            for desp, content in auto_description.items():
+                texts.append('{}: {}'.format(desp, content))
+            comment += "\n({})".format("\n".join(texts))
 
         if sys.platform.startswith('win'):
             local_path = version_dir.replace('/', '\\') + '\\'
@@ -31,12 +35,14 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             local_path = version_dir + '/'
 
         ############################################# Create SG Version ################################################
-        project_dict = tc.project.to_dict()
+        entity_dict = {"id": tc.entity.id, "type": tc.entity.type}
+        sg_task_dict = {"id": task_id, "type": tc.task.type}
+        project_dict = {"id": tc.project.id, "type": tc.project.type}
         tag_entity = SGEntity('Tag', process_data.get("publish_tag_id"))
         d_version = {
             'project': project_dict,
-            'entity': tc.entity.to_dict(),
-            'sg_task': tc.task.to_dict(),
+            'entity': entity_dict,
+            'sg_task': sg_task_dict,
             'code': version_name,
             'description': comment,
             'user': user,

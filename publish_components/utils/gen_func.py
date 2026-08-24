@@ -1,0 +1,53 @@
+import os
+
+def get_utils_env():
+    env = {
+        "ADSK_CLM_WPAD_PROXY_CHECK": r"FALSE",
+        "ALLUSERSPROFILE": r"C:\ProgramData",
+        "APPDATA": r"C:\Users\huiwentong\AppData\Roaming",
+        "CommonProgramFiles": r"C:\Program Files\Common Files",
+        "CommonProgramFiles(x86)": r"C:\Program Files (x86)\Common Files",
+        "CommonProgramW6432": r"C:\Program Files\Common Files",
+        "ComSpec": r"C:\Windows\system32\cmd.exe",
+        "DEADLINE_PATH": r"C:\Program Files\Thinkbox\Deadline10\bin",
+        "DEFAULT_RENDERER": r"dl",
+        "DELIGHT": r"C:\Program Files\3Delight",
+        "DriverData": r"C:\Windows\System32\Drivers\DriverData",
+        "HOMEDRIVE": r"C:",
+        "HOMEPATH": r"\Users\huiwentong",
+        "INTEL_DEV_REDIST": r"C:\Program Files (x86)\Common Files\Intel\Shared Libraries",
+        "KATANA_RESOURCES": r"C:\Program Files\3Delight\3DelightForKatana",
+        "LOCALAPPDATA": r"C:\Users\huiwentong\AppData\Local",
+        "LOGONSERVER": r"\\WC",
+        "MIC_LD_LIBRARY_PATH": r"C:\Program Files (x86)\Common Files\Intel\Shared Libraries\compiler\lib\mic",
+        "NUMBER_OF_PROCESSORS": r"64",
+        "OneDrive": r"C:\Users\Skyfree\OneDrive",
+        "OS": r"Windows_NT",
+        "Path": r"C:\Program Files (x86)\Common Files\Intel\Shared Libraries\redist\intel64\compiler;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Users\Skyfree\AppData\Local\Microsoft\WindowsApps;C:\Program Files\3Delight\bin;C:\Program Files (x86)\QuickTime\QTSystem\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\Git\cmd;D:\prealStudio;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files\dotnet\;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\CMake\bin;C:\Program Files\Python310\Scripts\;C:\Program Files\Python310\;C:\opt\Scripts\rez;C:\opt\Scripts;C:\Users\huiwentong\AppData\Local\Microsoft\WindowsApps;;C:\Program Files\JetBrains\PyCharm 2025.1.2\bin;;C:\Users\huiwentong\.dotnet\tools",
+        "PATHEXT": r".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW",
+        "PROCESSOR_ARCHITECTURE": r"AMD64",
+        "PROCESSOR_IDENTIFIER": r"Intel64 Family 6 Model 85 Stepping 7, GenuineIntel",
+        "PROCESSOR_LEVEL": r"6",
+        "PROCESSOR_REVISION": r"5507",
+        "ProgramData": r"C:\ProgramData",
+        "ProgramFiles": r"C:\Program Files",
+        "ProgramFiles(x86)": r"C:\Program Files (x86)",
+        "ProgramW6432": r"C:\Program Files",
+        "PROMPT": r"$P$G",
+        "PSModulePath": r"C:\Program Files\WindowsPowerShell\Modules;C:\Windows\system32\WindowsPowerShell\v1.0\Modules",
+        "PUBLIC": r"C:\Users\Public",
+        "PyCharm": r"C:\Program Files\JetBrains\PyCharm 2025.1.2\bin;",
+        "REZ_CONFIG_FILE": r"\\192.168.15.15\pipeline\config\rezconfig.py",
+        "SESSIONNAME": r"Console",
+        "SystemDrive": r"C:",
+        "SystemRoot": r"C:\Windows",
+        "USERDNSDOMAIN": r"DS.COM",
+        "USERDOMAIN": r"DS",
+        "USERDOMAIN_ROAMINGPROFILE": r"DS",
+        "USERNAME": r"huiwentong",
+        "USERPROFILE": r"C:\Users\huiwentong",
+        "windir": r"C:\Windows"
+    }
+    for k,v in env.items():
+        env[k] = v.replace('huiwentong', os.environ['username'])
+    return env

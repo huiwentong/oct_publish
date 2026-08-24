@@ -10,18 +10,63 @@
             <check type="gen" name="check_status"/>
             <check type="gen" name="check_publish_root"/>
         </check_group>
-        <check_group name="Submit">
-            <check type="gen" name="version_name"/>
+        <check_group name="Publish">
+            <check type="maya_gen" name="generic_check"/>
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_gen" name="check_hierarchy_main"/>
+            <check type="maya_gen" name="no_name_space"/>
+            <check type="mod" name="check_instanced_node"/>
+            <check type="mod" name="one_geo_only"/>
+            <check type="mod" name="unique_name"/>
+            <check type="mod" name="check_mesh"/>
+            <check type="maya_gen" name="match_hierarchy"/>
+            <check type="tex" name="check_illegal_path"/>
+            <check type="mod" name="check_mod_color_set"/>
+            <check type="mod" name="check_mod_reflectivity_attr"/>
+            <check type="mod" name="check_rotate_pivot"/>
+            <check type="mod" name="check_chr_asset_hierarchy"/>
+            <check type="mod" name="face_edge_chr"/>
+            <check type="mod" name="check_freeze"/>
+            <check type="mod" name="vertex_isolated"/>
+            <check type="mod" name="vertex_overlap"/>
+            <check type="mod" name="geo_overlap"/>
+            <check type="maya_gen" name="check_facesets"/>
+            <check type="mod" name="check_body_topology"/>
+            <check type="mod" name="check_mesh_intersection"/>
+            <check type="mod" name="check_distance_from_world"/>
+            <check type="tex" name="check_colorspace"/>
+            <check type="mod" name="check_transform_channels"/>
+            <check type="mod" name="check_node_override"/>
+            <check type="mod" name="assign_shaders"/>
+            <check type="mod" name="check_render_stats"/>
+            <check type="maya_gen" name="check_unused_material"/>
+            <check type="maya_gen" name="missing_asset_images"/>
+            <check type="maya_gen" name="check_multi_uv_sets"/>
+            <check type="maya_gen" name="check_uv_negative_value"/>
+            <check type="maya_gen" name="check_empty_uv_set"/>
         </check_group>
     </checkcontainer>
 
-
     <processcontainer>
+        <process type="mod" name="unlock_normal_and_soften_edge" mode="Publish"/>
+        <process type="maya_gen" name="clean_scene" mode="Publish"/>
+        <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>
+        <process type="mod" name="clean_mod_scene" mode="Publish"/>
+        <process type="maya_gen" name="maya_version_attr" mode="Publish"/>
         <process type="gen" name="create_v_dir" mode="Dailies"/>
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>
+        <process type="maya_gen" name="copy_asset_images" mode="Publish"/>
+        <process type="mod" name="create_cfx_head" mode="Publish"/>
+        <process type="mod" name="export_asset_ma" mode="Publish"/>
+        <process type="mod" name="export_asset_usd" mode="Publish"/>
+        <process type="mod" name="update_asset_poly_cnt" mode="Publish"/>
         <process type="mod" name="upload_zbrush_file" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="gen" name="create_manifest_file" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="mod" name="auto_gener_low_usd" mode="Publish"/>
     </processcontainer>
 
 </root>

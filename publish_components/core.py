@@ -41,8 +41,10 @@ DCC_COMMANDS = {
 DCC_OPENSCEN = {
     'cmd': ['', ''],
     '.hip': ['', '    scene = sys.argv[1]\n    hou.hipFile.load(scene,suppress_save_prompt=False,ignore_load_warnings=False)'],
-    '.mb': ['import maya.standalone\nmaya.standalone.initialize(name="python")', '    scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
-    '.ma': ['import maya.standalone\nmaya.standalone.initialize(name="python")', '    scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
+    '.mb': ['import maya.standalone\nmaya.standalone.initialize(name="python")\nimport maya.cmds as cmds\nif not cmds.pluginInfo("mayaUsdPlugin", query=True, loaded=True):cmds.loadPlugin("mayaUsdPlugin")',
+            'scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
+    '.ma': ['import maya.standalone\nmaya.standalone.initialize(name="python")\nimport maya.cmds as cmds\nif not cmds.pluginInfo("mayaUsdPlugin", query=True, loaded=True):cmds.loadPlugin("mayaUsdPlugin")',
+            'scene = sys.argv[1]\n    cmds.file(scene,open=True,force=True)'],
     '.nk': ['', '    scene = sys.argv[1]\n    nuke.scriptOpen(scene)'],
     '.katana': ['', '    scene = sys.argv[1]\n    KatanaFile.Load(scene)'],
 }
@@ -305,7 +307,7 @@ class InterFace():
         db = RunListDB(runlist_file=runlist, file_first=True if self.runlist else False, publish_type=self.submit_type, step=Path(module_file).parent.stem)
         self.check_files = db.check_files
         self.process_files = db.process_files
-        self.process_data = {'filetypes': db.file_types}
+        self.process_data.update({'filetypes': db.file_types})
 
 
     def fill_submit_form(self):
@@ -337,9 +339,8 @@ class InterFace():
         funcs_template = """
 import sys
 from publish_core.log.core import PublishLog
-{import_module}
 {maya_standalone}
-
+{import_module}
 
 logger = PublishLog(name="TEMP_PYTHON")
 def main():

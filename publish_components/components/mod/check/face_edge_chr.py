@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 import pymel.core as pm
-import maya.OpenMaya as om
+import maya.api.OpenMaya as om
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -17,11 +17,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         for mesh_node in l_meshes:
             sl = om.MSelectionList()
             sl.add(mesh_node.fullPath())
-            mesh_dag = om.MDagPath()
-            sl.getDagPath(0, mesh_dag)
+            mesh_dag = sl.getDagPath(0)
             mesh_mfn = om.MFnMesh(mesh_dag)
 
-            for i in range(mesh_mfn.numPolygons()):
+            for i in range(mesh_mfn.numPolygons):
                 if mesh_mfn.polygonVertexCount(i) > 4:
                     l_invalid_meshes.append(str(mesh_node))
                     l_invalid_faces.append(str(mesh_node + '.f[' + str(i) + ']'))

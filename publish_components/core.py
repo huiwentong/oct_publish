@@ -253,7 +253,7 @@ class InterFace():
     task_entity: SGEntity
     submit_type: str | None = None
     # Data from cli data
-    process_data:dict | None = None
+    process_data:dict = field(default_factory=dict)
 
     ui_parent: QWidget | None = None
     is_gui: bool = False

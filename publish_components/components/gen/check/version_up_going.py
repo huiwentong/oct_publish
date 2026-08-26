@@ -15,8 +15,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         version_num = process_data.get("version_num")
         if not version_num:
             return u"没有获取到有效的版本号"
-        dcc = process_data.get("dcc")
-        widget = process_data.get("widget")
         task_id = process_data.get("task_id")
         tc = TaskContext(task_id) or TaskContext.from_env()
         tc.refresh()
@@ -30,26 +28,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         if len(all_v_nums) > 0 and version_num <= max(all_v_nums):
             logger.warning(u"之前已经提交了 {} 版, 新版本 {} 版本号不够高。将自动保存文件并增大版本号。".format(max(all_v_nums), version_num))
             return u"之前已经提交了 {} 版, 新版本 {} 版本号不够高。将自动保存文件并增大版本号。".format(max(all_v_nums), version_num)
-            #TODO 添加自动保存功能
-            # if not dcc:
-            #     return u"没有任何 dcc 中, 无法自动保存文件！"
-            # if dcc == 'Maya':
-            #     import pymel.core as pm
-            #     from oct_maya.tools.pipe.oct_save_as import app_launcher as oct_save_as
-            #     p = oct_save_as.OctLauncher("oct_save_as", "pipe", "command", dockable=False, enable_log=False,
-            #                                 log_level="info", check_context=True, ui_style="")
-            #     p.setup_launcher()
-            #     p.launch()
-            #     scene_path = pm.sceneName()
-            #     if scene_path != '' and widget:
-            #         tokens = os.path.basename(scene_path).split('.')
-            #         p = re.compile('v\d\d\d')
-            #         if p.match(tokens[-2].lower()):
-            #             new_version_num = tokens[-2][1:]
-            #             print("#"*100)
-            #             print(new_version_num)
-            #             widget._version_edit.setText(new_version_num)
-            #             process_data.update({"version_num": new_version_num})
     except:
         return traceback.format_exc()
 

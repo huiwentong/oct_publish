@@ -44,7 +44,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         """
         if not items:
             return u''
-        msg = u'\n有 {} 个{}'.format(len(items), title)
+        msg = u'\n有 {} {}'.format(len(items), title)
         if len(items) > limit:
             msg += separator.join(items[:limit]) + u' ...'
         else:

@@ -17,9 +17,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
         def reset_imgs(imgs_d):
             for n in pm.ls(type='file'):
+                cs = n.getAttr('colorSpace')
                 n.setAttr('fileTextureName', imgs_d['file'][n.nodeName()])
+                n.setAttr('colorSpace', cs, type='string')
             for n in pm.ls(type='aiImage'):
+                cs = n.getAttr('colorSpace')
                 n.setAttr('filename', imgs_d['aiImage'][n.nodeName()])
+                n.setAttr('colorSpace', cs, type='string')
 
         def process():
             d_imgs = get_imgs_info()

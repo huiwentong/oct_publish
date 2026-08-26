@@ -31,7 +31,7 @@
             <check type="rig" name="io_mesh_name"/>
             <check type="mod" name="check_mesh"/>
             <check type="maya_gen" name="match_hierarchy"/>
-            <check type="maya" name="check_mod_hierarchy_order"/>
+            <check type="maya_gen" name="check_mod_hierarchy_order"/>
 <!--            <check type="rig" name="check_ctrl_name"/>-->
 <!--            <check type="rig" name="check_inconsistent_movement"/>-->
 <!--            <check type="rig" name="check_control_values"/>-->

@@ -2,33 +2,26 @@
 
 import traceback
 import os
+import pymel.core as pm
+import maya.cmds as cmds
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    def run_check():
-        import pymel.core as pm
-        global pm
-        try:
-            l_errs = []
-            l_ref = pm.ls(type='reference')
-            if len(l_ref):
-                for ref_node in l_ref:
-                    l_errs.append(u'{};'.format(ref_node.name()))
-                return u"当前文件中存在 Reference 节点：\n" + '\n'.join(l_errs)
-            return ""
+    """
+检查 Reference 节点是否存在
+    """
+    try:
+        l_errs = []
+        l_ref = pm.ls(type='reference')
+        if l_ref:
+            for ref_node in l_ref:
+                l_errs.append(u'{};'.format(ref_node.name()))
+            logger.warning(u"当前文件中存在 Reference 节点：\n" + '\n'.join(l_errs))
 
-        except:
-            return traceback.format_exc()
+            rfs = cmds.file(query=True, reference=True)
+            for rf in rfs:
+                cmds.file(rf, rr=True)
+            logger.info("AUTO FIX: 删除了 {} 个Reference节点：".format(len(rfs)))
 
-    def run_fix():
-        import maya.cmds as cmds
-        rfs = cmds.file(q=1,r=1)
-        for rf in rfs:
-            cmds.file(rf,rr=1)
-
-        return ""
-
-    check_result = run_check()
-    if check_result:
-        run_fix()
-
+    except:
+        return traceback.format_exc()

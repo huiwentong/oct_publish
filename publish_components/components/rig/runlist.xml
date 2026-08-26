@@ -1,0 +1,75 @@
+<?xml version="1.0"?>
+<root>
+
+<!-- from GongShuai
+1. version_name_match 合并到 check_work_file
+2. check_work_file 重构可以与version up going 里的 auto save 合并 （需要重构）
+3. match_hierarchy 重构
+4. mesh_name, check_empty_mesh, check_lamina_faces, nonmanifold_face, check_holes, extremely_short_edge 合并为 check_mesh
+5. check_maya_unit, unknown_nodes, unknown_plugins, unlock_default_nodes 合并为 generic_check
+-->
+
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="gen" name="check_dcc_rv"/>
+            <check type="gen" name="version_name"/>
+            <check type="gen" name="version_up_going"/>
+            <check type="gen" name="check_selected_preview"/>
+            <check type="gen" name="check_status"/>
+            <check type="gen" name="check_publish_root"/>
+        </check_group>
+
+        <check_group name="Publish">
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_gen" name="generic_check"/>
+            <check type="maya_gen" name="check_reference_node"/>
+            <check type="mod" name="check_hierarchy_main"/>
+            <check type="rig" name="check_rig_hierarchy"/>
+            <check type="maya_gen" name="check_non_unique_dag"/>
+            <check type="maya_gen" name="no_name_space"/>
+            <check type="mod" name="check_instanced_node"/>
+            <check type="rig" name="io_mesh_name"/>
+            <check type="mod" name="check_mesh"/>
+            <check type="maya" name="match_hierarchy"/>
+            <check type="maya" name="check_mod_hierarchy_order"/>
+            <check type="rig" name="check_ctrl_name"/>
+            <check type="rig" name="check_inconsistent_movement"/>
+            <check type="rig" name="check_control_values"/>
+            <check type="maya" name="check_display_layers"/>
+            <check type="mod" name="check_display_override"/>
+            <check type="maya" name="check_texture_path_locked"/>
+            <check type="maya_gen" name="check_facesets"/>
+            <check type="maya_gen" name="check_jnts_attrs"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="mod" name="unlock_normal_and_soften_edge" mode="Publish"/>
+        <process type="maya" name="save_scene" mode="Publish"/>
+        <process type="mod" name="clean_vtx_relative_coordination" mode="Publish"/>
+        <process type="mod" name="clean_history" mode="Publish"/>
+        <process type="maya" name="clean_scene" mode="Publish"/>
+        <process type="maya" name="clean_asset_scene" mode="Publish"/>
+        <process type="maya" name="maya_version_attr" mode="Publish"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="maya" name="asset_mesh_xml" mode="Publish"/>
+        <process type="maya" name="copy_asset_images" mode="Publish"/>
+        <process type="mod" name="create_cfx_head" mode="Publish"/>
+        <process type="mod" name="export_asset_ma" mode="Publish"/>
+        <process type="mod" name="export_asset_abc" mode="Publish"/>
+        <process type="rig" name="export_preview_data" mode="Publish"/>
+        <process type="mod" name="export_gpu_cache" mode="Publish"/>
+        <process type="mod" name="upload_zbrush_file" mode="Dailies"/>
+        <process type="maya_gen" name="export_scene_graph_xml" mode="Publish"/>
+        <process type="mod" name="update_asset_poly_cnt" mode="Publish"/>
+        <process type="mod" name="export_asset_usd" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="mod" name="export_assembly" mode="Publish"/>
+        <process type="gen" name="create_manifest_file" mode="Publish"/>
+        <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="mod" name="auto_gener_low_usd" mode="Publish"/>
+    </processcontainer>
+
+</root>

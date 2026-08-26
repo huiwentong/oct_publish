@@ -83,6 +83,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 mod_path = mc.getAttr(n_root + '.modelPath')
                 if mod_path and os.path.isdir(os.path.dirname(mod_path)):
                     mod_version, mesh_xml = get_last_version(mod_version, mod_path)
+                    print("mod_version:", mod_version)
+                    print("mesh_xml:", mesh_xml)
 
             result_dict = compare_order(parse_xml_hierarchy(mesh_xml))
             if result_dict:

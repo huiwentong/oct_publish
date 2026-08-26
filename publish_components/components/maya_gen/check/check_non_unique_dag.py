@@ -8,24 +8,35 @@
 @contact: wanjw126@126.com
 """
 import traceback
+import maya.cmds as mc
+import maya.utils as utils
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    import maya.cmds as mc
+    """
+检查重命名的Dag节点
+    """
 
-    non_unique_dag_dict = {}
+    try:
+        def run_check():
+            non_unique_dag_dict = {}
 
-    dag_node_list = mc.ls(dagObjects=True)
-    for node in dag_node_list:
-        if '|' in node:
-            key = node.split('|')[-1]
-            if key not in non_unique_dag_dict:
-                non_unique_dag_dict[key] = mc.ls(key, dagObjects=True)
+            dag_node_list = mc.ls(dagObjects=True)
+            for node in dag_node_list:
+                if '|' in node:
+                    key = node.split('|')[-1]
+                    if key not in non_unique_dag_dict:
+                        non_unique_dag_dict[key] = mc.ls(key, dagObjects=True)
 
-    result = ''
-    if len(non_unique_dag_dict) > 0:
-        result += u'文件内存在重名节点: \n'
-        for key, value in non_unique_dag_dict.items():
-            result += '{}: {}\n'.format(key, ', '.join(value))
+            result = ''
+            if len(non_unique_dag_dict) > 0:
+                result += u'文件内存在重名节点: \n'
+                for key, value in non_unique_dag_dict.items():
+                    result += '{}: {}\n'.format(key, ', '.join(value))
 
-    return result
+            return result
+
+        return utils.executeInMainThreadWithResult(run_check)
+
+    except:
+        return traceback.format_exc()

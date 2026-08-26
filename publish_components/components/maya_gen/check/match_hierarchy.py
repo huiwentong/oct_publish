@@ -93,6 +93,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     mod_path = mod_path.replace('I:', 'i:', 1)
                     n_root.setAttr('modelPath', mod_path)
 
+
                 if mod_path:
                     mod_path = mod_path.replace("\\", "/")
                 asset_dir = os.path.dirname(os.path.dirname(version_dir))

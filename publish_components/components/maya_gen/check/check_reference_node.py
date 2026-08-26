@@ -23,7 +23,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 rfs = cmds.file(query=True, reference=True)
                 for rf in rfs:
                     cmds.file(rf, rr=True)
-                logger.info("AUTO FIX: 删除了 {} 个Reference节点：".format(len(rfs)))
+                logger.info(u"AUTO FIX: 删除了 {} 个Reference节点".format(len(rfs)))
 
         utils.executeInMainThreadWithResult(run_check)
 

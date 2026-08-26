@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import traceback
+import traceback, os
 import pymel.core as pm
 import maya.utils as utils
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
@@ -8,6 +8,9 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     # 1.检查maya 单位为cm 2.清理未知插件 3.清理未知节点 4.解锁maya基本节点
     try:
+        if not os.path.exists('C:/Program Files/Autodesk/Maya2024/bin/maya.exe'):
+            return "本地没有安装maya 2024!"
+
         # 检查maya 单位为cm
         current_unit = utils.executeInMainThreadWithResult(lambda: pm.currentUnit(q=True, linear=True))
         if not current_unit == "cm":

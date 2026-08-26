@@ -18,6 +18,12 @@ from oct.pipeline import path
 from oct_maya.utils.maya_utils.camera import export_tmp_cam, create_tmp_camera
 
 
+def main():
+    """
+导出预览材质数据及预览相机
+    """
+    pass
+
 class PreviewDataGenerator():
     def __init__(self, sourceimages_path=None):
         self.sourceimages_path = sourceimages_path

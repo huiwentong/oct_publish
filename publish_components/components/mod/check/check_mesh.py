@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查并修复mesh
     """
-    #规范high下 mesh的名字, 删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
+    #删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
 
     try:
         high_node = process_data.get('high','|Root_grp|Geo_grp|high')
@@ -24,14 +24,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
                 mg.delete_empty_mesh(mesh)
                 continue
-
-            # Shape name
-            transform = mesh.getParent()
-            expected_name = '{}Shape'.format(transform.nodeName())
-            if mesh.nodeName() != expected_name:
-                old_name = str(mesh)
-                mesh = mg.normalize_mesh_name(mesh)
-                logger.warning('AUTO FIX: 重命名 {} -> {}'.format(old_name, mesh))
 
             # Non-manifold
             if mg.has_non_manifold(mesh):

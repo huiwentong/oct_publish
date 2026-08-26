@@ -89,10 +89,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 mod_version = n_root.getAttr('modelVersion')
                 mod_path = n_root.getAttr('modelPath')
 
+
                 if mod_path and mod_path.startswith('I:'):
                     mod_path = mod_path.replace('I:', 'i:', 1)
                     n_root.setAttr('modelPath', mod_path)
-
 
                 if mod_path:
                     mod_path = mod_path.replace("\\", "/")

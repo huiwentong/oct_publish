@@ -4,8 +4,8 @@
     <checkcontainer>
         <check_group name="Dailies">
             <check type="gen" name="check_dcc_rv"/>
+            <check type="maya_gen" name="version_up_going"/>
             <check type="gen" name="version_name"/>
-            <check type="gen" name="version_up_going"/>
             <check type="gen" name="check_selected_preview"/>
             <check type="gen" name="check_status"/>
             <check type="gen" name="check_publish_root"/>

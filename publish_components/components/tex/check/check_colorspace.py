@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import traceback
+import traceback, os
 import pymel.core as pm
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
@@ -9,6 +9,9 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     try:
         l_unknown_cs = []
         color_list = {'sRGB':'Utility - sRGB - Texture' , 'Raw':'Utility - Raw' }
+        if not os.path.isfile(pm.colorManagementPrefs(q=True, configFilePath=True)):
+            return "当前场景没有配置 OCIO！！"
+
         for n_f in pm.ls(type=['file', 'aiImage']):
             n_f_name = n_f.nodeName()
             color_space = n_f.getAttr('colorSpace')

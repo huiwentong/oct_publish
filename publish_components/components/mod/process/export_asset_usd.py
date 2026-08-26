@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import traceback
 import os
+import glob
 from pxr import Usd
-from glob import glob
 import pymel.core as pm
 from importlib import reload
 from oct.data.usd import step_pub_usds
@@ -57,7 +57,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             "stripNamespaces": True,
         }
 
-        maya_file = glob(version_dir + '/*.ma')[0].replace('\\', '/')
+        maya_file = glob.glob(version_dir + '/*.ma')[0].replace('\\', '/')
         batch_export_usd(maya_file, v_dir_usd + '/high.usd', **args)
         Usd.Stage.Open(v_dir_usd + '/high.usd')
 

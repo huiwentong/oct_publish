@@ -7,16 +7,28 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     检查版本(Version)的命名是否规范。
     """
+    def version_num_with_file(file):
+        if file != '':
+            scene_v = int(file.split('.')[-2][1:])
+            v_number = 'v{:03d}'.format(scene_v)
+            return v_number
+        return None
+
     try:
         task_id = process_data['task_id']
         form_widget = process_data.get("widget")
         task = SGEntity('Task', task_id)
         if task.entity.type not in ['Asset', 'Shot', 'Sequence']:
             return u'无效的 entity type: {}'.format(task.entity.type)
+        version_key = "{}.{}.{}".format(task.entity.code, task.step.code, task.content)
+        if form_widget:
+            version_num = form_widget._version_edit.text()
+        else:
+            dcc_file = process_data["dcc_file"]
+            version_num = process_data.get("version_num", version_num_with_file(dcc_file))
 
-        version_key = form_widget._version_name_label.text()
-        version_num = form_widget._version_edit.text()
-        version_name = version_key + version_num
+        logger.info('version_num: {}'.format(version_num))
+        version_name = version_key + '.' + version_num
         project_name = task.project.name
         entity_name = task.entity.code
 
@@ -26,7 +38,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         publish_root = old_get_path(mount_point='publish', show_name=project_name, entity_type="Task", id=task_id)
 
         version_dir = publish_root + '/' + version_name
-        version_dir_no_num = publish_root + '/' + version_key[:-1]
+        version_dir_no_num = publish_root + '/' + version_key
         v_dir_preview = version_dir + '/preview/' + version_name + '.mov'
         v_dir_gpu = version_dir + '/gpu'
         v_dir_abc = version_dir + '/alembic'

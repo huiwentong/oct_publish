@@ -15,8 +15,10 @@
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_hierarchy_main"/>
             <check type="maya_gen" name="no_name_space"/>
+            <check type="maya_gen" name="untouched_transform"/>
             <check type="mod" name="check_instanced_node"/>
             <check type="mod" name="one_geo_only"/>
+            <check type="maya_gen" name="mesh_name"/>
             <check type="mod" name="unique_name"/>
             <check type="mod" name="check_mesh"/>
             <check type="maya_gen" name="match_hierarchy"/>

@@ -17,11 +17,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         n_root = process_data.get("root", '|Root_grp')
         n_root = pm.PyNode(n_root)
-        print("n_root.name():", n_root.name())
-
-        n_geo = process_data.get("root", '|Root_grp|Geo_grp')
+        n_geo = process_data.get("geo", '|Root_grp|Geo_grp')
         n_geo = pm.PyNode(n_geo)
-        print("n_geo.name():", n_geo.name())
 
         if not pm.objExists('|Root_grp|Rig_grp'):
             return u"Root 组下没有 Rig_grp。"

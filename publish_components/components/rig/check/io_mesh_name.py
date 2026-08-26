@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 检查资产 high 组内 intermediate object mesh 节点名
     """
     try:
-        def run_check():
+        def process():
             result = None
             l_bad_names = []
             n_high = process_data.get("high", "|Root_grp|Geo_grp|high")
@@ -38,7 +38,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                             rename_count += 1
                 logger.info(u"AUTO FIX: 重命名了 {} 个节点".format(rename_count))
 
-        utils.executeInMainThreadWithResult(run_check)
+        utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

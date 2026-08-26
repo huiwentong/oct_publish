@@ -12,7 +12,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 检查 Reference 节点是否存在
     """
     try:
-        def run_check():
+        def process():
             l_errs = []
             l_ref = pm.ls(type='reference')
             if l_ref:
@@ -25,7 +25,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     cmds.file(rf, rr=True)
                 logger.info(u"AUTO FIX: 删除了 {} 个Reference节点".format(len(rfs)))
 
-        utils.executeInMainThreadWithResult(run_check)
+        utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

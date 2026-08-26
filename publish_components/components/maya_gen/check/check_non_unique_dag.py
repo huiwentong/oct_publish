@@ -18,7 +18,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
 
     try:
-        def run_check():
+        def process():
             non_unique_dag_dict = {}
 
             dag_node_list = mc.ls(dagObjects=True)
@@ -36,7 +36,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return result
 
-        return utils.executeInMainThreadWithResult(run_check)
+        return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

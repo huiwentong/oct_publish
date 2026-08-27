@@ -44,32 +44,32 @@
     </checkcontainer>
 
     <processcontainer>
-        <process type="mod" name="unlock_normal_and_soften_edge" mode="Publish"/>
-<!--        <process type="maya" name="save_scene" mode="Publish"/>-->
-<!--        <process type="mod" name="clean_vtx_relative_coordination" mode="Publish"/>-->
-<!--        <process type="mod" name="clean_history" mode="Publish"/>-->
-<!--        <process type="maya" name="clean_scene" mode="Publish"/>-->
-<!--        <process type="maya" name="clean_asset_scene" mode="Publish"/>-->
-<!--        <process type="maya" name="maya_version_attr" mode="Publish"/>-->
-<!--        <process type="gen" name="create_v_dir" mode="Dailies"/>-->
-<!--        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>-->
-<!--        <process type="maya" name="asset_mesh_xml" mode="Publish"/>-->
-<!--        <process type="maya" name="copy_asset_images" mode="Publish"/>-->
-<!--        <process type="mod" name="create_cfx_head" mode="Publish"/>-->
-<!--        <process type="mod" name="export_asset_ma" mode="Publish"/>-->
-<!--        <process type="mod" name="export_asset_abc" mode="Publish"/>-->
-<!--        <process type="rig" name="export_preview_data" mode="Publish"/>-->
-<!--        <process type="mod" name="export_gpu_cache" mode="Publish"/>-->
-<!--        <process type="mod" name="upload_zbrush_file" mode="Dailies"/>-->
-<!--        <process type="maya_gen" name="export_scene_graph_xml" mode="Publish"/>-->
-<!--        <process type="mod" name="update_asset_poly_cnt" mode="Publish"/>-->
-<!--        <process type="mod" name="export_asset_usd" mode="Publish"/>-->
-<!--        <process type="gen" name="lock_v_dir" mode="Dailies"/>-->
-<!--        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>-->
-<!--        <process type="mod" name="export_assembly" mode="Publish"/>-->
-<!--        <process type="gen" name="create_manifest_file" mode="Publish"/>-->
-<!--        <process type="gen" name="create_sg_version" mode="Dailies"/>-->
-<!--        <process type="mod" name="auto_gener_low_usd" mode="Publish"/>-->
+    <process type="maya_gen" name="save_scene" mode="Publish"/>
+<!--    <process type="rig" name="unlock_dag_nodes" mode="Publish"/>-->
+<!--    <process type="maya_gen" name="clean_scene" mode="Publish"/>-->
+<!--    <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>-->
+<!--    <process type="rig" name="cleanup_rig_file" mode="Publish"/>-->
+<!--    <process type="maya_gen" name="maya_version_attr" mode="Publish"/>-->
+<!--    <process type="gen" name="create_v_dir" mode="Dailies"/>-->
+<!--    <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>-->
+<!--    <process type="proj_nzt_gen" name="copy_preview_imgs" mode="Dailies"/>-->
+<!--    <process type="maya_gen" name="copy_asset_images" mode="Publish"/>-->
+<!--    <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>-->
+<!--    <process type="rig" name="export_ctrl_info" mode="Publish"/>-->
+<!--	<process type="maya_gen" name="version_up" mode="Publish"/>-->
+<!--    <process type="maya_gen" name="export_asset_ma" mode="Publish"/>-->
+<!--	<process type="maya_gen" name="copy_dna" mode="Publish"/>-->
+<!--	<process type="maya_gen" name="export_cms" mode="Publish"/>-->
+<!--    <process type="mod" name="export_asset_abc" mode="Publish"/>-->
+<!--    <process type="rig" name="export_preview_data" mode="Publish"/>-->
+<!--	<process type="mod" name="export_assembly" mode="Publish"/>-->
+<!--	<process type="maya_gen" name="export_rig_fbx" mode="Publish"/>-->
+<!--	<process type="rig" name="export_rigging_usd" mode="Publish"/>-->
+<!--    <process type="gen" name="create_manifest_file" mode="Publish"/>-->
+<!--    <process type="gen" name="lock_v_dir" mode="Dailies"/>-->
+<!--    <process type="gen" name="create_sg_version" mode="Dailies"/>-->
+<!--    <process type="rig" name="update_sg_version" mode="Publish"/>-->
+<!--    <process type="gen" name="sym_link_no_num_version" mode="Publish"/>-->
     </processcontainer>
 
 </root>

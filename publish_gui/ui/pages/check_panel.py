@@ -102,9 +102,9 @@ class CheckPanelPage(QWidget):
         outer.addWidget(self._status_label)
         outer.addSpacing(12)
 
-        self._table = QTableWidget(1, 4)
+        self._table = QTableWidget(1, 5)
         self._table.itemClicked.connect(self._on_item_clicked)
-        self._table.setHorizontalHeaderLabels(["Check", "Result"])
+        self._table.setHorizontalHeaderLabels(["Check", "Result", "Fix"])
         self._table.horizontalHeader().setStretchLastSection(False)
         self._table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)
         self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
@@ -229,6 +229,7 @@ class CheckPanelPage(QWidget):
     def on_component_finished(self, comp, row, usetime):
         comp.log.success(f'finish check {comp.name}, total use: {usetime:.2f}s')
         item_status = self._table.item(row, 3)
+        item_fix = self._table.item(row, 4)
         item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
@@ -237,6 +238,7 @@ class CheckPanelPage(QWidget):
         item_status.setForeground(QColor(COLOR_MAP['success']))
         item_main.setForeground(QColor(COLOR_MAP['success']))
         item_type.setForeground(QColor(COLOR_MAP['success']))
+        item_fix.setForeground(QColor(COLOR_MAP['success']))
         item_desc.setForeground(QColor(COLOR_MAP['success']))
         item_status.setText('success')
         self.set_step(row)
@@ -245,6 +247,7 @@ class CheckPanelPage(QWidget):
     def on_component_failed(self, comp, row):
         comp.log.warning(f'check failed!: {comp.status}')
         item_status = self._table.item(row, 3)
+        item_fix = self._table.item(row, 4)
         item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
@@ -255,10 +258,12 @@ class CheckPanelPage(QWidget):
         item_main.setForeground(QColor(COLOR_MAP['failed']))
         item_desc.setForeground(QColor(COLOR_MAP['failed']))
         item_status.setText(comp.status)
+        item_fix.setForeground(QColor(COLOR_MAP['failed']))
 
     def on_component_processing(self, comp, row):
         comp.log.info(f'start check {comp.name}')
         item_status = self._table.item(row, 3)
+        item_fix = self._table.item(row, 4)
         item_type = self._table.item(row, 2)
         item_desc = self._table.item(row, 1)
         item_main = self._table.item(row, 0)
@@ -268,6 +273,7 @@ class CheckPanelPage(QWidget):
         item_status.setForeground(QColor(COLOR_MAP['process']))
         item_main.setForeground(QColor(COLOR_MAP['process']))
         item_desc.setForeground(QColor(COLOR_MAP['process']))
+        item_fix.setForeground(QColor(COLOR_MAP['process']))
         item_status.setText('processing...')
 
 
@@ -302,7 +308,7 @@ class CheckPanelPage(QWidget):
             raise RuntimeWarning('can not found check files!')
         self._table.clear()
 
-        self._table.setHorizontalHeaderLabels(["check name", "type", "description","status"])
+        self._table.setHorizontalHeaderLabels(["check name", "type", "description","status", "fix"])
         self._table.horizontalHeader().setStretchLastSection(False)
         self._table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
         self._table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
@@ -325,4 +331,14 @@ class CheckPanelPage(QWidget):
             r_item = QTableWidgetItem(comp.status)
             r_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             r_item.setForeground(QColor(COLOR_MAP['waiting']))
+
+
+
             self._table.setItem(row, 3, r_item)
+            if comp.fix_script:
+                pushbutton = QPushButton('Fix')
+                self._table.setCellWidget(row, 4, pushbutton)
+            else:
+                fix_item = QTableWidgetItem("no fix")
+                fix_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self._table.setItem(row, 4, fix_item)

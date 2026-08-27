@@ -87,6 +87,7 @@ class Component():
         self.name = self.script_path.stem
         self.import_module = set()
         self.main_script = None
+        self.fix_script = None
         self.status = 'waiting'
         self.log = log
         self.check_script()
@@ -100,6 +101,9 @@ class Component():
 
     def gui_main(self, submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         pass
+
+    def gui_fix(self, submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+            pass
 
 
 
@@ -122,6 +126,7 @@ class Component():
             source = self.script_path.read_text(encoding="utf-8")
             tree = ast.parse(source,filename=str(self.script_path))
             main_node = None
+            fix_node = None
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
@@ -146,6 +151,12 @@ class Component():
                         start = node.body[0].lineno - 1
                         end = node.end_lineno
                         self.main_script = "\n".join(lines[start:end])
+                    if node.name == "fix":
+                        fix_node = node
+                        lines = source.splitlines()
+                        start = node.body[0].lineno - 1
+                        end = node.end_lineno
+                        self.fix_script = "\n".join(lines[start:end])
 
             if not main_node:
                 raise RuntimeError(
@@ -171,6 +182,25 @@ class Component():
                     f"Expected: {expected_args}\n"
                     f"Got: {param_names}"
                 )
+            
+            if self.fix_script:
+                if not fix_node:
+                    raise RuntimeError(
+                        f"component file error {self.script_path}, script missing fix() function"
+                    )
+                fix_param_names = [
+                    arg.arg
+                    for arg in fix_node.args.args
+                ]
+
+                if fix_param_names != expected_args:
+                    raise RuntimeError(
+                        f"component file error {self.script_path}.\n"
+                        f"fix() signature mismatch.\n"
+                        f"Expected: {expected_args}\n"
+                        f"Got: {fix_param_names}"
+                    )
+            
 
             doc = self.get_function_doc(main_node)
 
@@ -215,6 +245,8 @@ class Component():
             spec.loader.exec_module(module)
             self.gui_module = module
             self.gui_main = module.main
+            if self.fix_script:
+                self.gui_fix = module.fix
             return ""
         except Exception:
             traceback.print_exc()
@@ -271,7 +303,7 @@ class InterFace():
     proc_stat:int = field(init=False, default=0)
 
     process_comps:list = field(default_factory=list)
-    check_comps:list = field(default_factory=list)
+    check_comps:list = field(default_factory=list[Component])
 
 
     def init_process_data(self):

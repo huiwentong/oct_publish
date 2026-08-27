@@ -66,14 +66,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return traceback.format_exc()
 
     def run_fix():
-        '''Auto Fix'''
         warning_str = u'自动修复可能会断开连接，重置数值，影响绑定效果，请确认之后再自动修复，修复后再检查效果。 \n'
         warning_str += u'\t是否继续?'
         result = mc.confirmDialog(title='Warning', message=warning_str, button=[u'继续', u'取消'],
                                   defaultButton=u'继续', cancelButton=u'取消')
 
         if result == u'继续':
-            logger.info(u"Auto Fix: 修复控制器的 Keyable 的 Translate Rotate Scale 到默认值；修复 Keyable 属性到无链接")
+            logger.info(u"AUTO FIX: 修复控制器的 Keyable 的 Translate Rotate Scale 到默认值；修复 Keyable 属性到无链接")
             if error_connection_list:
                 for ctrl in error_connection_list:
                     con_list = mc.listConnections(ctrl, s=1, d=0, skipConversionNodes=True, connections=True)

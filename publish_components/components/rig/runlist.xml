@@ -35,7 +35,7 @@
             <check type="rig" name="check_ctrl_name"/>
             <check type="rig" name="check_inconsistent_movement"/>
             <check type="rig" name="check_control_values"/>
-<!--            <check type="maya" name="check_display_layers"/>-->
+            <check type="maya_gen" name="check_display_layers"/>
 <!--            <check type="mod" name="check_display_override"/>-->
 <!--            <check type="maya" name="check_texture_path_locked"/>-->
 <!--            <check type="maya_gen" name="check_facesets"/>-->

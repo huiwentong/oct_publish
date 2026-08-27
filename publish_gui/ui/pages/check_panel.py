@@ -238,9 +238,12 @@ class CheckPanelPage(QWidget):
         item_status.setForeground(QColor(COLOR_MAP['success']))
         item_main.setForeground(QColor(COLOR_MAP['success']))
         item_type.setForeground(QColor(COLOR_MAP['success']))
-        item_fix.setForeground(QColor(COLOR_MAP['success']))
+        if item_fix:
+            item_fix.setForeground(QColor(COLOR_MAP['success']))
         item_desc.setForeground(QColor(COLOR_MAP['success']))
         item_status.setText('success')
+        if self._table.cellWidget(row, 4):
+            self._table.cellWidget(row, 4).setEnabled(False)
         self.set_step(row)
 
     
@@ -258,7 +261,10 @@ class CheckPanelPage(QWidget):
         item_main.setForeground(QColor(COLOR_MAP['failed']))
         item_desc.setForeground(QColor(COLOR_MAP['failed']))
         item_status.setText(comp.status)
-        item_fix.setForeground(QColor(COLOR_MAP['failed']))
+        if item_fix:
+            item_fix.setForeground(QColor(COLOR_MAP['failed']))
+        if self._table.cellWidget(row, 4):
+            self._table.cellWidget(row, 4).setEnabled(True)
 
     def on_component_processing(self, comp, row):
         comp.log.info(f'start check {comp.name}')
@@ -273,7 +279,10 @@ class CheckPanelPage(QWidget):
         item_status.setForeground(QColor(COLOR_MAP['process']))
         item_main.setForeground(QColor(COLOR_MAP['process']))
         item_desc.setForeground(QColor(COLOR_MAP['process']))
-        item_fix.setForeground(QColor(COLOR_MAP['process']))
+        if item_fix:
+            item_fix.setForeground(QColor(COLOR_MAP['process']))
+        if self._table.cellWidget(row, 4):
+            self._table.cellWidget(row, 4).setEnabled(False)
         item_status.setText('processing...')
 
 
@@ -332,13 +341,16 @@ class CheckPanelPage(QWidget):
             r_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             r_item.setForeground(QColor(COLOR_MAP['waiting']))
 
-
-
             self._table.setItem(row, 3, r_item)
             if comp.fix_script:
                 pushbutton = QPushButton('Fix')
+                pushbutton.setMinimumHeight(27)
+                pushbutton.clicked.connect(comp.fix)
+                pushbutton.setEnabled(False)
+
                 self._table.setCellWidget(row, 4, pushbutton)
+                self._table.resizeRowToContents(row)
             else:
-                fix_item = QTableWidgetItem("no fix")
+                fix_item = QTableWidgetItem("can not fix")
                 fix_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self._table.setItem(row, 4, fix_item)

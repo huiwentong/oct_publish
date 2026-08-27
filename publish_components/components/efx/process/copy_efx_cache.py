@@ -3,6 +3,7 @@ import shutil
 import traceback
 from oct_hou.utils import efx_node_utils
 from pxr import Usd
+import hou
 from oct.pipeline.path_acs import unlock_path, lock_path, make_dirs, remove
 
 
@@ -19,6 +20,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             stage.SetDefaultPrim(d_prim)
             d_prim.GetReferences().AddReference(os.path.relpath(ref_usd, os.path.dirname(tar_usd)), f'/{comp_name}')
             stage.Save()
+
+        dst_hou_file = process_data['version_dir'] + '/' + os.path.basename(hou.hipFile.path())
+        shutil.copyfile(hou.hipFile.path(), dst_hou_file)
+        process_data['geo_file'] = dst_hou_file
+
 
         v_comp_dir = process_data['version_dir'] + '/components'
         if os.path.exists(v_comp_dir):

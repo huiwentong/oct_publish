@@ -26,4 +26,4 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
 
 def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
-    pass
+    logger.info(process_data)

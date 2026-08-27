@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
 import traceback
-import hou
 import re
 from oct.pipeline.shotgun.const import ComponentType
 import subprocess
@@ -30,7 +29,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         task = Task.get(id=process_data['task_id'])
 
         component = task.get_or_create_component('main', type=ComponentType.TYPE_3D)
-        rig_file = process_data['version_dir'] + '/' + os.path.basename(hou.hipFile.path())
+        rig_file = ''
+        if process_data['dcc'] == 'Houdini':
+            rig_file = process_data['geo_file']
+        else:
+            pass
         version_data = {
             'code': process_data['version_name'],
             'description': description,

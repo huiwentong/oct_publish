@@ -27,7 +27,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 result = u'Intermediate Object mesh 节点名不能由 transform + Shape 构成的：' + ', '.join(l_bad_names)
                 logger.warning(result)
 
-        def run_fix():
+        utils.executeInMainThreadWithResult(process)
+
+    except:
+        return traceback.format_exc()
+
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        def process():
             rename_count = 0
             n_high = process_data.get("high", "|Root_grp|Geo_grp|high")
             for n_mesh in pm.listRelatives(n_high, ad=True, type='mesh'):
@@ -39,7 +47,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         rename_count += 1
             logger.info(u"AUTO FIX: 重命名 {} 个节点".format(rename_count))
 
-        utils.executeInMainThreadWithResult(process)
+        return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

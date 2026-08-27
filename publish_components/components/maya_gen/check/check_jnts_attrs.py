@@ -26,8 +26,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return ""
 
-        def run_fix():
-            logger.info(u"AUTO FIX: 解除 root_jnt 下所有骨骼的属性锁定")
+        return utils.executeInMainThreadWithResult(process)
+
+    except:
+        return traceback.format_exc()
+
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        logger.info(u"AUTO FIX: 解除 root_jnt 下所有骨骼的属性锁定")
+        def process():
             if cmds.objExists('root_jnt'):
                 jnts = cmds.listRelatives('root_jnt', ad=1, type='joint', f=1) or []
                 jnts.append(u'root_jnt')
@@ -36,7 +44,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         cmds.setAttr(jnt + '.' + attr, k=1, l=0)
 
         return utils.executeInMainThreadWithResult(process)
-
 
     except:
         return traceback.format_exc()

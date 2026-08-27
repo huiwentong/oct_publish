@@ -14,20 +14,20 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
 检查控制器数值以及是否连接输入
     """
+    try:
+        def get_all_ctrls(only_ctrl_itself=False, full_path=False):
+            ctrl_list = mc.ls('*_ctrl', long=full_path)
+            ctrl_list.extend(mc.ls('*_CTL', long=full_path))
+            if only_ctrl_itself:
+                ctrl_list = [ctrl for ctrl in ctrl_list if
+                             not ctrl.endswith('_pri_ctrl') and not ctrl.endswith('_sec_ctrl')]
+            return ctrl_list
 
-    def get_all_ctrls(only_ctrl_itself=False, full_path=False):
-        ctrl_list = mc.ls('*_ctrl', long=full_path)
-        ctrl_list.extend(mc.ls('*_CTL', long=full_path))
-        if only_ctrl_itself:
-            ctrl_list = [ctrl for ctrl in ctrl_list if
-                         not ctrl.endswith('_pri_ctrl') and not ctrl.endswith('_sec_ctrl')]
-        return ctrl_list
+        def process():
+            global error_value_list, error_connection_list
+            error_value_list = []
+            error_connection_list = []
 
-    def process():
-        global error_value_list, error_connection_list
-        error_value_list = []
-        error_connection_list = []
-        try:
             task_id = process_data.get("task_id")
             if process_data.get("is_internal_rig") is None:
                 process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
@@ -62,16 +62,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return ''
 
-        except:
-            return traceback.format_exc()
+        return utils.executeInMainThreadWithResult(process)
 
-    def run_fix():
-        warning_str = u'自动修复可能会断开连接，重置数值，影响绑定效果，请确认之后再自动修复，修复后再检查效果。 \n'
-        warning_str += u'\t是否继续?'
-        result = mc.confirmDialog(title='Warning', message=warning_str, button=[u'继续', u'取消'],
-                                  defaultButton=u'继续', cancelButton=u'取消')
+    except:
+        return traceback.format_exc()
 
-        if result == u'继续':
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        def process():
             logger.info(u"AUTO FIX: 修复控制器的 Keyable 的 Translate Rotate Scale 到默认值；修复 Keyable 属性到无链接")
             if error_connection_list:
                 for ctrl in error_connection_list:
@@ -89,4 +88,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                             elif attr in ['sx', 'sy', 'sz']:
                                 mc.setAttr(ctrl + '.' + attr, 1)
 
-    return utils.executeInMainThreadWithResult(process)
+        warning_str = u'自动修复可能会断开连接，重置数值，影响绑定效果，请确认之后再自动修复，修复后再检查效果。 \n'
+        warning_str += u'\t是否继续?'
+        result = mc.confirmDialog(title='Warning', message=warning_str, button=[u'继续', u'取消'],
+                                  defaultButton=u'继续', cancelButton=u'取消')
+        if result == u'继续':
+            return utils.executeInMainThreadWithResult(process)
+
+
+    except:
+        return traceback.format_exc()

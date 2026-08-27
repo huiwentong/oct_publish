@@ -110,13 +110,18 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if error_name_list:
                 return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
 
-        def run_fix():
+        return utils.executeInMainThreadWithResult(process)
+
+    except:
+        return traceback.format_exc()
+
+def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+    try:
+        def process():
             if error_name_list:
                 logger.info(u"AUTO FIX: 修复不符合规范的控制器，添加 _ctrl 后缀")
                 for node in error_name_list:
                     mc.rename(node, node + '_ctrl')
-
         return utils.executeInMainThreadWithResult(process)
-
     except:
         return traceback.format_exc()

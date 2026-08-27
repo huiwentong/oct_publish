@@ -28,14 +28,20 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return ""
 
-        def run_fix():
-            logger.info(u"AUTO FIX: 修复 high 组下 dag 节点的 overrideEnabled 属性")
-            for node in error_node_list:
-                pm.setAttr(node + '.overrideEnabled', l=0)
-                pm.setAttr(node + '.overrideEnabled', False)
-            return ''
-
         return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()
+
+def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+    try:
+        logger.info(u"AUTO FIX: 修复 high 组下 dag 节点的 overrideEnabled 属性")
+        def process():
+            for node in error_node_list:
+                pm.setAttr(node + '.overrideEnabled', l=0)
+                pm.setAttr(node + '.overrideEnabled', False)
+            return ''
+        return utils.executeInMainThreadWithResult(process)
+    except:
+        return traceback.format_exc()
+

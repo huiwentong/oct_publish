@@ -5,6 +5,7 @@ import maya.utils as utils
 
 locked_attr = []
 
+
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
 检查贴图路径属性是否锁定
@@ -26,15 +27,21 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             else:
                 return ""
 
-        def run_fix():
-            logger.info(u"AUTO FIX: 修复解锁属性: {0}".format(", ".join(locked_attr)))
-            for attr in locked_attr:
-                attr.unlock()
-    
-            return ""
-    
         return utils.executeInMainThreadWithResult(process)
-        
+
     except:
         return traceback.format_exc()
 
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        logger.info(u"AUTO FIX: 修复解锁属性: {0}".format(", ".join(locked_attr)))
+
+        def process():
+            for attr in locked_attr:
+                attr.unlock()
+
+        return utils.executeInMainThreadWithResult(process)
+
+    except:
+        return traceback.format_exc()

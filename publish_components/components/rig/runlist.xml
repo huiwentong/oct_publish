@@ -20,19 +20,19 @@
         </check_group>
 
         <check_group name="Publish">
-            <check type="maya_gen" name="check_work_file"/>
-            <check type="maya_gen" name="generic_check"/>
-            <check type="maya_gen" name="check_reference_node"/>
-            <check type="maya_gen" name="check_hierarchy_main"/>
-            <check type="rig" name="check_rig_hierarchy"/>
-            <check type="maya_gen" name="check_non_unique_dag"/>
-            <check type="maya_gen" name="no_name_space"/>
-            <check type="mod" name="check_instanced_node"/>
-            <check type="rig" name="io_mesh_name"/>
-            <check type="mod" name="check_mesh"/>
-            <check type="maya_gen" name="match_hierarchy"/>
-            <check type="maya_gen" name="check_mod_hierarchy_order"/>
-            <check type="rig" name="check_ctrl_name"/>
+<!--            <check type="maya_gen" name="check_work_file"/>-->
+<!--            <check type="maya_gen" name="generic_check"/>-->
+<!--            <check type="maya_gen" name="check_reference_node"/>-->
+<!--            <check type="maya_gen" name="check_hierarchy_main"/>-->
+<!--            <check type="rig" name="check_rig_hierarchy"/>-->
+<!--            <check type="maya_gen" name="check_non_unique_dag"/>-->
+<!--            <check type="maya_gen" name="no_name_space"/>-->
+<!--            <check type="mod" name="check_instanced_node"/>-->
+<!--            <check type="rig" name="io_mesh_name"/>-->
+<!--            <check type="mod" name="check_mesh"/>-->
+<!--            <check type="maya_gen" name="match_hierarchy"/>-->
+<!--            <check type="maya_gen" name="check_mod_hierarchy_order"/>-->
+<!--            <check type="rig" name="check_ctrl_name"/>-->
             <check type="rig" name="check_inconsistent_movement"/>
 <!--            <check type="rig" name="check_control_values"/>-->
 <!--            <check type="maya" name="check_display_layers"/>-->

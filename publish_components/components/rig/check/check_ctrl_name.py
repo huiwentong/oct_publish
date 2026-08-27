@@ -49,7 +49,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             vis = True
             full_path = mc.ls(node, long=1)[0]
             tokens = full_path.split('|')
-            print(tokens)
+
             for i in range(len(tokens)):
                 path = '|'.join(tokens[:i + 1])
                 if path:

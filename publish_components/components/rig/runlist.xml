@@ -38,8 +38,8 @@
             <check type="maya_gen" name="check_display_layers"/>
             <check type="maya_gen" name="check_display_override"/>
             <check type="maya_gen" name="check_texture_path_locked"/>
-<!--            <check type="maya_gen" name="check_facesets"/>-->
-<!--            <check type="maya_gen" name="check_jnts_attrs"/>-->
+            <check type="maya_gen" name="check_facesets"/>
+            <check type="maya_gen" name="check_jnts_attrs"/>
         </check_group>
     </checkcontainer>
 

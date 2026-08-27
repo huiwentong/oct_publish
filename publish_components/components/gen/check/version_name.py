@@ -14,6 +14,9 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             return v_number
         return None
 
+    def _fix_rig(in_str):
+        return in_str.replace("绑定", "rig")
+
     try:
         task_id = process_data['task_id']
         form_widget = process_data.get("widget")
@@ -76,6 +79,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                             "v_dir_mb_file": v_dir_mb_file,
                             "v_dir_klf": v_dir_klf,
                             "project_name": project_name}
+
+        version_dir_data = {k: _fix_rig(v) for k, v in version_dir_data.items()}
 
         process_data.update(version_dir_data)
         logger.info("version_dir_data: {}".format(version_dir_data))

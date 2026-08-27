@@ -37,7 +37,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     if n_mesh.nodeName() == trans_name + 'Shape':
                         n_mesh.rename(trans_name + 'ShapeOrig')
                         rename_count += 1
-            logger.info(u"AUTO FIX: 重命名了 {} 个节点".format(rename_count))
+            logger.info(u"AUTO FIX: 重命名 {} 个节点".format(rename_count))
 
         utils.executeInMainThreadWithResult(process)
 

@@ -97,12 +97,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return result
 
         def run_fix():
+            logger.info(u"AUTO FIX: 修复层级顺序: {0}".format(result_dict))
             for key, value in result_dict.items():
                 target_order_list = value[-1]
                 reversed_order_list = reversed(target_order_list)
                 for grp in reversed_order_list:
                     mc.reorder(grp, front=True)
-            logger.info(u"AUTO FIX: 修复层级顺序 {0}".format(result_dict))
 
         return utils.executeInMainThreadWithResult(process)
 

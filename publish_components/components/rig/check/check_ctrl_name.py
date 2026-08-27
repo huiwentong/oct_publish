@@ -112,7 +112,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
         def run_fix():
             if error_name_list:
-                logger.info(u"AUTO FIX: 为不符合规范的控制器添加 _ctrl 后缀")
+                logger.info(u"AUTO FIX: 修复不符合规范的控制器，添加 _ctrl 后缀")
                 for node in error_name_list:
                     mc.rename(node, node + '_ctrl')
 

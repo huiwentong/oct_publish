@@ -13,6 +13,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         task = SGEntity('Task', process_data['task_id'])
         task.flush()
 
+
         entity_status = task.entity.sg_status_list
         if entity_status in disable_pub_status:
             return u"{} {} 的状态为 {}，不能再提交新版本了。请找 PC 改状态".format(task.entity.type, task.entity.code, entity_status)

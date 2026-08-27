@@ -11,8 +11,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if layer.getAttr('visibility') == 0 and not pm.referenceQuery(layer, isNodeReferenced=1):
                 hidden_layers.append(layer.name())
 
-        result = u'以下动画层被隐藏，请显示后确认对画面有无影响， 有影响需要ctrl+h隐藏: \n'
-        result += '\n'.join(hidden_layers)
-        return result
+        if hidden_layers:
+            return u'以下动画层被隐藏，请显示后确认对画面有无影响， 有影响需要ctrl+h隐藏: {}'.format(", ".join(hidden_layers))
+
     except Exception:
         return traceback.format_exc()

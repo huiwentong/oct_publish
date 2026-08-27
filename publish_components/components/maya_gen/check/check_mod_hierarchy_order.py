@@ -16,13 +16,13 @@ import pymel.core as pm
 import xml.etree.ElementTree as ET
 import maya.utils as utils
 
+result_dict = {}
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
     对比模型版本层级顺序。
     """
     try:
-
         def get_last_version(mod_v, mod_path):
             v_root = os.path.dirname(os.path.dirname(mod_path))
             v_dir_name = os.path.basename(os.path.dirname(mod_path))
@@ -74,6 +74,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return error_grp_dict
 
         def process():
+            global result_dict
+            result = ""
+
             n_root = process_data.get('root', '|Root_grp')
             n_root = pm.PyNode(n_root)
             l_attrs = mc.listAttr(n_root.name())
@@ -83,19 +86,25 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 mod_path = mc.getAttr(n_root + '.modelPath')
                 if mod_path and os.path.isdir(os.path.dirname(mod_path)):
                     mod_version, mesh_xml = get_last_version(mod_version, mod_path)
-                    print("mod_version:", mod_version)
-                    print("mesh_xml:", mesh_xml)
 
             result_dict = compare_order(parse_xml_hierarchy(mesh_xml))
             if result_dict:
+                result = u'high组下模型层级与模型最新版本记录不同: \n'
                 for key, value in result_dict.items():
-                    target_order_list = value[-1]
-                    reversed_order_list = reversed(target_order_list)
-                    for grp in reversed_order_list:
-                        mc.reorder(grp, front=True)
-                logger.info(u"AUTO FIX: 修复层级顺序 {0}".format(result_dict))
+                    result += '{}: {}\n'.format(key, str(value))
+                return result
 
-        utils.executeInMainThreadWithResult(process)
+            return result
+
+        def run_fix():
+            for key, value in result_dict.items():
+                target_order_list = value[-1]
+                reversed_order_list = reversed(target_order_list)
+                for grp in reversed_order_list:
+                    mc.reorder(grp, front=True)
+            logger.info(u"AUTO FIX: 修复层级顺序 {0}".format(result_dict))
+
+        return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

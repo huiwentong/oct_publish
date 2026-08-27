@@ -3,6 +3,8 @@
 
 import traceback
 from publish_components.utils.sg_helper import check_is_internal_rig
+import maya.cmds as mc
+import maya.utils as utils
 
 error_value_list = []
 error_connection_list = []
@@ -12,7 +14,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
 检查控制器数值以及是否连接输入
     """
-    import maya.cmds as mc
 
     def get_all_ctrls(only_ctrl_itself=False, full_path=False):
         ctrl_list = mc.ls('*_ctrl', long=full_path)
@@ -22,14 +23,14 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                          not ctrl.endswith('_pri_ctrl') and not ctrl.endswith('_sec_ctrl')]
         return ctrl_list
 
-    def run_check():
+    def process():
         global error_value_list, error_connection_list
         error_value_list = []
         error_connection_list = []
         try:
             task_id = process_data.get("task_id")
             if process_data.get("is_internal_rig") is None:
-                process_data.update({"is_internal_rig":check_is_internal_rig(task_id)})
+                process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
             if not process_data["is_internal_rig"]:
                 return ''
 
@@ -59,20 +60,19 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 logger.warning(u'存在默认数值错误控制器: \n {}'.format('\n'.join(error_value_list)))
                 return u'存在默认数值错误控制器: \n {}'.format('\n'.join(error_value_list))
 
-            logger.info('[CHECK DONE] check_control_values')
             return ''
 
         except:
             return traceback.format_exc()
 
     def run_fix():
-        '''Auto Fix'''
         warning_str = u'自动修复可能会断开连接，重置数值，影响绑定效果，请确认之后再自动修复，修复后再检查效果。 \n'
         warning_str += u'\t是否继续?'
         result = mc.confirmDialog(title='Warning', message=warning_str, button=[u'继续', u'取消'],
                                   defaultButton=u'继续', cancelButton=u'取消')
 
         if result == u'继续':
+            logger.info(u"AUTO FIX: 修复控制器的 Keyable 的 Translate Rotate Scale 到默认值；修复 Keyable 属性到无链接")
             if error_connection_list:
                 for ctrl in error_connection_list:
                     con_list = mc.listConnections(ctrl, s=1, d=0, skipConversionNodes=True, connections=True)
@@ -89,6 +89,4 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                             elif attr in ['sx', 'sy', 'sz']:
                                 mc.setAttr(ctrl + '.' + attr, 1)
 
-    check_result = run_check()
-    if check_result:
-        run_fix()
+    return utils.executeInMainThreadWithResult(process)

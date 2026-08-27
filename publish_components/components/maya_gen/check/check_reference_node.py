@@ -20,10 +20,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     l_errs.append(u'{};'.format(ref_node.name()))
                 logger.warning(u"当前文件中存在 Reference 节点：\n" + '\n'.join(l_errs))
 
-                rfs = cmds.file(query=True, reference=True)
-                for rf in rfs:
-                    cmds.file(rf, rr=True)
-                logger.info(u"AUTO FIX: 删除了 {} 个Reference节点".format(len(rfs)))
+        def run_fix():
+            rfs = cmds.file(query=True, reference=True)
+            for rf in rfs:
+                cmds.file(rf, rr=True)
+            logger.info(u"AUTO FIX: 删除了 {} 个Reference节点".format(len(rfs)))
 
         utils.executeInMainThreadWithResult(process)
 

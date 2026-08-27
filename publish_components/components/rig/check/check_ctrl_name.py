@@ -1,21 +1,20 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-
 
-error_name_list = []
+
 import traceback
 import maya.cmds as mc
 import maya.utils as utils
 from publish_components.utils.sg_helper import check_is_internal_rig
 
 
+error_name_list = []
+
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
 检查控制器名称，内部绑定应该都以_ctrl或_CTL结尾
     """
     try:
-
-        error_name_list = []
-
         def collect_all_possible_ctrls(exclude_crvs: list[str]):
             ctrl_list = []
             for crv in mc.ls(type='nurbsCurve'):
@@ -79,6 +78,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return normal
 
         def process():
+            global error_name_list
+            error_name_list = []
             if mc.objExists('Root_grp.cocoVersion'):
                 return ''
 
@@ -107,14 +108,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             mc.select(error_name_list)
             if error_name_list:
-                logger.warning(u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list)))
+                return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
 
+        def run_fix():
             if error_name_list:
                 logger.info(u"AUTO FIX: 为不符合规范的控制器添加 _ctrl 后缀")
                 for node in error_name_list:
                     mc.rename(node, node + '_ctrl')
 
-        utils.executeInMainThreadWithResult(process)
+        return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()

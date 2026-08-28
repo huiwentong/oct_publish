@@ -1,20 +1,12 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-
-""" 
-@author:jiongwan
-@team : Octmedia TD Department
-@file: export_preview_data.py 
-@time: 2023/01/16
-@contact: wanjw126@126.com
-"""
-import os,sys
+import os, sys
 import glob
 import json
 import traceback
-
 import pymel.core as pm
+import maya.utils as utils
 
-from oct.pipeline import path
 from oct_maya.utils.maya_utils.camera import export_tmp_cam, create_tmp_camera
 
 
@@ -24,7 +16,8 @@ def main():
     """
     pass
 
-class PreviewDataGenerator():
+
+class PreviewDataGenerator:
     def __init__(self, sourceimages_path=None):
         self.sourceimages_path = sourceimages_path
         self.sel_node = "|Root_grp|Geo_grp|high"
@@ -38,7 +31,7 @@ class PreviewDataGenerator():
         self._shader_template = {"_type": "",  # lambert, bline, ...
                                  "_assign_shapes": [],
                                  "diffuse": 0.0,  # float
-                                 "color": [0.8, 0.8, 0.8] ,  # [0.8, 0.8, 0.8] or self._color_input_template
+                                 "color": [0.8, 0.8, 0.8],  # [0.8, 0.8, 0.8] or self._color_input_template
                                  "transparency": [],
                                  "opacity": [],
                                  "specularRollOff": 0.0,
@@ -50,7 +43,6 @@ class PreviewDataGenerator():
         self._basics_lambert_data = self.__get_basics_lambert_data()
 
     def __get_real_tex_file(self, tex_file):
-        # Find a tex from the specified tex path
         if not self.sourceimages_path:
             return tex_file
 
@@ -64,7 +56,6 @@ class PreviewDataGenerator():
             if matched_texs:
                 return tex_pattern.replace('.*.', '.<f>.')  # I:\...\sourceimages\L_UpperLid.<f>.png
         else:
-            # copy tex to publish path
             if os.path.exists(pub_tex_file):
                 return pub_tex_file
 
@@ -86,7 +77,8 @@ class PreviewDataGenerator():
             if file_node:
                 data = self._color_input_template.copy()
                 data["_type"] = file_node.type()
-                data["fileTextureName"] = self.__get_real_tex_file(file_node.attr('computedFileTextureNamePattern').get())
+                data["fileTextureName"] = self.__get_real_tex_file(
+                    file_node.attr('computedFileTextureNamePattern').get())
 
                 if file_node.inputs(type='place2dTexture'):
                     p2d_node = file_node.inputs(type='place2dTexture')[0]
@@ -95,7 +87,6 @@ class PreviewDataGenerator():
                     return data
 
         return [0.8, 0.8, 0.8]
-
 
     def __get_basics_lambert_data(self):
         # This is used when shape has no shader
@@ -191,38 +182,24 @@ class PreviewDataGenerator():
                           ensure_ascii=False)
 
 
-class StdProcess():
+def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    """
+导出预览材质数据及预览相机
+    """
+    try:
+        def process():
 
-    def __init__(self, dialog):
-        self.dialog = dialog
-        self.process_name = u"导出预览材质数据及预览相机"
-        self.description = u"导出预览材质数据及预览相机"
-        return
+            v_dir_imgs = process_data['v_dir_imgs']
+            version_dir = process_data.get('version_dir', '')
 
-    def proceed(self):
-        import pymel.core as pm
-        try:
-            # export pre camera
-            #from toolsets.tools.srf.gene import export_asset_cam as eac
-
-            asset_info = self.dialog.d_assets_info[self.dialog.entity['code']]
-            # asset_info['v_dir_imgs']  I:\...\sourceimages
-            pdg = PreviewDataGenerator(sourceimages_path=asset_info['v_dir_imgs'])
-
-            json_file = os.path.join(self.dialog.version_dir, 'preview_shaders.json').replace('\\', '/')
+            pdg = PreviewDataGenerator(sourceimages_path=v_dir_imgs)
+            json_file = os.path.join(version_dir, 'preview_shaders.json').replace('\\', '/')
             pdg.write_json(json_file)
-
             pre_cam = create_tmp_camera()
-            export_tmp_cam(pre_cam, self.dialog.version_dir)
-
+            export_tmp_cam(pre_cam, version_dir)
             pm.delete(pre_cam)
 
-            return ""
-        except:
-            return traceback.format_exc()
+        return utils.executeInMainThreadWithResult(process)
 
-    def get_process_name(self):
-        return self.process_name
-
-    def get_description(self):
-        return self.description
+    except:
+        return traceback.format_exc()

@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
     try:
         def check():
-            bad_meshs = {}
+            data = {}
             n_geo = process_data.get("geo", "|Root_grp|Geo_grp")
             for mesh in pm.listRelatives(n_geo, ad=True, type="mesh", fullPath=True, ni=True):
                 mesh = str(mesh)
@@ -21,18 +21,45 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     key = (round(p.x, 6), round(p.y, 6), round(p.z, 6))
                     coords.setdefault(key, []).append(i)
 
-                vertices = [
-                    "{}.vtx[{}]".format(mesh, i)
-                    for ids in coords.values()
-                    if len(ids) > 1
-                    for i in ids
+                ids = [
+                    group
+                    for group in coords.values()
+                    if len(group) > 1
                 ]
 
-                if vertices:
-                    logger.warning("AUTO FIX: 自动合并‘{}’的重叠点".format(mesh))
-                    pm.polyMergeVertex(vertices, d=0.00001, ch=False)
-            pm.delete(bad_meshs, ch=True)
-        utils.executeInMainThreadWithResult(check)
+                if ids:
+                    data[mesh] = ids
+
+            return data
+
+        error_data = utils.executeInMainThreadWithResult(check)
+        process_data["vertex_overlap_error_nodes"] = error_data
+
+        if error_data:
+            return "以下模型有重叠顶点:\n{}".format("\n".join(error_data))
+
+    except Exception:
+        return traceback.format_exc()
+
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        error_data = process_data.get("vertex_overlap_error_nodes", {})
+
+        def repair():
+            for mesh, groups in error_data.items():
+                for ids in groups:
+                    vertices = [
+                        "{}.vtx[{}]".format(mesh, i)
+                        for i in ids
+                    ]
+                    pm.polyMergeVertex(
+                        vertices,
+                        d=0.00001,
+                        ch=False
+                    )
+
+        utils.executeInMainThreadWithResult(repair)
 
     except Exception:
         return traceback.format_exc()

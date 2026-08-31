@@ -11,7 +11,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         n_root = process_data.get("root", pm.PyNode('|Root_grp'))
         n_geo = process_data.get("geo", pm.PyNode('|Root_grp|Geo_grp'))
 
-        # Freeze transoform - 坐标清零
         pm.select(n_geo, r=True)
         utils.executeInMainThreadWithResult(lambda :pm.mel.eval('DeleteHistory;'))
         utils.executeInMainThreadWithResult(lambda :pm.select(cl=True))

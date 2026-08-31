@@ -1,99 +1,65 @@
 # -*- coding: utf-8 -*-
 
 import traceback
-
 import pymel.core as pm
 import maya.utils as utils
 import maya.api.OpenMaya as om
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    """修复 high 下无材质或使用 initialShadingGroup 的 Mesh / Face"""
-
+    """检查无材质或使用 initialShadingGroup 的 Face"""
     try:
+        def check():
+            data = {}
+            n_high = process_data.get("root", "|Root_grp|Geo_grp|high")
 
-        def get_mesh_shader_info(mesh):
-            mesh_path = mesh.longName()
-            selection = om.MSelectionList()
-            selection.add(mesh_path)
-
-            dag_path = selection.getDagPath(0)
-            if dag_path.node().hasFn(om.MFn.kTransform):
-                dag_path.extendToShape()
-
-            fn_mesh = om.MFnMesh(dag_path)
-            instance_number = dag_path.instanceNumber()
-            shader_objects, shader_indices = fn_mesh.getConnectedShaders(instance_number)
-            shader_names = []
-
-            for obj in shader_objects:
-                fn_dep = om.MFnDependencyNode(obj)
-                shader_names.append(fn_dep.name())
-
-            return shader_names, shader_indices
-
-        def check_and_fix():
-            n_high = process_data.get("root","|Root_grp|Geo_grp|high")
-            fix_sg = None
-            for mesh in pm.listRelatives(n_high, ad=True, type="mesh", ni=True, fullPath=True) :
+            for mesh in pm.listRelatives(n_high, ad=True, type="mesh", ni=True, fullPath=True):
                 if "proxyShape" in mesh.nodeName():
                     continue
-                shader_names, shader_indices = get_mesh_shader_info(mesh)
-                bad_faces = []
+                sel = om.MSelectionList()
+                sel.add(mesh.longName())
+                dag = sel.getDagPath(0)
+                fn = om.MFnMesh(dag)
 
-                try:
-                    initial_sg_index = shader_names.index("initialShadingGroup")
-                except ValueError:
-                    initial_sg_index = None
+                shaders, indices = fn.getConnectedShaders(dag.instanceNumber())
+                shader_names = [om.MFnDependencyNode(obj).name() for obj in shaders]
+                initial_index = shader_names.index("initialShadingGroup") if "initialShadingGroup" in shader_names else -2
+                bad_faces = [i for i, shader_index in enumerate(indices) if shader_index in (-1, initial_index)]
 
-                for face_id, shader_index in enumerate(shader_indices):
-                    # 没有材质
-                    if shader_index == -1:
-                        bad_faces.append(face_id)
-                        continue
+                if bad_faces:
+                    data[mesh.longName()] = bad_faces
 
-                    # initialShadingGroup
-                    if initial_sg_index is not None and shader_index == initial_sg_index:
-                        bad_faces.append(face_id)
+            return data
 
-                if not bad_faces:
-                    continue
-                face_count = len(shader_indices)
+        error_data = utils.executeInMainThreadWithResult(check)
+        process_data["material_missing_error_nodes"] = error_data
 
-                # 第一次发现问题才创建修复材质
-                if fix_sg is None:
-                    shader_name = "default_fix_MAT"
-                    sg_name = "default_fix_MATSG"
+        if error_data:
+            return "以下模型存在无材质或 initialShadingGroup Face:\n{}".format(
+                "\n".join("{}: {} faces".format(mesh, len(ids)) for mesh, ids in error_data.items()))
 
-                    if pm.objExists(shader_name):
-                        shader = pm.PyNode(shader_name)
-                        if shader.nodeType() != "lambert":
-                            raise RuntimeError("'{}' 已存在，但不是 lambert！".format(shader_name))
-                    else:
-                        shader = pm.shadingNode("lambert", asShader=True, name=shader_name)
-                        shader.color.set((0.5, 0.5, 0.5))
+    except Exception:
+        return traceback.format_exc()
 
-                    if pm.objExists(sg_name):
-                        fix_sg = pm.PyNode(sg_name)
-                        if fix_sg.nodeType() != "shadingEngine":
-                            raise RuntimeError("'{}' 已存在，但不是 shadingEngine！".format(sg_name))
-                    else:
-                        fix_sg = pm.sets(empty=True, renderable=True, noSurfaceShader=True, name=sg_name)
 
-                    # 不管 SG 是否原本存在，都确保连接正确
-                    pm.connectAttr(shader.outColor, fix_sg.surfaceShader, force=True)
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    """修复无材质或 initialShadingGroup Face"""
+    try:
+        def repair():
+            shader_name = "default_fix_MAT"
+            sg_name = "default_fix_MATSG"
+            error_data = process_data.get("material_missing_error_nodes", {})
 
-                # 整 Mesh / 部分 Face
-                if len(bad_faces) == face_count:
-                    target = mesh
+            shader = pm.PyNode(shader_name) if pm.objExists(shader_name) else pm.shadingNode("lambert", asShader=True, name=shader_name)
+            fix_sg = pm.PyNode(sg_name) if pm.objExists(sg_name) else pm.sets(empty=True, renderable=True, noSurfaceShader=True, name=sg_name)
+            pm.connectAttr(shader.outColor, fix_sg.surfaceShader, force=True)
 
-                else:
-                    target = [mesh.f[index] for index in bad_faces]
-                # 修复
+            for mesh, ids in error_data.items():
+                target = ["{}.f[{}]".format(mesh, i) for i in ids]
                 pm.sets(fix_sg, e=True, forceElement=target)
-                logger.warning("AUTO FIX：修复 '{}' {} 个无材质或 initialShadingGroup Face！".format(mesh, len(bad_faces)))
+                logger.warning("AUTO FIX: 修复 '{}' {} 个无材质或 initialShadingGroup Face".format(mesh, len(ids)))
 
-        utils.executeInMainThreadWithResult(check_and_fix)
+        utils.executeInMainThreadWithResult(repair)
 
     except Exception:
         return traceback.format_exc()

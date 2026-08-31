@@ -22,7 +22,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             if not bool(name_pattern.fullmatch(check_name)) or not bool(folder_pattern.fullmatch(tex_dir)):
                 errs += '{}: {}\n'.format(n_f.name(), tex_path)
         if errs:
-            return u"贴图文件名应该由数字字母下划线组成，不应该有中文，空格，特殊字符：\n" + errs
+            msg =  u"贴图文件名应该由数字字母下划线组成，不应该有中文，空格，特殊字符：\n" + errs
+            return msg
     except:
         return traceback.format_exc()
 

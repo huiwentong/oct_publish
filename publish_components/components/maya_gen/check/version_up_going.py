@@ -2,8 +2,6 @@
 import os
 import re
 import traceback
-import pymel.core as pm
-import maya.utils as utils
 from oct.pipeline.task_context import TaskContext
 
 
@@ -13,6 +11,43 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     # 版本名应该是独一无二的，并且版本号应该上升。比如之前最高版本为v015，则新版本最低应该是v016。"
     # 如果加了 auto save 功能，配置工具时，把这个模块放在 version_name之前！！！
+    try:
+        def version_num_with_file(file):
+            if file != '':
+                scene_v = int(file.split('.')[-2][1:])
+                v_number = 'v{:03d}'.format(scene_v)
+                return v_number
+            return None
+
+        form_widget = process_data.get("widget")
+        task_id = process_data.get("task_id")
+        if form_widget:
+            version_num = form_widget._version_edit.text()
+        else:
+            dcc_file = process_data["dcc_file"]
+            version_num = process_data.get("version_num", version_num_with_file(dcc_file))
+        if not version_num:
+            return u"没有获取到有效的版本号"
+
+        tc = TaskContext(task_id) or TaskContext.from_env()
+        tc.refresh()
+
+        all_v_nums = []
+        for v in tc.task.versions():
+            v_name = str(v.code)
+            v_num_str = v_name.replace('_', '.').split('.')[-1]
+            if len(v_num_str) == 4 and v_num_str.lower()[0] == 'v' and v_num_str[1:].isdigit():
+                all_v_nums.append(v_num_str)
+        if len(all_v_nums) > 0 and version_num <= max(all_v_nums):
+            msg = u"之前已经提交了 {} 版, 新版本 {} 版本号不够高".format(max(all_v_nums), version_num)
+            return msg
+
+    except:
+        return traceback.format_exc()
+
+
+def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+    # 版本名应该是独一无二的，并且版本号应该上升。比如之前最高版本为v015，则新版本最低应该是v016。"
     def get_latest_version_num(folder: str, pattern: str, extensions: tuple[str, ...]):
         """获取指定目录中符合命名规则的最高版本号"""
 
@@ -37,42 +72,25 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         return latest_version_num
 
-    def version_num_with_file(file):
-        if file != '':
-            scene_v = int(file.split('.')[-2][1:])
-            v_number = 'v{:03d}'.format(scene_v)
-            return v_number
-        return None
 
     try:
+        dcc = process_data.get("dcc")
         task_id = process_data.get("task_id")
-        form_widget = process_data.get("widget")
         tc = TaskContext(task_id) or TaskContext.from_env()
         tc.refresh()
-
-        if form_widget:
-            version_num = form_widget._version_edit.text()
-        else:
-            dcc_file = process_data["dcc_file"]
-            version_num = process_data.get("version_num", version_num_with_file(dcc_file))
-
-        if not version_num:
-            return u"没有获取到有效的版本号"
-
-        all_v_nums = []
-        for v in tc.task.versions():
-            v_name = str(v.code)
-            v_num_str = v_name.replace('_', '.').split('.')[-1]
-            if len(v_num_str) == 4 and v_num_str.lower()[0] == 'v' and v_num_str[1:].isdigit():
-                all_v_nums.append(v_num_str)
-        if len(all_v_nums) > 0 and version_num <= max(all_v_nums):
-            logger.warning(u"之前已经提交了 {} 版, 新版本 {} 版本号不够高。将自动保存文件并增大版本号。"
-                           u"".format(max(all_v_nums), version_num))
+        form_widget = process_data.get("widget")
+        if not dcc:
+            msg = u"没有任何 dcc 中, 无法自动保存文件！"
+            logger.error(msg)
+            return msg
+        if dcc == 'Maya':
+            import pymel.core as pm
+            import maya.utils as mu
             scene_path = pm.sceneName()
             scene_dir = os.path.dirname(scene_path)
             ext = scene_path.split('.')[-1]
-            if scene_path != '' and form_widget:
-                    utils.executeInMainThreadWithResult(lambda :pm.saveFile(force=True))
+            if scene_path != '':
+                    mu.executeInMainThreadWithResult(lambda :pm.saveFile(force=True))
                     version_key = "{}.{}.{}".format(tc.entity_name, tc.step_name, tc.task_name)
                     # 工作文件夹下，下一个版本号
                     workspace_latest_v_num = get_latest_version_num(scene_dir, version_key, ("ma", "mb"))
@@ -84,13 +102,13 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                     new_scene_file = os.path.join(scene_dir, version_key + '.' + next_version_num + '.' + ext)
                     new_scene_file = str(new_scene_file).replace("\\", "/")
                     logger.warning(u"AUTO FIX: 自动保存新版本：{}".format(new_scene_file))
-                    utils.executeInMainThreadWithResult(lambda :pm.saveAs(new_scene_file, f=True))
-                    utils.executeInMainThreadWithResult(lambda :pm.refresh(force=True))
-                    form_widget._version_edit.setText(next_version_num)
+                    mu.executeInMainThreadWithResult(lambda :pm.saveAs(new_scene_file, f=True))
+                    mu.executeInMainThreadWithResult(lambda :pm.refresh(force=True))
+                    if form_widget:
+                        form_widget._version_edit.setText(next_version_num)
                     process_data.update({"version_num": next_version_num,
                                          "dcc_file": new_scene_file})
                     submit_data.update({"ma_file": new_scene_file})
     except:
         return traceback.format_exc()
-
 

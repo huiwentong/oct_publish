@@ -2,28 +2,51 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
-def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    """检查 Maya 文件中多余的材质并删除"""
-    try:
-        def flat(list_):
-            res = []
-            for i in list_:
-                if isinstance(i, list):
-                    res.extend(flat(i))
-                else:
-                    res.append(i)
-            return res
 
-        all_se = pm.ls(type='shadingEngine')
-        all_needed_meterials_temp = [pm.listConnections(each, s=1, d=0) for each in all_se]
-        all_needed_meterials = list(set(flat(all_needed_meterials_temp)))
-        all_materials = utils.executeInMainThreadWithResult(lambda :pm.ls(mat=1))
-        all_useless_materials = [every for every in all_materials if every not in all_needed_meterials]
-        if int(pm.about(version=1)) >= 2020:
-            if 'standardSurface1' in all_useless_materials:
-                all_useless_materials.remove('standardSurface1')
-        if all_useless_materials:
-            logger.warning("AUTO FIX: 删除以下未被使用的材质节点：".format("\n".join(all_useless_materials)))
+
+def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    """检查未使用的材质"""
+    try:
+        def check():
+            shading_engines = pm.ls(type="shadingEngine")
+            used_materials = {
+                node
+                for sg in shading_engines
+                for node in (pm.listConnections(sg, s=True, d=False) or [])
+            }
+
+            unused_materials = [
+                mat for mat in pm.ls(mat=True)
+                if mat not in used_materials
+            ]
+
+            if int(pm.about(version=True)) >= 2020:
+                unused_materials = [
+                    mat for mat in unused_materials
+                    if mat.nodeName() != "standardSurface1"
+                ]
+
+            return [mat.name() for mat in unused_materials]
+
+        error_nodes = utils.executeInMainThreadWithResult(check)
+        if error_nodes:
+            process_data["unused_material_error_nodes"] = error_nodes
+            return "以下材质未被使用:\n{}".format("\n".join(error_nodes))
+
+    except Exception:
+        return traceback.format_exc()
+
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    """删除未使用的材质"""
+    try:
+        error_nodes = process_data.get("unused_material_error_nodes", [])
+        def repair():
+            for node in error_nodes:
+                pm.delete(node)
+                logger.warning("AUTO FIX: 删除未使用的材质节点 '{}'".format(node))
+
+        utils.executeInMainThreadWithResult(repair)
 
     except Exception:
         return traceback.format_exc()

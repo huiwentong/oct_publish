@@ -29,7 +29,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             return False
 
         need_fix_nodes = []
-        need_fix_node_names = []
         for obj in utils.executeInMainThreadWithResult(lambda : cmds.ls(allPaths=True, long=True)):
             try:
                 n = pm.PyNode(obj)
@@ -56,19 +55,33 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             if ':' in n.nodeName():
                 if delete_unused_shaders(n): continue
                 need_fix_nodes.append(n)
-                need_fix_node_names.append(n.longName())
 
-        if len(need_fix_node_names) > 0:
-            name_str = ', '.join(need_fix_node_names)
-            logger.error(u"AUTO FIX: 发现 {} 个带命名空间的节点：\n{} \n尝试自动修复： ".format(len(need_fix_node_names), name_str))
-            for fix_n in need_fix_nodes:
-                try:
-                    cmds.lockNode(fix_n.nodeName(), lock=False)
-                    fix_n.rename(fix_n.nodeName().split(':')[-1])
-                    logger.warning("AUTO FIX: 修复节点 {}".format(fix_n.nodeName()))
-                except:
-                    return "修复节点{}失败， 因为 {}".format(fix_n.nodeName(), traceback.format_exc())
+        if len(need_fix_nodes) > 0:
+            process_data["no_name_space_error_nodes"] = need_fix_nodes
+            msg = u"发现 {} 个带命名空间的节点：\n{}".format(len(need_fix_nodes),
+                                                            '\n'.join([n.longName() for n in need_fix_nodes]))
+            return msg
+
     except:
         return traceback.format_exc()
 
+def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+    try:
+        failed_nodes = []
+        need_fix_nodes = process_data.get("no_name_space_error_nodes", [])
+        for fix_n in need_fix_nodes:
+            try:
+                cmds.lockNode(fix_n.nodeName(), lock=False)
+                fix_n.rename(fix_n.nodeName().split(':')[-1])
+                logger.warning("AUTO FIX: 修复节点 {}".format(fix_n.nodeName()))
+            except:
+                failed_nodes.append(fix_n)
+                logger.error("修复节点{}失败， 因为 {}".format(fix_n.nodeName(), traceback.format_exc()))
 
+        if len(failed_nodes) > 0:
+            msg = "以下节点自动删除命名空间失败：\n{}".format('\n'.join([n.nodeName() for n in failed_nodes]))
+            logger.error(msg)
+            return msg
+
+    except:
+        return traceback.format_exc()

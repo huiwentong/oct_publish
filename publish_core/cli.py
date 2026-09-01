@@ -11,6 +11,7 @@ from publish_core.database.entity import SGEntity, get_user, get_all_pp
 from publish_core.message_utils.message import send_simple_message
 from publish_components.core import InterFace
 from publish_core.log.core import PublishLog
+from oct.pipeline.task_context import TaskContext
 
 
 class PublishType(Enum):
@@ -73,6 +74,11 @@ class PublishCli:
         stepname = str(self.task_entity.step.short_name).lower()
         if self.task_entity.step.id == 290:
             stepname = 'dyn'
+
+        tc = TaskContext(self.task_id) or TaskContext.from_env()
+        task_name = tc.task_name.lower()
+        if task_name == 'rigging_nemo':
+            stepname = 'rig_nemo'
 
         module_path = f'publish_components.components.{stepname}.interface'
         try:

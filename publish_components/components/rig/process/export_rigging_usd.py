@@ -4,6 +4,7 @@ import os
 import json
 import traceback
 import maya.utils as utils
+from oct.data.usd.step_pub_usds import RigStepUsd
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -12,9 +13,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     try:
         def process():
-            from oct.data.usd.step_pub_usds import RigStepUsd
-            from publish_core.database.entity import SGEntity
-
             version_dir = process_data.get('version_dir', '')
             task_id = process_data.get('task_id', '')
             v_dir_ma_file = process_data.get('v_dir_ma_file', '')
@@ -24,7 +22,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 task_id=task_id,
                 rig_file=v_dir_ma_file,
             )
-            return ""
 
         return utils.executeInMainThreadWithResult(process)
 

@@ -23,10 +23,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             task = SGEntity('Task', task_id)
             entity_name = task.entity.code
 
-            if sg_asset_type == 'ENV':
-                return
-
-            elif sg_asset_type == 'CHR':
+            if sg_asset_type == 'CH':
                 fbx_path = version_dir + '/fbx'
                 if not os.path.isdir(fbx_path):
                     os.makedirs(fbx_path)

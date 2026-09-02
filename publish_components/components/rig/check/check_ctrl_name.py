@@ -1,14 +1,10 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-
-
-
 import traceback
 import maya.cmds as mc
 import maya.utils as utils
 from publish_components.utils.sg_helper import check_is_internal_rig
 
-
-error_name_list = []
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
@@ -78,50 +74,48 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return normal
 
         def process():
-            global error_name_list
             error_name_list = []
-            if mc.objExists('Root_grp.cocoVersion'):
-                return
+            process_data['error_name_list'] = []
+            if not mc.objExists('Root_grp.cocoVersion'):
+                task_id = process_data.get("task_id")
+                if process_data.get("is_internal_rig") is None:
+                    process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
+                if process_data["is_internal_rig"]:
+                    all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'])
+                    for node in all_possible_ctrls:
+                        if node.endswith('_ctrl') or node.endswith('_CTL'):
+                            continue
 
-            task_id = process_data.get("task_id")
-            if process_data.get("is_internal_rig") is None:
-                process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
-            if not process_data["is_internal_rig"]:
-                return
+                        if not is_node_vis(node):
+                            continue
 
-            all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'])
-            for node in all_possible_ctrls:
-                if node.endswith('_ctrl') or node.endswith('_CTL'):
-                    continue
+                        if not is_node_normally_overrided(node):
+                            continue
 
-                if not is_node_vis(node):
-                    continue
+                        # coco rig special visbility control
+                        if node == 'Visibility':
+                            continue
 
-                if not is_node_normally_overrided(node):
-                    continue
+                        error_name_list.append(node)
 
-                # coco rig special visbility control
-                if node == 'Visibility':
-                    continue
-
-                error_name_list.append(node)
-
-            mc.select(error_name_list)
-            if error_name_list:
-                return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
+                    mc.select(error_name_list)
+                    if error_name_list:
+                        return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
 
         return utils.executeInMainThreadWithResult(process)
 
     except:
         return traceback.format_exc()
 
-def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     try:
         def process():
-            if error_name_list:
+            if process_data.get('error_name_list'):
                 logger.info(u"AUTO FIX: 修复不符合规范的控制器，添加 _ctrl 后缀")
-                for node in error_name_list:
+                for node in process_data['error_name_list']:
                     mc.rename(node, node + '_ctrl')
+
         return utils.executeInMainThreadWithResult(process)
     except:
         return traceback.format_exc()

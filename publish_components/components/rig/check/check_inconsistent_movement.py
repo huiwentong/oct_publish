@@ -14,7 +14,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         def process():
             if mc.ls(type='AlembicNode'):
-                return ""
+                return
             mc.autoKeyframe(state=False)
 
             # 确定mesh列表
@@ -41,7 +41,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 return u"移动大环时不是所有物体都正确位移，请检查。"
 
             mc.setAttr(root_ctrl + '.translateX', 0)
-            return ""
 
         return utils.executeInMainThreadWithResult(process)
 

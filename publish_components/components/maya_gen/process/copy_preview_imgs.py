@@ -18,7 +18,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             version_name = process_data.get('version_name', '')
 
             if len(l_preview_files) and l_preview_files[0].lower().endswith('.mov'):
-                return ""
+                return
 
             v_preview_img_dir = version_dir + '/preview_imgs/'
             if not os.path.isdir(v_preview_img_dir):

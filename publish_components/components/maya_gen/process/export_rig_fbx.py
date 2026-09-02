@@ -24,7 +24,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             entity_name = task.entity.code
 
             if sg_asset_type == 'ENV':
-                return ''
+                return
 
             elif sg_asset_type == 'CHR':
                 fbx_path = version_dir + '/fbx'

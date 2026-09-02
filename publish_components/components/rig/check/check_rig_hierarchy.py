@@ -37,8 +37,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if pm.getAttr('master_ctrl.displayType') != 2:
                     return u'master_ctrl的displayType属性要设置为reference'
 
-                return ""
-
         return utils.executeInMainThreadWithResult(process)
 
     except Exception:

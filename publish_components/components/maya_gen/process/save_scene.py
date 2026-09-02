@@ -81,8 +81,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             except:
                 traceback.print_exc()
 
-            return ""
-
         return utils.executeInMainThreadWithResult(process)
 
     except:

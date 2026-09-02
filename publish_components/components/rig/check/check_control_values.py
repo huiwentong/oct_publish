@@ -32,7 +32,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if process_data.get("is_internal_rig") is None:
                 process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
             if not process_data["is_internal_rig"]:
-                return ''
+                return
 
             for ctrl in get_all_ctrls():
                 attrs_list = mc.listAttr(ctrl, keyable=True, shortNames=True)
@@ -59,8 +59,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 mc.select(error_value_list)
                 logger.warning(u'存在默认数值错误控制器: \n {}'.format('\n'.join(error_value_list)))
                 return u'存在默认数值错误控制器: \n {}'.format('\n'.join(error_value_list))
-
-            return ''
 
         return utils.executeInMainThreadWithResult(process)
 

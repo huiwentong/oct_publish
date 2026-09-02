@@ -81,13 +81,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             global error_name_list
             error_name_list = []
             if mc.objExists('Root_grp.cocoVersion'):
-                return ''
+                return
 
             task_id = process_data.get("task_id")
             if process_data.get("is_internal_rig") is None:
                 process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
             if not process_data["is_internal_rig"]:
-                return ''
+                return
 
             all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'])
             for node in all_possible_ctrls:

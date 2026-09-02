@@ -24,8 +24,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if bad_jnts:
                     return u"root骨骼下有骨骼属性被锁定:{}".format(bad_jnts)
 
-            return ""
-
         return utils.executeInMainThreadWithResult(process)
 
     except:

@@ -54,7 +54,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             pm.select(cl=True)
             n_root.setParent(n_parent)
-            return ""
 
         return utils.executeInMainThreadWithResult(process)
 

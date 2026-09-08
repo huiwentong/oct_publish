@@ -4,8 +4,7 @@ import pymel.core as pm
 import maya.utils as utils
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    """导出资产及相关的贴图"""
-
+    """将贴图路径指向服务器后导出资产文件"""
     try:
         def get_imgs_info():
             imgs_info = {'file': {}, 'aiImage': {}}

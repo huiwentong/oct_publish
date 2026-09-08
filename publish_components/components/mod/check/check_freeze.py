@@ -11,9 +11,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     检查Freeze (旋转位移放缩 有没有归零)
     """
     try:
-        task_id = process_data['task_id']
-        # 如果它的绑定任务状态为弃用，代表它是一个场景，并且场景中有关联复制，那么跳过该检查
-        if not is_rig_task_omit(task_id) and not is_scene_has_instance():
+        def check():
             l_root_transforms = []
             l_geo_transforms = []
             n_root = process_data.get('root', '|Root_grp')
@@ -48,11 +46,17 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                         l_geo_transforms.append(each.name())
 
             l_geo_transforms = list(set(l_geo_transforms))
-            if l_root_transforms or l_geo_transforms:
-                process_data['check_freeze_l_geo_transforms'] = l_geo_transforms
-                process_data['check_freeze_l_root_transforms'] = l_root_transforms
+            return l_root_transforms, l_geo_transforms
+
+        task_id = process_data['task_id']
+        # 如果它的绑定任务状态为弃用，代表它是一个场景，并且场景中有关联复制，那么跳过该检查
+        if not is_rig_task_omit(task_id) and not is_scene_has_instance():
+            root_transforms, geo_transforms = utils.executeInMainThreadWithResult(check)
+            if root_transforms or geo_transforms:
+                process_data['check_freeze_l_geo_transforms'] = geo_transforms
+                process_data['check_freeze_l_root_transforms'] = root_transforms
                 return u"发现以下模型坐标未清零:\n{}".format('\n'.join([i.nodeName()
-                                                                        for i in l_root_transforms + l_geo_transforms]))
+                                                                    for i in root_transforms + geo_transforms]))
 
     except:
         return traceback.format_exc()
@@ -62,21 +66,25 @@ def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     检查Freeze (旋转位移放缩 有没有归零)
     """
     try:
-        l_geo_transforms = process_data.get('check_freeze_l_geo_transforms', [])
-        l_root_transforms = process_data.get('check_freeze_l_root_transforms', [])
+        def _fix():
+            l_geo_transforms = process_data.get('check_freeze_l_geo_transforms', [])
+            l_root_transforms = process_data.get('check_freeze_l_root_transforms', [])
 
-        for t in list(set(l_root_transforms)):
-            logger.warning("AUTO FIX: 清理'{}'的模型坐标！".format(t))
-            pm.lockNode(t, l=False)
-            for attr in ['tx', 'ty', 'tz', 'rx', 'ry', 'rz']:
-                pm.setAttr(t + '.' + attr, 0.0)
-            for attr in ['sx', 'sy', 'sz']:
-                pm.setAttr(t + '.' + attr, 1.0)
+            for t in list(set(l_root_transforms)):
+                logger.warning("AUTO FIX: 清理'{}'的模型坐标！".format(t))
+                pm.lockNode(t, l=False)
+                for attr in ['tx', 'ty', 'tz', 'rx', 'ry', 'rz']:
+                    pm.setAttr(t + '.' + attr, 0.0)
+                for attr in ['sx', 'sy', 'sz']:
+                    pm.setAttr(t + '.' + attr, 1.0)
 
-        for t in list(set(l_geo_transforms)):
-            logger.warning("AUTO FIX: 清理'{}'的模型坐标！".format(t))
-            pm.lockNode(t, l=False)
-            pm.select(t, r=True)
-            utils.executeInMainThreadWithResult(lambda: mel.eval('FreezeTransformations;'))
+            for t in list(set(l_geo_transforms)):
+                logger.warning("AUTO FIX: 清理'{}'的模型坐标！".format(t))
+                pm.lockNode(t, l=False)
+                pm.select(t, r=True)
+                mel.eval('FreezeTransformations;')
+
+        utils.executeInMainThreadWithResult(_fix)
+
     except:
         return traceback.format_exc()

@@ -28,34 +28,37 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                             print("failed delete", node.name(), e)
             return False
 
-        need_fix_nodes = []
-        for obj in utils.executeInMainThreadWithResult(lambda : cmds.ls(allPaths=True, long=True)):
-            try:
-                n = pm.PyNode(obj)
-            except:
-                continue
+        def check():
+            n_fix_nodes = []
+            for obj in cmds.ls(allPaths=True, long=True):
+                try:
+                    n = pm.PyNode(obj)
+                except:
+                    continue
 
-            if n.isReferenced():
-                continue
+                if n.isReferenced():
+                    continue
 
-            if n.nodeType() in ['reference']:
-                continue
+                if n.nodeType() in ['reference']:
+                    continue
 
-            is_ref = False
-            try:
-                for p in pm.listRelatives(n, allParents=True):
-                    if p.nodeType() == 'assemblyReference':
-                        is_ref = True
-            except:
-                pass
+                is_ref = False
+                try:
+                    for p in pm.listRelatives(n, allParents=True):
+                        if p.nodeType() == 'assemblyReference':
+                            is_ref = True
+                except:
+                    pass
 
-            if is_ref:
-                continue
+                if is_ref:
+                    continue
 
-            if ':' in n.nodeName():
-                if delete_unused_shaders(n): continue
-                need_fix_nodes.append(n)
+                if ':' in n.nodeName():
+                    if delete_unused_shaders(n): continue
+                    n_fix_nodes.append(n)
+            return n_fix_nodes
 
+        need_fix_nodes = utils.executeInMainThreadWithResult(check)
         if len(need_fix_nodes) > 0:
             process_data["no_name_space_error_nodes"] = need_fix_nodes
             msg = u"发现 {} 个带命名空间的节点：\n{}".format(len(need_fix_nodes),
@@ -67,17 +70,20 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
 def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     try:
-        failed_nodes = []
-        need_fix_nodes = process_data.get("no_name_space_error_nodes", [])
-        for fix_n in need_fix_nodes:
-            try:
-                cmds.lockNode(fix_n.nodeName(), lock=False)
-                fix_n.rename(fix_n.nodeName().split(':')[-1])
-                logger.warning("AUTO FIX: 修复节点 {}".format(fix_n.nodeName()))
-            except:
-                failed_nodes.append(fix_n)
-                logger.error("修复节点{}失败， 因为 {}".format(fix_n.nodeName(), traceback.format_exc()))
+        def _fix():
+            f_nodes = []
+            need_fix_nodes = process_data.get("no_name_space_error_nodes", [])
+            for fix_n in need_fix_nodes:
+                try:
+                    cmds.lockNode(fix_n.nodeName(), lock=False)
+                    fix_n.rename(fix_n.nodeName().split(':')[-1])
+                    logger.warning("AUTO FIX: 修复节点 {}".format(fix_n.nodeName()))
+                except:
+                    f_nodes.append(fix_n)
+                    logger.error("修复节点{}失败， 因为 {}".format(fix_n.nodeName(), traceback.format_exc()))
+            return f_nodes
 
+        failed_nodes = utils.executeInMainThreadWithResult(_fix)
         if len(failed_nodes) > 0:
             msg = "以下节点自动删除命名空间失败：\n{}".format('\n'.join([n.nodeName() for n in failed_nodes]))
             logger.error(msg)

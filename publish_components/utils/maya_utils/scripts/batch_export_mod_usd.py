@@ -3,9 +3,10 @@ import json
 import sys
 import pymel.core as pm
 import maya.cmds as cmds
+import maya.standalone
 
 def export(m_file, out_path, **ars):
-
+    maya.standalone.initialize()
     default_attrs = {
     "exportRoots": ["|Root_grp|Geo_grp"],
     "exportUVs": True,
@@ -43,6 +44,7 @@ def export(m_file, out_path, **ars):
     print("export usd attrs: \n{}".format(default_attrs))
     print("-"*10)
     pm.mayaUSDExport(**default_attrs)
+    maya.standalone.uninitialize()
 
 if __name__ == "__main__":
     args = sys.argv[1:]

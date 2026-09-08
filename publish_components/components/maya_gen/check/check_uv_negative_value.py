@@ -2,6 +2,7 @@
 import math
 import traceback
 import pymel.core as pm
+import maya.utils as utils
 import maya.api.OpenMaya as om
 from oct.pipeline.task_context import TaskContext
 
@@ -10,11 +11,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """检查 mesh 的 UV 是否在负象限"""
 
     try:
-        task_id = process_data["task_id"]
-        tc = TaskContext(task_id) or TaskContext.from_env()
-        sg_asset_type = tc.entity.sg_asset_type
-
-        if sg_asset_type == "CH":
+        def check():
             bad_meshes = {}
             epsilon = 1e-6
 
@@ -55,9 +52,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         "bad_uvs": bad_uvs,
                         "bad_tiles": bad_tiles
                     }
+            return bad_meshes
 
-            if bad_meshes:
-                return  "以下 mesh 的 UV 坐标落在负象限，请调整至正向象限：\n{}".format('\n'.join(bad_meshes.keys()))
+        task_id = process_data["task_id"]
+        tc = TaskContext(task_id) or TaskContext.from_env()
+        sg_asset_type = tc.entity.sg_asset_type
+        if sg_asset_type == "CH":
+            b_meshes = utils.executeInMainThreadWithResult(check)
+            if b_meshes:
+                return  "以下 mesh 的 UV 坐标落在负象限，请调整至正向象限：\n{}".format('\n'.join(b_meshes.keys()))
 
     except Exception:
         return traceback.format_exc()

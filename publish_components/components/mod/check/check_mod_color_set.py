@@ -15,8 +15,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 # 查询该 mesh 的 color sets
                 color_sets = cmds.polyColorSet(m, query=True, allColorSets=True)
                 if color_sets:
-                    transform = cmds.listRelatives(m, parent=True, fullPath=True)[0]
-                    result.append(transform)
+                    result.append(m)
 
             return list(set(result))
 

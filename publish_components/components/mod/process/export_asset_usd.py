@@ -9,7 +9,7 @@ from oct.data.usd import step_pub_usds
 from oct.pipeline.path_acs import make_dirs
 from publish_components.utils.sg_helper import is_rig_task_omit
 from oct_maya.utils.maya_utils.shape import is_scene_has_instance
-from publish_components.utils.maya_utils.export_usd_core import batch_export_usd
+from publish_components.utils.maya_utils.export_usd_core import batch_export_mod_usd
 reload(step_pub_usds)
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -58,7 +58,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         }
 
         maya_file = glob.glob(version_dir + '/*.ma')[0].replace('\\', '/')
-        batch_export_usd(maya_file, v_dir_usd + '/high.usd', **args)
+        batch_export_mod_usd(maya_file, v_dir_usd + '/high.usd', **args)
         Usd.Stage.Open(v_dir_usd + '/high.usd')
 
         has_low = False

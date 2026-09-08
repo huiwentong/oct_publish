@@ -68,7 +68,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             with open(mesh_xml, 'w') as f:
                 f.write(doc.toprettyxml(indent='    '))
 
-        process()
+        utils.executeInMainThreadWithResult(process)
 
     except Exception:
         return traceback.format_exc()

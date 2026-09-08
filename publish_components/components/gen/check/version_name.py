@@ -21,9 +21,13 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         task_id = process_data['task_id']
         form_widget = process_data.get("widget")
         task = SGEntity('Task', task_id)
+        entity_name = task.entity.code
+        project_name = task.project.name
+        step_name = task.step.short_name.lower()
+
         if task.entity.type not in ['Asset', 'Shot', 'Sequence']:
             return u'无效的 entity type: {}'.format(task.entity.type)
-        version_key = "{}.{}.{}".format(task.entity.code, task.step.code, task.content)
+        version_key = "{}.{}.{}".format(entity_name, step_name, task.content)
         if form_widget:
             version_num = form_widget._version_edit.text()
         else:
@@ -32,8 +36,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         logger.info('version_num: {}'.format(version_num))
         version_name = version_key + '.' + version_num
-        project_name = task.project.name
-        entity_name = task.entity.code
 
         old_get_path(mount_point='work', show_name=project_name, entity_type="Task", id=task_id)
         work_root = old_get_path(mount_point='work', show_name=project_name, entity_type="Task", id=task_id)
@@ -49,6 +51,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         v_dir_ad = version_dir + '/assembly_definition/' + entity_name + '.ma'
         v_dir_shot_json = version_dir + '/shot_assets.json'
         v_dir_imgs = version_dir + '/sourceimages'
+        if str(step_name).lower() in ["texture", "tex"]:
+            v_dir_imgs = v_dir_imgs + '/4096/'
         v_dir_srcs = version_dir + '/sourcefiles'
         v_dir_klf = ""
         if task.entity.type == 'Asset':

@@ -90,25 +90,25 @@ def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             scene_dir = os.path.dirname(scene_path)
             ext = scene_path.split('.')[-1]
             if scene_path != '':
-                    mu.executeInMainThreadWithResult(lambda :pm.saveFile(force=True))
-                    version_key = "{}.{}.{}".format(tc.entity_name, tc.step_name, tc.task_name)
-                    # 工作文件夹下，下一个版本号
-                    workspace_latest_v_num = get_latest_version_num(scene_dir, version_key, ("ma", "mb"))
-                    workspace_next_v_num = workspace_latest_v_num + 1
-                    # shotgun 上面， 下一个版本号
-                    sg_next_version_name = tc.task.next_version()
-                    sg_next_version_num = int(sg_next_version_name.split('v')[-1])
-                    next_version_num = f"v{max(workspace_next_v_num, sg_next_version_num):03d}"
-                    new_scene_file = os.path.join(scene_dir, version_key + '.' + next_version_num + '.' + ext)
-                    new_scene_file = str(new_scene_file).replace("\\", "/")
-                    logger.warning(u"AUTO FIX: 自动保存新版本：{}".format(new_scene_file))
-                    mu.executeInMainThreadWithResult(lambda :pm.saveAs(new_scene_file, f=True))
-                    mu.executeInMainThreadWithResult(lambda :pm.refresh(force=True))
-                    if form_widget:
-                        form_widget._version_edit.setText(next_version_num)
-                    process_data.update({"version_num": next_version_num,
-                                         "dcc_file": new_scene_file})
-                    submit_data.update({"ma_file": new_scene_file})
+                mu.executeInMainThreadWithResult(lambda :pm.saveFile(force=True))
+                version_key = "{}.{}.{}".format(tc.entity_name, tc.step.short_name.lower(), tc.task_name)
+                # 工作文件夹下，下一个版本号
+                workspace_latest_v_num = get_latest_version_num(scene_dir, version_key, ("ma", "mb"))
+                workspace_next_v_num = workspace_latest_v_num + 1
+                # shotgun 上面， 下一个版本号
+                sg_next_version_name = tc.task.next_version()
+                sg_next_version_num = int(sg_next_version_name.split('v')[-1])
+                next_version_num = f"v{max(workspace_next_v_num, sg_next_version_num):03d}"
+                new_scene_file = os.path.join(scene_dir, version_key + '.' + next_version_num + '.' + ext)
+                new_scene_file = str(new_scene_file).replace("\\", "/")
+                logger.warning(u"AUTO FIX: 自动保存新版本：{}".format(new_scene_file))
+                mu.executeInMainThreadWithResult(lambda :pm.saveAs(new_scene_file, f=True))
+                mu.executeInMainThreadWithResult(lambda :pm.refresh(force=True))
+                if form_widget:
+                    form_widget._version_edit.setText(next_version_num)
+                process_data.update({"version_num": next_version_num,
+                                     "dcc_file": new_scene_file})
+                submit_data.update({"ma_file": new_scene_file})
     except:
         return traceback.format_exc()
 

@@ -1,0 +1,77 @@
+<?xml version="1.0"?>
+<root>
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="gen" name="check_dcc_rv"/>
+            <check type="maya_gen" name="version_up_going"/>
+            <check type="gen" name="version_name"/>
+            <check type="gen" name="check_selected_preview"/>
+            <check type="gen" name="check_status"/>
+            <check type="gen" name="check_publish_root"/>
+        </check_group>
+        <check_group name="Publish">
+            <check type="maya_gen" name="generic_check"/>
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_gen" name="check_dcc_mtoa"/>
+            <check type="maya_gen" name="check_hierarchy_main"/>
+            <check type="maya_gen" name="check_error_dag"/>
+            <check type="maya_gen" name="untouched_transform"/>
+            <check type="mod" name="check_instanced_node"/>
+            <check type="mod" name="one_geo_only"/>
+            <check type="maya_gen" name="no_name_space"/>
+            <check type="maya_gen" name="mesh_name"/>
+            <check type="mod" name="unique_name"/>
+            <check type="maya_gen" name="match_hierarchy"/>
+            <check type="maya_gen" name="invisible_mesh"/>
+            <check type="maya_gen" name="check_reference_node"/>
+            <check type="maya_gen" name="check_mesh_aiSubdivIterations"/>
+            <check type="tex" name="invisible_low_group"/>
+            <check type="maya_gen" name="missing_images"/>
+            <check type="mod" name="assign_shaders"/>
+            <check type="tex" name="check_shader_by_face"/>
+            <check type="tex" name="check_file_node_attr"/>
+            <check type="tex" name="clean_tex_scene"/>
+            <check type="maya_gen" name="check_material_face_to_object"/>
+            <check type="tex" name="collect_surface_shader"/>
+            <check type="tex" name="check_shader_transmission"/>
+            <check type="tex" name="check_eyeshell_specular"/>
+            <check type="tex" name="check_eye_shader"/>
+            <check type="tex" name="check_shader_ani_curve"/>
+            <check type="tex" name="check_katana_forbidden"/>
+            <check type="tex" name="check_tex_aiSurfaceShader"/>
+            <check type="tex" name="check_ramp_color"/>
+            <check type="tex" name="check_aimixshader"/>
+            <check type="maya_gen" name="check_texture_path_locked"/>
+            <check type="tex" name="check_mask_texture_tx"/>
+            <check type="maya_gen" name="check_multi_uv_sets"/>
+            <check type="maya_gen" name="check_empty_uv_set"/>
+            <check type="tex" name="check_file_mode"/>
+            <check type="tex" name="check_file_tex_name"/>
+            <check type="tex" name="check_file_place2Dtex"/>
+            <check type="tex" name="check_illegal_path"/>
+            <check type="tex" name="check_tex_type"/>
+            <check type="tex" name="check_uv_range"/>
+            <check type="tex" name="check_udim_files"/>
+            <check type="tex" name="check_udim_num"/>
+            <check type="tex" name="check_tex_name"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="tex" name="save_scene" mode="Publish"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="tex" name="upload_local_textures" mode="Publish"/>
+        <process type="tex" name="copy_texpreview_to_v_dir" mode="Dailies"/>
+        <process type="tex" name="copy_texture_srcfile" mode="Publish"/>
+        <process type="maya_gen" name="maya_version_attr" mode="Publish"/>
+        <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>
+        <process type="mod" name="export_asset_ma" mode="Publish"/>
+        <process type="tex" name="export_usd_utils" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+<!--        <process type="gen" name="create_manifest_file" mode="Publish"/>-->
+        <process type="tex" name="sub_to_deadline_job" mode="Publish"/>
+        <process type="gen" name="create_sg_version" mode="Dailies"/>
+    </processcontainer>
+
+</root>

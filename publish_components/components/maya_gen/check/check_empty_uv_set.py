@@ -46,28 +46,32 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             pm.select(clear=True)
 
-        l_mesh_need_uv = []
-        l_tex_meshes = get_tex_meshes()
-        n_high = process_data.get('high', '|Root_grp|Geo_grp|high')
+        def check():
+            l_mesh_need_uv = []
+            l_tex_meshes = get_tex_meshes()
+            n_high = process_data.get('high', '|Root_grp|Geo_grp|high')
 
-        meshes = pm.listRelatives(n_high, ad=True, type='mesh')
+            meshes = pm.listRelatives(n_high, ad=True, type='mesh')
 
-        for mesh in meshes:
-            if 'proxyShape' in mesh.name():
-                continue
+            for mesh in meshes:
+                if 'proxyShape' in mesh.name():
+                    continue
 
-            pm.polyUVSet(mesh, uvSet='map1', currentUVSet=True)
-            uv_cnt = pm.polyEvaluate(mesh, uvcoord=True)
+                pm.polyUVSet(mesh, uvSet='map1', currentUVSet=True)
+                uv_cnt = pm.polyEvaluate(mesh, uvcoord=True)
 
-            if uv_cnt == 0:
-                if mesh.name() in l_tex_meshes:
-                    l_mesh_need_uv.append(mesh.name())
-                else:
-                    pm.polyAutoProjection(mesh)
+                if uv_cnt == 0:
+                    if mesh.name() in l_tex_meshes:
+                        l_mesh_need_uv.append(mesh.name())
+                    else:
+                        pm.polyAutoProjection(mesh)
 
-        utils.executeInMainThreadWithResult(lambda :delete_history(meshes))
-        if l_mesh_need_uv:
-            return u"以下面，带贴图却没有展 UV，请手动展UV:\n  " + ' '.join(l_mesh_need_uv)
+            delete_history(meshes)
+            return l_mesh_need_uv
+
+        mesh_need_uv = utils.executeInMainThreadWithResult(check)
+        if mesh_need_uv:
+            return u"以下面，带贴图却没有展 UV，请手动展UV:\n  " + ' '.join(mesh_need_uv)
 
     except Exception:
         return traceback.format_exc()

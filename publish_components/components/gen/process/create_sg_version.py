@@ -49,11 +49,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             'sg_version_type': publish_mode,
             'tag_list': [tag_entity.name],
             'created_by': user,
-            'sg_path_to_v_folder': process_data.get("process_data"),
+            'sg_path_to_v_folder': version_dir,
             'sg_path_to_movie': v_dir_preview,
             'sg_version_folder': {
                 'local_path': local_path,
-                'name': process_data.get("version_name"),
+                'name': version_name,
                 'content_type': None,
                 'link_type': 'local'
             }

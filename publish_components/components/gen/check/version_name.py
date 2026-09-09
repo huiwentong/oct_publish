@@ -20,6 +20,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     try:
         task_id = process_data['task_id']
         form_widget = process_data.get("widget")
+        publish_type = process_data.get("publish_type", "")
         task = SGEntity('Task', task_id)
         entity_name = task.entity.code
         project_name = task.project.name
@@ -40,7 +41,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         old_get_path(mount_point='work', show_name=project_name, entity_type="Task", id=task_id)
         work_root = old_get_path(mount_point='work', show_name=project_name, entity_type="Task", id=task_id)
         render_root = old_get_path(mount_point='output', show_name=project_name, entity_type="Task", id=task_id)
-        publish_root = old_get_path(mount_point='publish', show_name=project_name, entity_type="Task", id=task_id)
+
+        if publish_type.lower() == "submit":
+            publish_root = old_get_path(mount_point='submit', show_name=project_name, entity_type="Task", id=task_id)
+        else:
+            publish_root = old_get_path(mount_point='publish', show_name=project_name, entity_type="Task", id=task_id)
 
         version_dir = publish_root + '/' + version_name
         version_dir_no_num = publish_root + '/' + version_key

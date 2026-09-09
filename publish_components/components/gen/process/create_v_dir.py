@@ -15,13 +15,18 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         project_name = process_data.get("project_name")
         publish_root = process_data.get("publish_root")
         version_dir = process_data.get("version_dir")
+        publish_type = process_data.get("publish_type", "")
         if not project_name:
             task = SGEntity('Task', process_data['task_id'])
             project_name = task.project.name
 
         if not os.path.exists(publish_root):
-            old_get_path(mount_point='publish', show_name=project_name.upper(),
-                         entity_type='Task', id=task_id, create=True)
+            if  publish_type.lower() == "submit":
+                old_get_path(mount_point='submit', show_name=project_name.upper(),
+                             entity_type='Task', id=task_id, create=True)
+            else:
+                old_get_path(mount_point='publish', show_name=project_name.upper(),
+                             entity_type='Task', id=task_id, create=True)
         else:
             unlock_path(publish_root)
 

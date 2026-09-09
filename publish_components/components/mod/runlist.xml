@@ -49,7 +49,7 @@
     </checkcontainer>
 
     <processcontainer>
-        <process type="maya_gen" name="save_scene" mode="Publish"/>
+        <process type="tex" name="save_scene" mode="Publish"/>
         <process type="mod" name="unlock_normal_and_soften_edge" mode="Publish"/>
         <process type="maya_gen" name="clean_scene" mode="Publish"/>
         <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>

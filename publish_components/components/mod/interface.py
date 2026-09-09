@@ -29,7 +29,7 @@ class ModWidget(QtWidgets.QWidget):
     def __init__(self,input_form, parent=None):
         super().__init__(parent)
         self.input_form = input_form
-        self.input_form.update({"zb_file": "test"})
+        self.input_form.update({"zb_file": "test", "ma_file": "test"})
         main_layout = QtWidgets.QVBoxLayout(self)
 
         self.ma_widget = QtWidgets.QWidget()

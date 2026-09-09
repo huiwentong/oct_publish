@@ -4,7 +4,10 @@ from logging.handlers import RotatingFileHandler
 import getpass
 from publish_core.config import Config
 from psycopg2.pool import SimpleConnectionPool
+import weakref
 
+from qtpy.QtCore import QObject, Signal, Slot, QThread, Qt
+from qtpy.QtWidgets import QApplication
 
 class LogDB:
     def __init__(self, pool:SimpleConnectionPool) -> None:
@@ -68,23 +71,59 @@ class DatabaseHandler(logging.Handler):
             self.handleError(record)
 
 
+class _WidgetLogBridge(QObject):
+    """把任意线程的日志转发到主线程。"""
+
+    log_requested = Signal(str)
+
+    def __init__(self, handler):
+        super().__init__()
+        self._handler_ref = weakref.ref(handler)
+
+    @Slot(str)
+    def _append_on_main_thread(self, msg):
+        handler = self._handler_ref()
+        if handler is None:
+            return
+
+        widget = handler.widget
+        if widget is None:
+            return
+
+        try:
+            # 这里已经运行在 GUI 主线程
+            widget.append_log(msg)
+        except RuntimeError:
+            # 窗口可能已经被 Qt 销毁
+            pass
+
+
 class WidgetHandler(logging.Handler):
     def __init__(self, logwidget):
         super().__init__()
         self.widget = logwidget
 
+        app = QApplication.instance()
+        if app is None:
+            raise RuntimeError("QApplication is not initialized")
+
+        self._bridge = _WidgetLogBridge(self)
+
+        # 信号接收对象必须属于主线程。
+        # 即使 Handler 是在工作线程创建的，也将桥接对象移过去。
+        if self._bridge.thread() != app.thread():
+            self._bridge.moveToThread(app.thread())
+
+        self._bridge.log_requested.connect(
+            self._bridge._append_on_main_thread,
+            Qt.QueuedConnection
+        )
+
     def emit(self, record):
         try:
-            log_data = {
-                "level": record.levelname,
-                "message": record.getMessage(),
-                "logger": record.name,
-                "file": record.filename,
-                "line": record.lineno,
-                "user": getattr(record, "user", "")
-            }
             msg = self.format(record)
-            self.widget.append_log(msg)
+            # 从任何工作线程调用都只会排队发送消息。
+            self._bridge.log_requested.emit(msg)
 
         except Exception:
             self.handleError(record)

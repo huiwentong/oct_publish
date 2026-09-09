@@ -4,7 +4,7 @@ import sys
 import time
 import traceback
 import subprocess
-from tk_oct_publish.proc import images
+from publish_components.utils import images
 from oct.pipeline.task_context import TaskContext
 from publish_core.database.entity import get_user, SGEntity
 

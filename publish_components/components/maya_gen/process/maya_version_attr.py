@@ -12,6 +12,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             tc = TaskContext(task_id) or TaskContext.from_env()
             step_name = tc.step_name
             step_name = step_name.replace("绑定", "rig")
+            step_name = step_name.lower()
             version_num = process_data["version_num"]
             v_dir_ma_file = process_data['v_dir_ma_file']
             n_root = process_data.get('root', '|Root_grp')

@@ -15,7 +15,7 @@ def main(submit_data, process_data, parent_widget=None, logger=None):
     将资产使用的本地贴图发布到 I 盘
     """
     progress = None
-
+    publish_type = process_data.get("publish_type", "")
     def prepare_process_data():
         pm.loadPlugin("mtoa", quiet=True)
         pm.arnoldFlushCache(textures=True)
@@ -54,7 +54,7 @@ def main(submit_data, process_data, parent_widget=None, logger=None):
                 return textures
 
         except Exception:
-            log("READ MANIFEST FAILED | {}\n{}".format(manifest_file, traceback.format_exc()), "warning")
+            logger.warning("READ MANIFEST FAILED | {}\n{}".format(manifest_file, traceback.format_exc()))
 
         return {}
 
@@ -166,8 +166,8 @@ def main(submit_data, process_data, parent_widget=None, logger=None):
             tex_name = os.path.basename(path)
             dst_tex = os.path.join(dst_d, tex_name)
             img_dir = info["img_dir"]
-
-            if img_dir:
+            #TODO 20260910 path_acs 服务器挂载有问题，导致软硬链接失效 暂时先copy， 服务器修复后删除 publish_type 相关即可
+            if img_dir and publish_type.lower() == "publish":
                 link_src.append(os.path.join(img_dir, tex_name))
                 link_dst.append(dst_tex)
             else:
@@ -189,7 +189,8 @@ def main(submit_data, process_data, parent_widget=None, logger=None):
             dst_tx = os.path.join(dst_d, tex_name.rsplit(".", 1)[0] + ".tx")
 
             # 历史 manifest 已经确认 TX 可以复用
-            if history_tx:
+            #TODO 20260910 path_acs 服务器挂载有问题，导致软硬链接失效 暂时先copy， 服务器修复后删除 publish_type 相关即可
+            if history_tx and publish_type.lower() == "publish":
                 link_src.append(history_tx)
                 link_dst.append(dst_tx)
                 continue
@@ -270,7 +271,7 @@ def main(submit_data, process_data, parent_widget=None, logger=None):
 
     except Exception:
         error = traceback.format_exc()
-        logger.error(error, "error")
+        logger.error(error)
         return error
 
     finally:

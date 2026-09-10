@@ -98,7 +98,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     if mod_path:
                         mod_path = mod_path.replace("\\", "/")
                     asset_dir = os.path.dirname(os.path.dirname(version_dir))
-                    if mod_path and not mod_path.startswith(asset_dir):
+                    # 兼容“submit” 和 “publish” 发布， 从根目录开始对比
+                    asset_root = asset_dir.split('projects', 1)[1]
+                    mod_path_root = mod_path.split('projects', 1)[1]
+
+                    if mod_path and not mod_path_root.startswith(asset_root):
                         result = u"Root_grp 的 modelPath 属性值为{0} 不匹配当前资产.".format(mod_path)
                         can_continue = False
 

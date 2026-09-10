@@ -68,7 +68,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             d_version['frame_count'] = duration
             process_data["preview_duration"] = duration
 
-        if publish_mode == "Publish":
+        if publish_mode in ["Publish", "Submit"]:
             d_version['sg_path_to_geometry'] = process_data.get("v_dir_ma_file") or process_data.get("v_dir_katana")
 
         sg = tc.task.sg_client()

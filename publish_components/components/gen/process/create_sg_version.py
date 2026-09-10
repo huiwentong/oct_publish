@@ -14,7 +14,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 
     try:
-        user = get_user().tiny_raw()
+        # 优先用 process_data 里的提交人（PublishCli.user 注入，全项目只有这一个写入方）。
+        # 农场端的 Deadline 任务靠这个键把版本归属到真正的提交人身上，
+        # 否则 get_user() 走 getpass.getuser() 会取到农场机器的服务账号。
+        # GUI / CLI 下两者是同一个人，行为不变。
+        user = process_data.get("user") or get_user().tiny_raw()
         task_id = process_data.get("task_id")
         tc = TaskContext(task_id) or TaskContext.from_env()
         version_dir = process_data.get("version_dir")
@@ -69,6 +73,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         sg = tc.task.sg_client()
         v_info = sg.create('Version', d_version)
+        # 下游关联组件使用本次创建的确切 ID，禁止用 latest 反查。
+        process_data['sg_version'] = {'type': 'Version', 'id': v_info['id']}
 
         ############################################# Uploaded Version Movie ###########################################
         if os.path.exists(v_dir_preview):

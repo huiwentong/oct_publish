@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<!--
+    ASB 拆分发布 —— mod 环节 + ASB 资产 + assembly 任务
+    迁移自 depts/mk2/asb 的 publish_checks.xml + publish_processes.xml
+
+    老的 4 个 check_group（Daily / General / Model Work Standard）已按新架构
+    压平成 Dailies / Publish 两组；process 的 mode 由 daily/downstream 改为 Dailies/Publish。
+
+    标 [骨架] 的组件目前是空实现（直接 return ""），待逐个迁移。
+-->
+<root>
+
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="gen" name="check_dcc_rv"/>
+            <!-- 版本递增修复会另存工作文件，必须先于 version_name 生成发布路径 -->
+            <check type="maya_gen" name="version_up_going"/>
+            <check type="gen" name="version_name"/>
+            <check type="gen" name="check_selected_preview"/>
+            <check type="gen" name="check_status"/>
+            <check type="gen" name="check_publish_root"/>
+            <!-- [骨架] 数据种子：构建 gen_asset_data，后续 4 个 process 全依赖它，顺序不能动 -->
+            <check type="asb_split" name="check_assembly_all_hierarchy"/>
+            <check type="asb_split" name="check_asb_split_marks"/>
+            <check type="asb_split" name="check_asset_name_unique"/>
+        </check_group>
+
+        <check_group name="Publish">
+            <!-- 合并 this_is_maya + check_maya_unit + unknown_nodes + unknown_plugins + unlock_default_nodes -->
+            <check type="maya_gen" name="generic_check"/>
+            <!-- 合并 check_work_file + version_name_match -->
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_gen" name="check_frame_rate"/>
+            <check type="maya_gen" name="no_name_space"/>
+            <check type="mod" name="check_instanced_node"/>
+            <check type="mod" name="one_geo_only"/>
+            <check type="mod" name="unique_name"/>
+            <check type="maya_gen" name="mesh_name"/>
+            <check type="tex" name="check_illegal_path"/>
+            <!-- 不用 tex/check_colorspace：它的白名单只有两个色彩空间，
+                 ASB 场景引用的子资产贴图会被误判 -->
+            <check type="asb_split" name="check_colorspace"/>
+            <!-- 合并 check_connected_channels + check_lock_hide -->
+            <check type="mod" name="check_transform_channels"/>
+            <check type="maya_gen" name="check_display_layers"/>
+            <check type="mod" name="check_node_override"/>
+            <check type="mod" name="assign_shaders"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="tex" name="save_scene" mode="Publish"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>
+        <!-- ASB 只清除历史，不使用普通模型的集合、cluster 和法线清理 -->
+        <process type="asb_split" name="clean_asb_scene" mode="Publish"/>
+        <process type="maya_gen" name="clean_scene" mode="Publish"/>
+        <process type="asb_split" name="export_asb_source_scene" mode="Publish"/>
+        <process type="asb_split" name="snapshot_each_object" mode="Publish"/>
+        <process type="asb_split" name="create_sub_asset_and_record" mode="Publish"/>
+        <process type="asb_split" name="gen_asb_deadline_job" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="asb_split" name="submit_asb_deadline_task" mode="Publish"/>
+    </processcontainer>
+
+</root>

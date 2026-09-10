@@ -80,6 +80,21 @@ class PublishCli:
         if task_name == 'rigging_nemo':
             stepname = 'rig_nemo'
 
+        # ASB 资产在 mod 环节下分两条线路：
+        #   assembly 任务 -> asb_split  拆分发布，把总场景切成多个子资产并提交 Deadline, 最后组装到总场景_all
+        #   model    任务 -> asb_build  组装发布，把子资产的 usd 组装回来
+        if (stepname == 'mod'
+                and self.task_entity.entity.type == 'Asset'
+                and self.task_entity.entity.sg_asset_type == 'ASB'):
+            if task_name == 'assembly':
+                stepname = 'asb_split'
+            elif task_name == 'model':
+                stepname = 'asb_build'
+            else:
+                raise RuntimeError(
+                    f'ASB 资产的 mod 环节只支持 model / assembly 任务，当前任务: {task_name}'
+                )
+
         module_path = f'publish_components.components.{stepname}.interface'
         try:
             module = importlib.import_module(module_path)

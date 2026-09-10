@@ -9,8 +9,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     #u"清除历史记录。一个transform下最多只能有一个 mesh/nurbsCurve节点。如果有intermediate object需要删除掉。"
     try:
         def check():
-            n_root = process_data.get("root", pm.PyNode('|Root_grp'))
-            n_geo = process_data.get("geo", pm.PyNode('|Root_grp|Geo_grp'))
+            n_root = process_data.get("root", '|Root_grp')
+            n_geo = process_data.get("geo", '|Root_grp|Geo_grp')
 
             pm.select(n_geo, r=True)
             pm.mel.eval('DeleteHistory;')

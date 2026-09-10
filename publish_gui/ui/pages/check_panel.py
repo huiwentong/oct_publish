@@ -111,6 +111,9 @@ class CheckPanelPage(QWidget):
         self._table.setSelectionMode(QTableWidget.SelectionMode.NoSelection)
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.verticalHeader().setVisible(False)
+        self._table.setWordWrap(False)
+        self._table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
+        self._table.verticalHeader().setDefaultSectionSize(40)
         self._table.setStyleSheet(
             f"QTableWidget {{"
             f"  background-color: {Color.BG_LIGHT};"
@@ -136,7 +139,6 @@ class CheckPanelPage(QWidget):
         self._summary_label = QLabel("")
         self._summary_label.setStyleSheet(f"color: {Color.TEXT_SECONDARY};")
         outer.addWidget(self._summary_label)
-        outer.addStretch()
 
         bottom = QHBoxLayout()
         self._back_btn = QPushButton("<- Back")
@@ -336,7 +338,9 @@ class CheckPanelPage(QWidget):
             if not desc:
                 raise RuntimeError(f'can not find {comp.name} description')
             self._table.setItem(row, 1, QTableWidgetItem(comp.type))
-            self._table.setItem(row, 2, QTableWidgetItem(desc))
+            desc_item = QTableWidgetItem(desc)
+            desc_item.setToolTip(desc)
+            self._table.setItem(row, 2, desc_item)
             r_item = QTableWidgetItem(comp.status)
             r_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             r_item.setForeground(QColor(COLOR_MAP['waiting']))
@@ -349,7 +353,6 @@ class CheckPanelPage(QWidget):
                 pushbutton.setEnabled(False)
 
                 self._table.setCellWidget(row, 4, pushbutton)
-                self._table.resizeRowToContents(row)
             else:
                 fix_item = QTableWidgetItem("can not fix")
                 fix_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)

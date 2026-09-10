@@ -97,7 +97,6 @@ class PublishProgressPage(QWidget):
         self._stage_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self._stage_label.setStyleSheet(f"color: {Color.TEXT_MUTED}; font-size: 10pt;")
         outer.addWidget(self._stage_label)
-        outer.addStretch()
 
 
         self._table = QTableWidget(1, 4)

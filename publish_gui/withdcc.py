@@ -48,8 +48,10 @@ class ChooseType(QtWidgets.QDialog):
 
 def run(task_id, dcc=None, parent=None):
     choose = ChooseType(parent)
-    choose.exec_()
-    window = MainWindow(dcc)
+    # 点 X 或 Cancel 走的是 reject()，此时不该再弹主窗口
+    if choose.exec_() != QtWidgets.QDialog.DialogCode.Accepted:
+        return None
+    window = MainWindow(dcc, parent)
     window._form_page._back_btn.setEnabled(False)
     window._toolbar._type_combo.setCurrentIndex(choose.publish_type()+1)
     window._toolbar._type_combo.setEnabled(False)
@@ -64,6 +66,8 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     screen = app.primaryScreen()
     window = run(120703, 'Houdini')
+    if window is None:
+        sys.exit(0)
     if screen:
         center = screen.availableGeometry().center()
         frame = window.frameGeometry()

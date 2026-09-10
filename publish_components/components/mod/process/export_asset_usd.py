@@ -58,8 +58,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         }
 
         maya_file = glob.glob(version_dir + '/*.ma')[0].replace('\\', '/')
-        batch_export_mod_usd(maya_file, v_dir_usd + '/high.usda', **args)
-        Usd.Stage.Open(v_dir_usd + '/high.usda')
+        batch_export_mod_usd(maya_file, v_dir_usd + '/high.usd', **args)
+        Usd.Stage.Open(v_dir_usd + '/high.usd')
 
         has_low = False
         if is_env and pm.objExists(n_low):

@@ -9,7 +9,7 @@ from oct.data.usd import step_pub_usds
 
 # 导出脚本模板：mayaUSDExport 在当前 mayapy 会话里跑容易受场景状态影响，
 # 老流程一直是另起一个干净的 maya 进程来导，这里保持一致
-_EXPORT_CODE = """
+_EXPORT_CODE = """# -*- coding: utf-8 -*-
 import os
 import sys
 import traceback
@@ -78,7 +78,9 @@ def export_usd_with_command(maya_file, v_dir_usd, longname, logger=None):
     """另起一个 mayapy 进程导出 high.usd"""
     code = _EXPORT_CODE.format(ma=maya_file, v_dir_usd=v_dir_usd, longname=longname)
 
-    with tempfile.NamedTemporaryFile('w', delete=False, suffix='.py') as f:
+    # 模板里有中文注释，必须按 UTF-8 写盘：默认编码在中文 Windows 上是 cp936，
+    # mayapy 按 UTF-8 解析源码会在解析阶段直接 SyntaxError（退出码 1，且没有 Traceback）
+    with tempfile.NamedTemporaryFile('w', delete=False, suffix='.py', encoding='utf-8') as f:
         f.write(code)
         script_path = f.name
 
@@ -112,6 +114,10 @@ def export_usd_with_command(maya_file, v_dir_usd, longname, logger=None):
                 keep.append(line)
                 if line and not line.startswith(' '):
                     in_tb = False
+        # 一条标记都没有，说明脚本在解析阶段就挂了（如 SyntaxError，不带 Traceback 头）
+        # 或 rez / mayapy 根本没起来，此时直接带上日志末尾
+        if not keep:
+            keep = [u'(未捕获到导出标记，脚本可能未执行到导出逻辑，以下为日志末尾)'] + lines[-30:]
         raise RuntimeError(
             u"USD 导出失败，退出码: {0}，文件存在: {1}\n完整日志: {2}\n{3}".format(
                 sp.returncode, file_ok, log_path, '\n'.join(keep[-40:])))

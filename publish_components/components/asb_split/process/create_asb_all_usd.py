@@ -10,41 +10,67 @@ from oct.data.usd import step_pub_usds
 # 导出脚本模板：mayaUSDExport 在当前 mayapy 会话里跑容易受场景状态影响，
 # 老流程一直是另起一个干净的 maya 进程来导，这里保持一致
 _EXPORT_CODE = """
-import pymel.core as pm
-import maya.cmds as cmds
 import os
-pm.loadPlugin('mayaUsdPlugin', quiet=True)
-pm.loadPlugin('mtoa', quiet=True)
-cmds.file(r'{ma}', o=True, f=True)
-n_geogrp = pm.PyNode('{longname}')
-if not os.path.isdir(r'{v_dir_usd}'):
-    os.makedirs(r'{v_dir_usd}')
-usd_path = r'{v_dir_usd}' + r'/high.usd'
-if os.path.isfile(usd_path):
-    os.remove(usd_path)
-pm.mayaUSDExport(
-    file=usd_path,
-    exportRoots=[n_geogrp.name()],
-    exportUVs=True,
-    exportSkels='none',
-    exportSkin='none',
-    exportBlendShapes=False,
-    exportColorSets=True,
-    defaultMeshScheme='none',
-    defaultUSDFormat='usdc',
-    eulerFilter=False,
-    staticSingleSample=False,
-    frameStride=1,
-    frameSample=0.0,
-    parentScope='',
-    exportDisplayColor=False,
-    shadingMode='useRegistry',
-    convertMaterialsTo='UsdPreviewSurface',
-    exportInstances=True,
-    exportVisibility=True,
-    mergeTransformAndShape=False,
-    stripNamespaces=True
-)
+import sys
+import traceback
+
+# 每一步都打标记，失败时主进程把这些行带回错误信息里，方便定位卡在哪
+def _log(msg):
+    print('>>>> [usd_export] ' + msg)
+    sys.stdout.flush()
+
+try:
+    import pymel.core as pm
+    import maya.cmds as cmds
+    _log('loading plugins')
+    pm.loadPlugin('mayaUsdPlugin', quiet=True)
+    pm.loadPlugin('mtoa', quiet=True)
+    _log('opening ' + r'{ma}')
+    cmds.file(r'{ma}', o=True, f=True)
+    _log('file opened, top-level: ' + str(cmds.ls(assemblies=True)))
+    n_geogrp = pm.PyNode('{longname}')
+    if not os.path.isdir(r'{v_dir_usd}'):
+        os.makedirs(r'{v_dir_usd}')
+    usd_path = r'{v_dir_usd}' + r'/high.usd'
+    if os.path.isfile(usd_path):
+        os.remove(usd_path)
+    _log('exporting ' + usd_path)
+    pm.mayaUSDExport(
+        file=usd_path,
+        exportRoots=[n_geogrp.name()],
+        exportUVs=True,
+        exportSkels='none',
+        exportSkin='none',
+        exportBlendShapes=False,
+        exportColorSets=True,
+        defaultMeshScheme='none',
+        defaultUSDFormat='usdc',
+        eulerFilter=False,
+        staticSingleSample=False,
+        frameStride=1,
+        frameSample=0.0,
+        parentScope='',
+        exportDisplayColor=False,
+        shadingMode='useRegistry',
+        convertMaterialsTo='UsdPreviewSurface',
+        exportInstances=True,
+        exportVisibility=True,
+        mergeTransformAndShape=False,
+        stripNamespaces=True
+    )
+    ok = os.path.isfile(usd_path) and os.path.getsize(usd_path) > 0
+    _log('export done, file ok: ' + str(ok))
+    exit_code = 0 if ok else 1
+except Exception:
+    _log('EXPORT FAILED')
+    traceback.print_exc()
+    sys.stdout.flush()
+    exit_code = 1
+
+# mayapy 加载过 mtoa 后正常退出会在 finalizing 阶段崩
+# (Fatal Python error: PyThreadState_Get ...) 并返回 255，
+# 与导出成功与否无关。用 os._exit 跳过 finalizing，让退出码只反映导出结果
+os._exit(exit_code)
 """
 
 
@@ -60,13 +86,38 @@ def export_usd_with_command(maya_file, v_dir_usd, longname, logger=None):
     if logger:
         logger.info(u"导出 USD 命令: {0}".format(cmd))
 
-    sp = subprocess.Popen(cmd)
-    sp.wait()
-    if sp.returncode != 0:
-        raise RuntimeError(u"USD 导出进程失败，退出码: {0}".format(sp.returncode))
+    # 子进程输出落盘，而不是混进主进程的 stdout —— Deadline 日志里 Arnold 的插件列表
+    # 会把关键报错淹掉。失败时把标记行和 traceback 带回错误信息
+    log_path = script_path + '.log'
+    with open(log_path, 'w', encoding='utf-8', errors='replace') as log_f:
+        sp = subprocess.Popen(cmd, stdout=log_f, stderr=subprocess.STDOUT)
+        sp.wait()
+
     usd_path = os.path.join(v_dir_usd, 'high.usd')
-    if not os.path.isfile(usd_path) or os.path.getsize(usd_path) == 0:
-        raise RuntimeError(u"USD 导出未生成有效文件: {0}".format(usd_path))
+    file_ok = os.path.isfile(usd_path) and os.path.getsize(usd_path) > 0
+
+    if sp.returncode != 0 or not file_ok:
+        # 只挑出我们自己打的标记行和 Python traceback，跳过 Arnold / pymel 的启动噪音
+        try:
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as log_f:
+                lines = log_f.read().splitlines()
+        except Exception:
+            lines = []
+        keep, in_tb = [], False
+        for line in lines:
+            if line.startswith('>>>> [usd_export]') or line.startswith('Traceback'):
+                in_tb = line.startswith('Traceback')
+                keep.append(line)
+            elif in_tb:
+                keep.append(line)
+                if line and not line.startswith(' '):
+                    in_tb = False
+        raise RuntimeError(
+            u"USD 导出失败，退出码: {0}，文件存在: {1}\n完整日志: {2}\n{3}".format(
+                sp.returncode, file_ok, log_path, '\n'.join(keep[-40:])))
+
+    if logger:
+        logger.info(u"high.usd 已生成: {0} ({1} bytes)".format(usd_path, os.path.getsize(usd_path)))
     return sp.returncode
 
 

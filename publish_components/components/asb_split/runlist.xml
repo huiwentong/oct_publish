@@ -26,9 +26,7 @@
         </check_group>
 
         <check_group name="Publish">
-            <!-- 合并 this_is_maya + check_maya_unit + unknown_nodes + unknown_plugins + unlock_default_nodes -->
             <check type="maya_gen" name="generic_check"/>
-            <!-- 合并 check_work_file + version_name_match -->
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_frame_rate"/>
             <check type="maya_gen" name="no_name_space"/>
@@ -40,7 +38,6 @@
             <!-- 不用 tex/check_colorspace：它的白名单只有两个色彩空间，
                  ASB 场景引用的子资产贴图会被误判 -->
             <check type="asb_split" name="check_colorspace"/>
-            <!-- 合并 check_connected_channels + check_lock_hide -->
             <check type="mod" name="check_transform_channels"/>
             <check type="maya_gen" name="check_display_layers"/>
             <check type="mod" name="check_node_override"/>
@@ -53,7 +50,6 @@
         <process type="gen" name="create_v_dir" mode="Dailies"/>
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
         <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>
-        <!-- ASB 只清除历史，不使用普通模型的集合、cluster 和法线清理 -->
         <process type="asb_split" name="clean_asb_scene" mode="Publish"/>
         <process type="maya_gen" name="clean_scene" mode="Publish"/>
         <process type="asb_split" name="export_asb_source_scene" mode="Publish"/>

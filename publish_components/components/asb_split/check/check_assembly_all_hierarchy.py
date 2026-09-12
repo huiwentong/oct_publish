@@ -14,6 +14,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     检查层级命名规范
     """
     # Assembly 资产顶层层级的命名需是资产的名称。子层的命名前缀，必须是父层级的名称简写。
+    # 根层级下只能放子层级组，不能直接挂模型，否则根层级会被当成一个 Prop。
     # 资产类型和是否发布，以 ASB场景拆分管理器 写入的标记为准。
     # 参考: http://wiki.ds.com/pages/viewpage.action?pageId=167379352
     #
@@ -39,10 +40,31 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if asb_root.type() != 'transform':
                 return u"根层级 |{0} 组不是 transform 节点".format(asset_name), None, None
 
+            # 根层级是 Assembly 资产本身，必须是 ASB，下面只能挂子层级组，不能直接挂模型。
+            # 否则按“含有 mesh 即为 Prop”的规则，根层级会被判成一个 Prop，
+            # 后面拿资产名去建 SG 资产就会撞上 Assembly 资产本身
+            if asb_root.getShape():
+                return (u"根层级 |{0} 自身带有 shape 节点，根层级必须是一个空的组，"
+                        u"请把模型放到子层级组里".format(asset_name)), None, None
+
+            children = asb_root.listRelatives(children=True, type='transform')
+            root_meshes = [child.nodeName() for child in children
+                           if get_asb_nodes.is_mesh_transform(child)]
+            if root_meshes:
+                return (u"根层级 |{0} 下直接挂了模型: {1}\n根层级下只能放子层级组，"
+                        u"请把这些模型移到对应的子层级组里再发布".format(
+                            asset_name, u"、".join(root_meshes))), None, None
+
             # 命名检查针对全部层级，含标记为不发布的 —— 它们可能是要发布层级的父级，
             # 命名会影响整条路径的校验
             assets_dict_all = get_asb_nodes.get_all_asset_group(group_object=asb_root,
                                                                 publish_only=False)
+            root_type = assets_dict_all.get(asb_root.longName())
+            if root_type != 'ASB':
+                return (u"根层级 |{0} 被判定为 {1}，Assembly 资产的根层级必须是 ASB，"
+                        u"请检查根层级下的内容和 ASB场景拆分管理器 中的标记".format(
+                            asset_name, root_type)), None, None
+
             for group in assets_dict_all:
                 result = get_asb_nodes.check_group_name(longname=group)
                 if result is not True:

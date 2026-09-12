@@ -35,6 +35,9 @@
             <check type="mod" name="unique_name"/>
             <check type="maya_gen" name="mesh_name"/>
             <check type="tex" name="check_illegal_path"/>
+            <!-- 农场端打开 source.ma 不设 Maya 工程，贴图必须在工作目录下且为绝对路径 -->
+            <check type="asb_split" name="check_textures_in_work_dir"/>
+            <check type="asb_split" name="check_texture_format"/>
             <!-- 不用 tex/check_colorspace：它的白名单只有两个色彩空间，
                  ASB 场景引用的子资产贴图会被误判 -->
             <check type="asb_split" name="check_colorspace"/>

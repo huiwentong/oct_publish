@@ -5,6 +5,7 @@ import tempfile
 import traceback
 
 from oct.data.usd import step_pub_usds
+from oct_maya.utils.maya_utils.shape import is_scene_has_instance
 
 
 # 导出脚本模板：mayaUSDExport 在当前 mayapy 会话里跑容易受场景状态影响，
@@ -53,7 +54,7 @@ try:
         exportDisplayColor=False,
         shadingMode='useRegistry',
         convertMaterialsTo='UsdPreviewSurface',
-        exportInstances=True,
+        exportInstances={export_instances},
         exportVisibility=True,
         mergeTransformAndShape=False,
         stripNamespaces=True
@@ -74,9 +75,18 @@ os._exit(exit_code)
 """
 
 
-def export_usd_with_command(maya_file, v_dir_usd, longname, logger=None):
-    """另起一个 mayapy 进程导出 high.usd"""
-    code = _EXPORT_CODE.format(ma=maya_file, v_dir_usd=v_dir_usd, longname=longname)
+def export_usd_with_command(maya_file, v_dir_usd, longname, export_instances=True, logger=None):
+    """
+    另起一个 mayapy 进程导出 high.usd
+
+    Args:
+        maya_file: str, 要打开的 ma 文件
+        v_dir_usd: str, usd 输出目录
+        longname: str, 导出的根层级
+        export_instances: bool, 场景里有关联复制时要传 False，否则 mayaUSDExport 会报错
+    """
+    code = _EXPORT_CODE.format(ma=maya_file, v_dir_usd=v_dir_usd, longname=longname,
+                               export_instances=bool(export_instances))
 
     # 模板里有中文注释，必须按 UTF-8 写盘：默认编码在中文 Windows 上是 cp936，
     # mayapy 按 UTF-8 解析源码会在解析阶段直接 SyntaxError（退出码 1，且没有 Traceback）
@@ -155,16 +165,17 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 logger.info(u"删除 asb 的 step.usda 文件: {0}".format(step_usd_path))
                 os.remove(step_usd_path)
 
-        if asset_type == 'ASB':
-            root = process_data['root']
-            export_usd_with_command(maya_file=v_dir_ma_file,
-                                    v_dir_usd=v_dir_usd,
-                                    longname=root.longName(),
-                                    logger=logger)
+        # 场景带关联复制时无法导出 usd，需要关掉 exportInstances，与 mod 的 export_asset_usd 一致。
+        # 当前打开的就是刚另存的发布 ma，在这里判断和子进程里打开的文件内容一致
+        export_instances = not is_scene_has_instance()
+        if not export_instances:
+            logger.info(u"场景存在关联复制，导出 usd 时设置 exportInstances=False")
 
+        if asset_type == 'ASB':
+            comps_data = process_data.get('comps_data', {})
             step_pub_usds.AsbStepUsd(
                 version_folder=version_dir,
-                components=process_data.get('comps_data', {}),
+                components=comps_data,
                 task_id=task_id,
             )
             logger.info(u"已生成 ASB 的 step usd")
@@ -173,6 +184,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             export_usd_with_command(maya_file=v_dir_ma_file,
                                     v_dir_usd=v_dir_usd,
                                     longname='|Root_grp|Geo_grp',
+                                    export_instances=export_instances,
                                     logger=logger)
 
             step_pub_usds.ModStepUsd(

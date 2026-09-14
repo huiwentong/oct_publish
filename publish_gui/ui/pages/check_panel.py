@@ -7,6 +7,7 @@ from qtpy.QtWidgets import (
     QProgressBar
 )
 import inspect
+import traceback
 from publish_core.cli import PublishCli, get_user
 from publish_components.core import Component
 from qtpy.QtCore import Qt, QTimer, Signal, QObject, QThread # type: ignore
@@ -288,6 +289,36 @@ class CheckPanelPage(QWidget):
         item_status.setText('processing...')
 
 
+    def _fix_component(self, comp: Component, row: int) -> None:
+        """执行组件修复，记录错误，并立即重新检查和刷新当前行。"""
+        button = self._table.cellWidget(row, 4)
+        if button:
+            button.setEnabled(False)
+        comp.log.info(f'start fix {comp.name}')
+        start_time = time.time()
+        try:
+            error = comp.fix()
+            if error:
+                comp.status = error
+                comp.log.error(f'fix failed {comp.name}:\n{error}')
+                self.on_component_failed(comp, row)
+                return
+
+            comp.run()
+            if comp.status:
+                comp.log.warning(
+                    f'fix completed but check still failed {comp.name}: {comp.status}'
+                )
+                self.on_component_failed(comp, row)
+                return
+
+            self.on_component_finished(comp, row, time.time() - start_time)
+        except Exception:
+            comp.status = traceback.format_exc()
+            comp.log.error(f'fix failed {comp.name}:\n{comp.status}')
+            self.on_component_failed(comp, row)
+
+
     def set_back_callback(self, cb):
         self._back_btn.clicked.connect(cb)
 
@@ -349,7 +380,10 @@ class CheckPanelPage(QWidget):
             if comp.fix_script:
                 pushbutton = QPushButton('Fix')
                 pushbutton.setMinimumHeight(27)
-                pushbutton.clicked.connect(comp.fix)
+                pushbutton.clicked.connect(
+                    lambda checked=False, current=comp, current_row=row:
+                    self._fix_component(current, current_row)
+                )
                 pushbutton.setEnabled(False)
 
                 self._table.setCellWidget(row, 4, pushbutton)

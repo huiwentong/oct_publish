@@ -99,7 +99,12 @@ class Component():
         self.status = self.gui_main(self.parent.submit_form, self.parent.process_data, self.parent.ui_parent, self.log)
 
     def fix(self):
-        self.gui_fix(self.parent.submit_form, self.parent.process_data, self.parent.ui_parent, self.log)
+        return self.gui_fix(
+            self.parent.submit_form,
+            self.parent.process_data,
+            self.parent.ui_parent,
+            self.log,
+        )
 
     def gui_main(self, submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         pass

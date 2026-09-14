@@ -2,6 +2,8 @@
 """ASB scene inspection and component collection; call from Maya's main thread."""
 import importlib
 import ntpath
+import os
+import shutil
 
 import maya.cmds as cmds
 
@@ -51,10 +53,64 @@ def relative_usd_path(path: str, maya_file: str) -> str:
         raise RuntimeError('USD 必须使用相对路径: ' + path)
     while normalized.startswith('./'):
         normalized = normalized[2:]
-    expected = 'maya_usd/' + ntpath.splitext(ntpath.basename(maya_file))[0] + '.usda'
+    expected = expected_relative_usd_path(maya_file)
     if normalized.lower() != expected.lower():
         raise RuntimeError('USD 路径应为 {0}，当前为 {1}'.format(expected, path))
     return normalized
+
+
+def expected_relative_usd_path(maya_file: str) -> str:
+    """Return the required USD sidecar path for a Maya publish file."""
+    basename = ntpath.splitext(ntpath.basename(maya_file))[0]
+    return 'maya_usd/' + basename + '.usda'
+
+
+def repair_proxy_paths(proxies: list, maya_file: str) -> tuple:
+    """Copy a mismatched sidecar when needed and point proxies at the required relative path."""
+    expected_relative = expected_relative_usd_path(maya_file)
+    maya_directory = ntpath.dirname(ntpath.abspath(maya_file))
+    expected_absolute = ntpath.normpath(
+        ntpath.join(maya_directory, *expected_relative.split('/'))
+    )
+    repairs = []
+    for proxy in proxies:
+        current_path = cmds.getAttr(proxy + '.filePath') or ''
+        try:
+            relative_usd_path(current_path, maya_file)
+            continue
+        except RuntimeError:
+            pass
+
+        layer = stage_for(proxy).GetRootLayer()
+        if layer.dirty:
+            raise RuntimeError('请先保存 USD 修改后再修复路径: ' + proxy)
+
+        normalized = current_path.replace('/', ntpath.sep)
+        if ntpath.isabs(normalized) or ntpath.splitdrive(normalized)[0]:
+            attribute_path = ntpath.normpath(normalized)
+        else:
+            attribute_path = ntpath.normpath(ntpath.join(maya_directory, normalized))
+        candidates = [
+            getattr(layer, 'realPath', ''),
+            getattr(layer, 'identifier', ''),
+            attribute_path,
+        ]
+        source_path = next((ntpath.normpath(path) for path in candidates
+                            if path and not str(path).startswith('anon:')
+                            and os.path.isfile(path)), '')
+
+        if not os.path.isfile(expected_absolute):
+            if not source_path:
+                raise RuntimeError(
+                    '找不到可用于修复的 USD 文件: {0} ({1})'.format(proxy, current_path)
+                )
+            os.makedirs(ntpath.dirname(expected_absolute), exist_ok=True)
+            shutil.copy2(source_path, expected_absolute)
+
+        cmds.setAttr(proxy + '.filePath', expected_relative, type='string')
+        repairs.append((proxy, current_path, expected_relative))
+
+    return repairs, proxy_paths(proxies, maya_file)
 
 
 def proxy_paths(proxies: list, maya_file: str) -> list:
@@ -122,7 +178,8 @@ def collect_components(entity_name: str) -> dict:
                 path = '/' + entity_name + prim.GetPath().pathString
                 spec = layer.GetPrimAtPath(prim.GetPath())
                 if spec:
-                    refs = spec.referenceList.GetAppliedItems()
+                    refs = (list(spec.referenceList.prependedItems)
+                            or list(spec.referenceList.appendedItems))
                     if refs:
                         wrapper = Sdf.Layer.FindOrOpen(layer.ComputeAbsolutePath(refs[0].assetPath))
                         if not wrapper or not wrapper.subLayerPaths:

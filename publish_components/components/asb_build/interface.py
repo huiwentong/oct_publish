@@ -98,10 +98,9 @@ class CompInterface(InterFace):
         }
     )
 
-    # 1050=原型 1129=低模 1130=高模
-    # 老 set_tags.py 里 mod_asb 与 mod 同一分支，取值和 mod/interface.py 保持一致
+    # 283=正式 282=测试，与 asb_split 保持一致
     tag_list: list = field(
-        default_factory=lambda: [1050, 1129, 1130]
+        default_factory=lambda: [283, 282]
     )
 
     downstream_dcc_only: str | None = 'Maya'

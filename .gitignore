@@ -9,3 +9,9 @@ wheels/
 # Virtual environments
 .venv
 .idea/
+
+# GitNexus-generated files
+.gitnexus/
+.claude/skills/gitnexus/
+AGENTS.md
+CLAUDE.md

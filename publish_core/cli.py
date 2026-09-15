@@ -7,7 +7,7 @@ from pprint import pprint
 import inspect
 import importlib
 from importlib import util
-from publish_core.database.entity import SGEntity, get_user, get_all_pp
+from publish_core.database.entity import SGEntity, get_user, get_all_pp, get_step_short_name
 from publish_core.message_utils.message import send_simple_message
 from publish_components.core import InterFace
 from publish_core.log.core import PublishLog
@@ -71,7 +71,9 @@ class PublishCli:
 
 
         # build interface based on the step of the task
-        stepname = str(self.task_entity.step.short_name).lower()
+        # 短名按老工具规则解析（description 优先），镜头 lay 的 short_name 是 'ly'，
+        # description 才是 'LAY'，组件目录和版本名都要用 'lay'
+        stepname = get_step_short_name(self.task_entity.step)
         if self.task_entity.step.id == 290:
             stepname = 'dyn'
 
@@ -196,7 +198,7 @@ class PublishCli:
         if not self.task_entity:
             raise RuntimeError('can not find cli task entity!')
         
-        vername = f'{self.task_entity.entity.code}.{self.task_entity.step.short_name.lower()}.{self.task_entity.content}.v{str(self.version_num).zfill(3)}'
+        vername = f'{self.task_entity.entity.code}.{get_step_short_name(self.task_entity.step)}.{self.task_entity.content}.v{str(self.version_num).zfill(3)}'
         msg_data = {
             'message': self.comment,
             'type': self.publish_type,

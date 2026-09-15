@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+    镜头 Layout 发布 —— lay 环节 rough_layout 任务
+    迁移自 depts/mk2/lay 的 publish_checks.xml + publish_processes.xml
+
+    老的 3 个 check_group（Daily / Downstream / Downstream 2）已按新架构
+    压平成 Dailies / Publish 两组；process 的 mode 由 daily/downstream 改为 Dailies/Publish。
+
+    老 runlist 里 allow_skip="true" 的项（check_dcc_rv / unknown_plugins / check_mov_range /
+    check_file_frame_range / check_resources / check_asset_version）新架构全部按硬性阻断处理。
+
+    镜头类 Maya 环节（lay / blk / ani）共用的组件放在 maya_shot 下，方便后续迁 blk / ani 复用。
+-->
+<root>
+
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="gen" name="check_dcc_rv"/>
+            <!-- 版本递增修复会另存工作文件，必须先于 version_name 生成发布路径 -->
+            <check type="maya_gen" name="version_up_going"/>
+            <check type="gen" name="version_name"/>
+            <check type="gen" name="check_selected_preview"/>
+            <check type="gen" name="check_status"/>
+            <check type="gen" name="check_publish_root"/>
+        </check_group>
+
+        <check_group name="Publish">
+            <!-- 老 this_is_maya + check_maya_unit + unknown_plugins + unlock_default_nodes -->
+            <check type="maya_gen" name="generic_check"/>
+            <!-- 老 this_is_picked_file：表单里选的文件必须是当前打开的场景 -->
+            <check type="maya_shot" name="check_picked_file_is_current"/>
+            <!-- 老 version_name_match：工程文件名和版本名一致 -->
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_shot" name="check_shot_hierarchy"/>
+            <check type="maya_shot" name="check_cam_grp"/>
+            <check type="maya_shot" name="check_mov_range"/>
+            <check type="maya_shot" name="check_start_frame"/>
+            <check type="maya_shot" name="check_file_frame_range"/>
+            <check type="maya_shot" name="check_camera_name"/>
+            <check type="maya_shot" name="check_camera_attrs"/>
+            <check type="maya_shot" name="check_lay_unique_name"/>
+            <check type="maya_shot" name="check_stage_arch_is_new"/>
+            <check type="maya_shot" name="check_stage_file_path"/>
+            <check type="maya_shot" name="check_stage_dirty"/>
+            <check type="maya_shot" name="check_nemo_rig"/>
+            <check type="maya_shot" name="check_resources"/>
+            <check type="maya_shot" name="check_ref_path"/>
+            <check type="maya_shot" name="check_omit_asset"/>
+            <check type="maya_shot" name="check_usd_hierarchy"/>
+            <check type="maya_shot" name="check_usd_namespace"/>
+            <check type="maya_shot" name="check_sg_component"/>
+            <check type="maya_shot" name="check_asset_version"/>
+            <check type="maya_shot" name="check_abnormal_dag_under_comp"/>
+            <check type="maya_gen" name="check_display_layers"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="maya_gen" name="clean_scene" mode="Publish"/>
+        <process type="maya_shot" name="clean_ani_scene" mode="Publish"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="maya_shot" name="copy_resources_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="collect_basic_comp_data" mode="Publish"/>
+        <process type="maya_gen" name="save_scene" mode="Publish"/>
+        <process type="gen" name="copy_work_file_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="copy_usd_file_to_v_dir" mode="Publish"/>
+        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="maya_shot" name="edit_ma_file" mode="Publish"/>
+        <process type="maya_shot" name="export_comp_data" mode="Publish"/>
+        <process type="maya_shot" name="restore_resource_path" mode="Publish"/>
+        <!-- 老流程这里第二次 save_scene：资源路径改回工作目录后再保存一次工作文件 -->
+        <process type="maya_gen" name="save_scene" mode="Publish"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="maya_shot" name="update_sg_version" mode="Dailies"/>
+        <process type="maya_shot" name="update_sg_components" mode="Publish"/>
+        <process type="maya_shot" name="sub_to_deadline_cache" mode="Publish"/>
+        <process type="maya_shot" name="sub_to_deadline_export_shot_usd" mode="Publish"/>
+    </processcontainer>
+
+</root>

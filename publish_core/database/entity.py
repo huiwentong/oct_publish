@@ -278,7 +278,35 @@ def get_user(user_name=None) -> SGEntity:
     if not user:
         raise ValueError(f'can not find user {user_name} in shotgun')
     return SGEntity('HumanUser', user.get('id'))
-    
+
+
+def get_step_short_name(step) -> str:
+    """解析环节短名，规则与老 publish_tool 一致, 读 description 字段优先, 其次读 short_name 字段, 统一小写。
+
+    SG 上有些 Step 的 short_name 和 description 不一致（如镜头 lay：short_name='ly'，
+    description='LAY'）直接用 short_name 会得到 'ly'，和历史版本名对不上。
+
+    支持传入 SGEntity、oct 的 Step model、shotgun 原始 dict 或 step id。
+    """
+    if isinstance(step, SGEntity):
+        data = step.raw()
+    elif isinstance(step, dict):
+        data = step
+    elif isinstance(step, int):
+        data = {'id': step}
+    else:
+        data = getattr(step, '_data', None) or {'id': getattr(step, 'id', None)}
+
+    # 只带 id / 未预取 description 字段时补查一次
+    if 'description' not in data or 'short_name' not in data:
+        step_id = data.get('id')
+        if not step_id:
+            raise ValueError('can not resolve step short name without step id')
+        data = SGEntity('Step', step_id, fields=['id', 'short_name', 'description']).raw()
+
+    return str(data.get('description') or data.get('short_name') or '').lower()
+
+
 def get_all_pp() -> list:
     sg = FastSg().client
     users = sg.find(

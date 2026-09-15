@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 from oct.pipeline.path_acs import old_get_path
-from publish_core.database.entity import SGEntity
+from publish_core.database.entity import SGEntity, get_step_short_name
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -24,7 +24,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         task = SGEntity('Task', task_id)
         entity_name = task.entity.code
         project_name = task.project.name
-        step_name = task.step.short_name.lower()
+        # 短名按老工具规则解析（description 优先），镜头 lay 的 short_name 是 'ly'
+        step_name = get_step_short_name(task.step)
 
         if task.entity.type not in ['Asset', 'Shot', 'Sequence']:
             return u'无效的 entity type: {}'.format(task.entity.type)

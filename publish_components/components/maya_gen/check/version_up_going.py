@@ -3,6 +3,7 @@ import os
 import re
 import traceback
 from oct.pipeline.task_context import TaskContext
+from publish_core.database.entity import get_step_short_name
 
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
@@ -91,7 +92,7 @@ def fix(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             ext = scene_path.split('.')[-1]
             if scene_path != '':
                 mu.executeInMainThreadWithResult(lambda :pm.saveFile(force=True))
-                version_key = "{}.{}.{}".format(tc.entity_name, tc.step.short_name.lower(), tc.task_name)
+                version_key = "{}.{}.{}".format(tc.entity_name, get_step_short_name(tc.step), tc.task_name)
                 # 工作文件夹下，下一个版本号
                 workspace_latest_v_num = get_latest_version_num(scene_dir, version_key, ("ma", "mb"))
                 workspace_next_v_num = workspace_latest_v_num + 1

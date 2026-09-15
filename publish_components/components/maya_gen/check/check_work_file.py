@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 import traceback
+
 import maya.utils as utils
 from oct.pipeline.path_acs import old_get_path
 from oct.pipeline.task_context import TaskContext
+from publish_core.database.entity import get_step_short_name
 from oct_maya.utils.path import parse_context_file_path
+
+
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     检查文件名和文件路径是否符合规范。
@@ -16,13 +20,14 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             task_id = process_data.get("task_id")
             tc = TaskContext(task_id) or TaskContext.from_env()
             version_name = process_data.get("version_name")
-            work_file = submit_data.get("ma_file")
+            # parse_context_file_path 只认正斜杠；CLI 传进来的 Windows 路径可能是反斜杠
+            work_file = (submit_data.get("ma_file") or '').replace('\\', '/')
             ext = work_file.split('.')[-1]
             context_info = parse_context_file_path(work_file)
             is_right_path = False
 
-            # 针对 step_name 的 "绑定" 中文，做特殊处理：
-            _temp_step_name = "rig" if tc.step_name == "绑定" else tc.step.short_name.lower()
+            # 短名按老工具规则解析（description 优先）：绑定 -> rig，镜头 lay(ly) -> lay
+            _temp_step_name = get_step_short_name(tc.step)
             _temp_version_name = version_name.replace("绑定", "rig")
 
             if context_info:
@@ -36,7 +41,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             if not is_right_path:
                 work_dir = old_get_path('work', show_name=tc.project_name.upper(),
                                         entity_type='Task', id=task_id)
-                correct_path = os.path.join(work_dir, dcc.lower(), _temp_version_name + '.' + ext)
+                correct_path = '/'.join([work_dir.replace('\\', '/'), dcc.lower(), _temp_version_name + '.' + ext])
                 return u"当前文件的路径和名称不符合规范，正确的文件应该是{}。".format(correct_path)
 
             work_file_name = os.path.basename(work_file)

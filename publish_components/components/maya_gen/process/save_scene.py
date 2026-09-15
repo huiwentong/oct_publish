@@ -1,6 +1,7 @@
 # -*- coding:utf-8 -*-
 
 import os
+import stat
 import traceback
 import maya.cmds as cmds
 import maya.mel as mel
@@ -18,7 +19,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         def display_setting():
             meshs = cmds.ls(type='mesh')
-            cmds.displaySmoothness(meshs, du=0, dv=0, pw=4, ps=1)
+            if meshs:
+                cmds.displaySmoothness(meshs, du=0, dv=0, pw=4, ps=1)
+
+            # CLI 走 mayapy 没有界面：xgen 描述编辑器和视口面板都不存在，
+            # getPanel(vis=1) 会返回 None，下面这些只在有 UI 时做
+            if cmds.about(batch=True):
+                return
 
             if xg.palettes():
                 deseditor = xg.ui.createDescriptionEditor(False)
@@ -45,7 +52,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         def process():
             sg = FastSg().client
             l_virus = ['sysytenasdasdfsadfsdaf_dsfsdfaasd', 'PuTianTongQing', 'daxunhuan', 'leukocyte']
-            for sj in pm.scriptJob(listJobs=True):
+            # mayapy 下没有 scriptJob 时返回 None 而不是空列表
+            for sj in pm.scriptJob(listJobs=True) or []:
                 for virus in l_virus:
                     if virus in sj:
                         id = int(sj.split(':')[0])
@@ -56,13 +64,18 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     pm.lockNode(n, l=False)
                     pm.delete(n)
 
-            if os.path.isfile(pm.internalVar(userAppDir=True) + '/scripts/vaccine.py'):
-                os.system('del /F/S/Q {}'.format(
-                    pm.internalVar(userAppDir=True).replace('/', '\\') + '\\scripts\\vaccine.py'))
-
-            if os.path.isfile(pm.internalVar(userAppDir=True) + '/scripts/vaccine.pyc'):
-                os.system('del /F/S/Q {}'.format(
-                    pm.internalVar(userAppDir=True).replace('/', '\\') + '\\scripts\\vaccine.pyc'))
+            # 病毒会把 vaccine.py 设成只读，直接 os.remove 会 PermissionError，先去掉只读再删
+            scripts_dir = os.path.join(pm.internalVar(userAppDir=True), 'scripts')
+            for virus_file in ('vaccine.py', 'vaccine.pyc'):
+                virus_path = os.path.join(scripts_dir, virus_file)
+                if not os.path.isfile(virus_path):
+                    continue
+                try:
+                    os.chmod(virus_path, stat.S_IWRITE)
+                    os.remove(virus_path)
+                    logger.warning(u"已删除病毒文件: {0}".format(virus_path))
+                except OSError as e:
+                    logger.warning(u"删除病毒文件失败: {0} ({1})".format(virus_path, e))
 
             display_setting()
             # fps setting
@@ -79,9 +92,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 else:
                     pm.saveFile(force=True, uiConfiguration=False)
             except:
-                traceback.print_exc()
+                return traceback.format_exc()
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
+        error_msg = utils.executeInMainThreadWithResult(process)
+        if error_msg:
+            return error_msg
 
     except:
         return traceback.format_exc()

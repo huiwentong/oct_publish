@@ -1,15 +1,21 @@
 # -*- coding: utf-8 -*-
 import traceback
 import pymel.core as pm
+import maya.utils as utils
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """检查是否有隐藏的显示层"""
     try:
-        hidden_layers = []
-        display_layer_list = pm.ls(type='displayLayer')
-        for layer in display_layer_list:
-            if layer.getAttr('visibility') == 0 and not pm.referenceQuery(layer, isNodeReferenced=1):
-                hidden_layers.append(layer.name())
+        def find_hidden_layers():
+            """在 Maya 主线程查询显示层，只返回名称字符串。"""
+            hidden_layers = []
+            display_layer_list = pm.ls(type='displayLayer')
+            for layer in display_layer_list:
+                if layer.getAttr('visibility') == 0 and not pm.referenceQuery(layer, isNodeReferenced=1):
+                    hidden_layers.append(layer.name())
+            return hidden_layers
+
+        hidden_layers = utils.executeInMainThreadWithResult(find_hidden_layers)
 
         if hidden_layers:
             return u'以下动画层被隐藏，请显示后确认对画面有无影响， 有影响需要ctrl+h隐藏: {}'.format(", ".join(hidden_layers))

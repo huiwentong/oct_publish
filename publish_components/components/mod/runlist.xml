@@ -69,6 +69,7 @@
         <process type="gen" name="create_manifest_file" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
         <process type="mod" name="auto_gener_low_usd" mode="Publish"/>
+        <process type="gen" name="asset_reassembly" mode="Submit"/>
     </processcontainer>
 
 </root>

@@ -72,6 +72,7 @@
 <!--        <process type="gen" name="create_manifest_file" mode="Publish"/>-->
         <process type="tex" name="sub_to_deadline_job" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="gen" name="asset_reassembly" mode="Submit"/>
     </processcontainer>
 
 </root>

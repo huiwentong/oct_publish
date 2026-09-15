@@ -10,7 +10,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     向版本文件夹拷贝工程文件
     """
-    # 老 gen/copy_work_file_to_v_dir：资产按 <资产名>.<ext>，镜头按 <版本名>.<ext> 命名。
+    # 资产按 <资产名>.<ext>，镜头按 <版本名>.<ext> 命名。
     # 工程文件优先取表单里的 ma_file（Maya 环节），没有则取 CLI 传入的 dcc_file。
     try:
         source_file = (submit_data.get('ma_file') or process_data.get('dcc_file') or '').replace('\\', '/')

@@ -10,7 +10,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     拷贝文件内的示意贴图、声音到版本文件夹，并把场景里的路径指向版本目录
     """
-    # 老 maya/copy_resources_to_v_dir。改过的路径记录在 process_data['modified_resources_info']，
+    # 改过的路径记录在 process_data['modified_resources_info']，
     # 工作文件拷进版本目录后由 restore_resource_path 改回工作目录的路径。
     try:
         version_dir = process_data['version_dir']

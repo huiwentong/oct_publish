@@ -12,8 +12,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查场景中 mayaUsdProxyShape 对应的 USD 文件是否有未保存的修改
     """
-    # 老 lay/check_stage_dirty。init_usd 会加载 mayaUsdPlugin 并把 USD 编辑的保存策略
-    # 设为“Maya 文件和 USD 文件分开保存”，避免保存时弹窗。
+    # init_usd 会加载 mayaUsdPlugin 并把 USD 编辑的保存策略设为“Maya 文件和 USD 文件分开保存”，
+    # 避免保存时弹窗。
     #
     # mayaUsd.ufe 用 importlib 动态导入：组件顶层 import 会被提到 CLI 脚本最前面，
     # 那时 mayaUsdPlugin 还没加载，直接写 import mayaUsd 会失败。

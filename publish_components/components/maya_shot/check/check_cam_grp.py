@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 cam 组的 transform 不能有数值
     """
-    # 老 proj_mk2_gen/check_cam_grp
+    # cam 组的位移 / 旋转 / 缩放必须保持默认值，相机动画只能做在相机自身上，否则下游缓存和渲染对不上。
     try:
         def check():
             if not cmds.objExists('|cam'):

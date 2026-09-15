@@ -8,7 +8,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     导出镜头 component 信息到版本目录：shot_components.json 与 data/comp_transform.json
     """
-    # 老 ani/export_comp_data。依赖 collect_basic_comp_data 写入的 shot_comp_data / comp_transform_data。
+    # 依赖 collect_basic_comp_data 写入的 shot_comp_data / comp_transform_data。
     try:
         version_dir = process_data['version_dir']
         shot_comp_data = process_data.get('shot_comp_data')

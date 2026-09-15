@@ -12,7 +12,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 Stage 引用的 usda 路径：必须在工作文件同目录 maya_usd 下、与 Maya 文件同名，且文件存在
     """
-    # 老 lay/check_stage_file_path
+    # Stage 的 filePath 可能是相对路径也可能是绝对路径，统一解析后和工作文件同名的 usda 比较。
     try:
         maya_file = (submit_data.get('ma_file') or '').replace('\\', '/')
         if not maya_file:

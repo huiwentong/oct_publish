@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查镜头相机的属性：Fit Resolution Gate / Overscan / shakeEnabled / 胶片尺寸 / 缩放 / 锁定
     """
-    # 老 lay/check_camera_attrs
+    # 镜头相机的这些属性必须固定成项目规范值并锁定，避免各环节渲染取景不一致。
     try:
         def check():
             if not cmds.objExists('|cam'):
@@ -58,8 +58,7 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
                 cmds.setAttr(cam + '.verticalFilmAperture', lock=False)
                 cmds.setAttr(cam + '.horizontalFilmAperture', 0.980, lock=True)
                 cmds.setAttr(cam + '.verticalFilmAperture', 0.735, lock=True)
-                # 老 check 里缩放判断写错了（any(...) != 1）实际从没生效过，这里按原意检查，
-                # 修复时把缩放归一再锁，相机缩放不影响取景
+                # 相机缩放不影响取景，修复时把缩放归一再锁定
                 for attr in ['sx', 'sy', 'sz']:
                     plug = '{0}.{1}'.format(cam_p, attr)
                     if round(cmds.getAttr(plug), 6) != 1:

@@ -11,8 +11,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查文件帧范围与 SG 上镜头 cut in / cut out 一致
     """
-    # 老 gen/check_file_frame_range：动画文件的帧范围要与 shotgun 记录一致，
-    # 不一致需要通知动画制片。老 runlist 里允许跳过，新架构按硬性阻断。
+    # 文件的播放范围必须和 SG 上镜头的 cut in / cut out 完全一致，不一致需要找动画制片确认镜头时长；不允许跳过。
     try:
         tc = TaskContext(process_data['task_id'])
         if tc.entity_type != 'Shot':

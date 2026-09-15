@@ -19,13 +19,13 @@
             <check type="gen" name="check_selected_preview"/>
             <check type="gen" name="check_status"/>
             <check type="gen" name="check_publish_root"/>
-            <!-- [骨架] 数据种子：构建 gen_asset_data，后续 4 个 process 全依赖它，顺序不能动 -->
-            <check type="asb_split" name="check_assembly_all_hierarchy"/>
-            <check type="asb_split" name="check_asb_split_marks"/>
-            <check type="asb_split" name="check_asset_name_unique"/>
         </check_group>
 
         <check_group name="Publish">
+            <!-- 数据种子：构建 gen_asset_data，Publish 的 4 个 process 全依赖它，三项顺序不能动 -->
+            <check type="asb_split" name="check_assembly_all_hierarchy"/>
+            <check type="asb_split" name="check_asb_split_marks"/>
+            <check type="asb_split" name="check_asset_name_unique"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_frame_rate"/>

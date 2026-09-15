@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查起始帧是否为 101
     """
-    # 老 lay/check_start_frame：lay / blk / ani 文件起始帧需要从 101 开始
+    # lay / blk / ani 镜头文件的起始帧统一从 101 开始。
     try:
         start = utils.executeInMainThreadWithResult(
             lambda: cmds.playbackOptions(q=True, min=True))

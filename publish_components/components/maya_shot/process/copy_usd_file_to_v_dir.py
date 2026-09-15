@@ -13,8 +13,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     把 Stage 引用的 maya_usd 目录下的 usda 拷贝到版本目录
     """
-    # 老 lay/copy_usd_file_to_v_dir：W 盘工作目录 maya_usd/xxx.usda -> I 盘版本目录 maya_usd/xxx.usda。
-    # 旧架构 Stage 不拷。
+    # W 盘工作目录 maya_usd/xxx.usda -> I 盘版本目录 maya_usd/xxx.usda。旧架构 Stage 不拷。
     try:
         source_file = (submit_data.get('ma_file') or '').replace('\\', '/')
         if not source_file or not os.path.isfile(source_file):

@@ -11,8 +11,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 cam 组下的相机名：必须是 <镜头名>_cam
     """
-    # 老 lay/check_camera_name。老代码里还有 Sequence 的分支（lay_seq 整场次提交），
-    # 这里只处理 Shot。相机 shape 名和 transform 不匹配时会顺手改名。
+    # 只处理 Shot 实体。相机 shape 名和 transform 名不匹配时会顺手改成 <transform>Shape。
     try:
         tc = TaskContext(process_data['task_id'])
         if tc.entity_type != 'Shot':

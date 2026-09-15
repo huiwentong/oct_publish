@@ -12,7 +12,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     编辑版本目录里的 ma 文件：清理 mayaUsd 新属性，usda 引用路径改到发布目录
     """
-    # 老 lay/edit_ma_file。老代码里编辑失败只打印不报错，这里保持一致：
     # 版本 ma 不存在或改写失败只记 warning，不中断发布。
     try:
         ma_path = (process_data.get('v_dir_ma_file') or '').replace('\\', '/')

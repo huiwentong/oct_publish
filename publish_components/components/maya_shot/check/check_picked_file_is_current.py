@@ -10,7 +10,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查表单里选取的 Maya 文件就是当前打开的场景
     """
-    # 老 maya/this_is_picked_file：发布表单里选的工程文件必须是当前场景，
+    # 发布表单里选的工程文件必须是当前打开的场景，
     # 否则后面的检查全是针对当前场景做的，拷进版本目录的却是另一个文件。
     try:
         def check():

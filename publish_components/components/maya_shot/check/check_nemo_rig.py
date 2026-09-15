@@ -13,7 +13,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     Nemo 绑定要切回正常 rig 再发布下游，否则无法正常渲染
     """
-    # 老 maya/nemo_to_maya_rig
+    # 场景里如果还有 Nemo 绑定节点，需要切回普通 Maya 绑定后再发布，否则下游无法正常渲染。
     try:
         def check():
             asset_to_switch = []

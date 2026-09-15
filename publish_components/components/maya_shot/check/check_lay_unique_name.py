@@ -10,8 +10,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 |lay|cache_grp 层级下是否有重复名称的节点
     """
-    # 老 lay/check_lay_unique_name。去掉 namespace 和数字后缀后按前缀分组，
-    # 同组内短名重复即报错，Fix 会按 前缀+序号 重命名。
+    # 去掉 namespace 和数字后缀后按前缀分组，同组内短名重复即报错，Fix 会按 前缀+序号 重命名。
     try:
         def find_duplicates():
             """返回 {前缀: [PyNode, ...]}，只包含真的有重名的组"""

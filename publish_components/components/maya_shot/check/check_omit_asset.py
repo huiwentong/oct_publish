@@ -12,7 +12,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查有没有已经 Omit 的资产还在场景中调用
     """
-    # 老 ani/check_omit_asset_gen：如果有，应该 unload 或者选择正确的资产替代
+    # 场景里引用了 SG 上已 Omit 的资产时报错，需要 unload 或换成正确的资产。
     try:
         tc = TaskContext(process_data['task_id'])
         project = {'type': 'Project', 'id': tc.project_id}

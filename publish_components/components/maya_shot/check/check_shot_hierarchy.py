@@ -9,8 +9,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查镜头文件顶层层级：cam / lay / World 组都要有
     """
-    # 老 lay/check_hierarchy_seq：最高层级三个组 cam lay World，以及 lay 下的
-    # lights_grp / efx_grp / cache_grp。缺少的组会直接补建，补不出来才报错。
+    # 最高层级要有 cam / lay / World 三个组，lay 下要有 lights_grp / efx_grp / cache_grp。
+    # 缺少的组会直接补建，补不出来才报错。
     try:
         def check():
             missing = []

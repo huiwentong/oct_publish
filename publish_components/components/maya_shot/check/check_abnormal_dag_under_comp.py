@@ -11,8 +11,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     Component 的 Root 节点下不应该存在非 reference 本身的节点
     """
-    # 老 ani/check_abnormal_dag_under_comp：Reference / Asb 资产的 high 组下混进了
-    # 场景里自己建的节点（约束节点除外），会随缓存一起输出。
+    # Reference / Asb 资产的 high 组下如果混进了场景里自己建的节点（约束节点除外），
+    # 会随缓存一起输出，这里逐个 component 检查并报出异常节点。
     try:
         def find_abnormal_nodes():
             error_node_list = []

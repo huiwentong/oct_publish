@@ -10,7 +10,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查引用的资产是否都使用无版本号的版本文件
     """
-    # 老 lay/check_asset_version。老 runlist 里允许跳过，新架构按硬性阻断。
+    # 引用带版本号的资产文件会让镜头锁死在旧版本，必须改用无版本号目录下的文件；不允许跳过。
     try:
         def check():
             comp_info = pipe.ShotDataGenerator().generate_comp_info()

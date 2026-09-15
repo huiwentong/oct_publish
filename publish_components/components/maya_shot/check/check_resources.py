@@ -13,7 +13,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查文件内引用的资源路径（贴图 / 声音）是否丢失或指向本地
     """
-    # 老 maya/check_resoucres。老 runlist 里允许跳过，新架构按硬性阻断。
+    # 资源路径指向本地盘或文件不存在都会报错，不允许跳过。
     # Fix：本地资源拷到工作目录 sourceimages 下并改路径；丢失的资源询问后删除节点。
     try:
         def check():

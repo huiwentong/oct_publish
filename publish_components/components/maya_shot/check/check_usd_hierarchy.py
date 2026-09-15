@@ -9,7 +9,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 usd 流程的 ref 层级关系：资产的 Root_grp 必须在 |World 下
     """
-    # 老 proj_mk2_gen/check_usd_hierarchy：不允许通过 reference 在 World 外添加资产
+    # 不允许通过 reference 在 |World 外添加资产，否则缓存输出时找不到。
     try:
         def check():
             if not cmds.objExists('|World'):

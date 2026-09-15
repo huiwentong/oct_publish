@@ -14,7 +14,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     把当前场景的 component 记录更新到 SG（Component / ComponentVersion）
     """
-    # 老 ani/update_sg_components。每个场景 component 在当前任务下 get_or_create 一个 Component，
+    # 每个场景 component 在当前任务下 get_or_create 一个 Component，
     # 再按本次版本号创建 ComponentVersion，记录 high.usd 缓存路径；
     # Bk / An 环节发布时同步给 rough_layout 任务也建一份 Component。
     #
@@ -41,7 +41,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         # Bk / An 发布时，comps 同步给 rough_layout 任务
         sg_lay_task = None
         if tc.step_name in ['Bk', 'An']:
-            # 老代码这里比较的是 t.code，但 SG 的 Task 没有 code 字段，只有 content
+            # SG 的 Task 没有 code 字段，按 content 找 rough_layout 任务
             for t in sg_task.entity.tasks:
                 if t.content == 'rough_layout':
                     sg_lay_task = t

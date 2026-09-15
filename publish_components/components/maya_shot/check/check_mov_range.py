@@ -12,11 +12,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查提交的预览文件帧数与 SG 上镜头时长一致
     """
-    # 老 gen/check_mov_range：预览文件的帧数要与 shotgun 记录的 cut 时长一致，
-    # 不一致需要确认时长并重拍。老 runlist 里允许跳过，新架构按硬性阻断。
+    # 预览文件的帧数必须和 SG 上镜头的 cut 时长一致，不一致需要确认时长并重拍；不允许跳过。
     try:
         def sync_anim_range():
-            # 老逻辑顺手把动画范围同步成播放范围
+            # 顺手把动画范围同步成播放范围
             start_f = cmds.playbackOptions(q=True, min=True)
             end_f = cmds.playbackOptions(q=True, max=True)
             cmds.playbackOptions(e=True, ast=start_f, aet=end_f)

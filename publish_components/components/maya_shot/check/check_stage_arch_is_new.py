@@ -16,7 +16,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 USD Stage 是否为新架构（单一 Stage，用 usd reference 引用多个资产）
     """
-    # 老 lay/check_stage_arch_is_new
+    # 新架构是一个 Stage 通过 usd reference 引用多个资产；每个资产各挂一个 Stage 的旧架构不再支持。
     try:
         if utils.executeInMainThreadWithResult(is_old_asb_architecture):
             return u"当前 Stage 为旧架构，请点击 Fix 转换为新架构"

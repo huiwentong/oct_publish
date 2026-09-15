@@ -10,9 +10,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     检查 usd 流程的 namespace：AR_ 组名、引用 namespace、Geo_grp.usd_path 三者要一致
     """
-    # 老 proj_mk2_gen/check_usd_namespace：
-    #   |World|asset|<type>|AR_<ns>|<ns>:Root_grp，AR_ 组名去掉 AR_ 要等于子节点 namespace，
-    #   <ns>:Geo_grp.usd_path 的末段也要等于 namespace；引用的 namespace 要以资产名开头。
+    # 层级为 |World|asset|<type>|AR_<ns>|<ns>:Root_grp，AR_ 组名去掉 AR_ 要等于子节点 namespace，
+    # <ns>:Geo_grp.usd_path 的末段也要等于 namespace；引用的 namespace 要以资产名开头。
     try:
         def check():
             if not cmds.objExists('|World'):

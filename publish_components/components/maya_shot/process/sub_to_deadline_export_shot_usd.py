@@ -14,9 +14,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     提交 Deadline 任务输出镜头文件的 USD（export_shot_usd）
     """
-    # 老 proj_mk2_gen/sub_to_deadline_export_shot_usd。改用 oct.pipeline.deadline.CommandLineJob 提交，
-    # 与 asb_split/submit_asb_deadline_task 一致。老代码按 deadlinecommand 版本切 pool（10.4 用 cache/user，
-    # 否则 alembic），现在农场统一是 10.4，直接用 cache / user。
+    # 用 oct.pipeline.deadline.CommandLineJob 提交，与 asb_split/submit_asb_deadline_task 一致；
+    # 农场统一是 Deadline 10.4，pool / group 固定用 cache / user。
     # 依赖 gen/create_sg_version 写入的 process_data['sg_version']。
     try:
         if not utils.executeInMainThreadWithResult(lambda: cmds.objExists('|World')):

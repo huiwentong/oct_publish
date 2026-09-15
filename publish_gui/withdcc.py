@@ -51,7 +51,13 @@ def run(task_id, dcc=None, parent=None):
     # 点 X 或 Cancel 走的是 reject()，此时不该再弹主窗口
     if choose.exec_() != QtWidgets.QDialog.DialogCode.Accepted:
         return None
-    window = MainWindow(dcc, parent)
+
+    if dcc == 'Houdini':
+        # Houdini 如果指定了父组件会导致所有的LineEdit无法打开输入法
+        window = MainWindow(dcc)
+    else:
+        window = MainWindow(dcc, parent)
+
     window._form_page._back_btn.setEnabled(False)
     window._toolbar._type_combo.setCurrentIndex(choose.publish_type()+1)
     window._toolbar._type_combo.setEnabled(False)

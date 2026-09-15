@@ -3,6 +3,7 @@ from publish_components.core import InterFace
 from qtpy import QtWidgets, QtCore, QtGui, QtUiTools
 from qtpy.QtCore import Qt, Signal
 from pprint import pprint
+import re
 from publish_core.database.entity import FastSg, SGEntity
 from .publish_file_cfx_shot_ui import Ui_Form
 try:
@@ -45,7 +46,7 @@ class MyTableModel(QtGui.QStandardItemModel):
             comp_name = i['name']
             filters = [
                 ['project', 'name_is', self.project],
-                ['code', 'is', comp_name],
+                ['code', 'is', re.sub(r'([\d]+?)$', '', comp_name)],
             ]
             asset = self.sg.find_one('Asset', filters=filters, fields=['sg_asset_type'])
             if not asset: continue

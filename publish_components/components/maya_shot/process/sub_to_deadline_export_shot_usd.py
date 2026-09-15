@@ -14,10 +14,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     提交 Deadline 任务输出镜头文件的 USD（export_shot_usd）
     """
-    # 用 oct.pipeline.deadline.CommandLineJob 提交，与 asb_split/submit_asb_deadline_task 一致；
-    # 农场统一是 Deadline 10.4，pool / group 固定用 cache / user。
+    # 发布项作用：把当前版本目录下的 ma 文件提交到 Deadline 农场，用 maya_cache-2024 环境 (带mtoa会返回错误)
+    # 执行 export_shot_usd / export_shot_usd_ani 生成镜头 USD；场景没有 |World 组时跳过。
     # 依赖 gen/create_sg_version 写入的 process_data['sg_version']。
     try:
+        export_command = process_data.get('shot_usd_export_command', 'export_shot_usd')
+        if export_command not in ('export_shot_usd', 'export_shot_usd_ani'):
+            return u'不支持的镜头 USD 导出命令: {0}'.format(export_command)
         if not utils.executeInMainThreadWithResult(lambda: cmds.objExists('|World')):
             logger.info(u"场景没有 |World 组，不提交镜头 USD 输出任务")
         else:
@@ -30,13 +33,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not os.path.isfile(ma_file):
                 return u"版本目录里没有 ma 文件，无法提交 USD 输出: {0}".format(ma_file)
 
-            maya_version = utils.executeInMainThreadWithResult(lambda: int(cmds.about(v=True)))
-            if maya_version <= 2020:
-                packages = 'maya-2019 maya_usd oct_maya NemoMaya oct_cache_exporter'
-            else:
-                packages = 'maya_cache-2024 oct_maya oct_cache_exporter'
-            command = 'rez-env {0} -- export_shot_usd "{1}" {2} {3}'.format(
-                packages, ma_file, tc.task_id, version_id)
+            # 农场统一用 maya_cache-2024 环境导出
+            command = 'rez-env maya_cache-2024 oct_maya oct_cache_exporter -- {0} "{1}" {2} {3}'.format(
+                export_command, ma_file, tc.task_id, version_id)
 
             job_name = '{0} [export_shot_usd]'.format(os.path.basename(ma_file))
             logger.info(u"提交任务: {0}".format(job_name))

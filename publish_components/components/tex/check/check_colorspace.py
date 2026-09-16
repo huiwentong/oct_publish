@@ -15,6 +15,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             e_data = []
 
             for node in pm.ls(type=["file", "aiImage"]):
+                if node.isReferenced():
+                    continue
                 color_space = node.getAttr("colorSpace")
                 if color_space in color_map.values():
                     continue

@@ -11,7 +11,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         def check():
             data = {}
-            n_high = process_data.get("root", "|Root_grp|Geo_grp|high")
+            n_high = process_data.get("high", "|Root_grp|Geo_grp|high")
 
             for mesh in pm.listRelatives(n_high, ad=True, type="mesh", ni=True, fullPath=True):
                 if "proxyShape" in mesh.nodeName():

@@ -46,10 +46,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         if rig_task_status and rig_task_status != 'omt':
             n_root = process_data.get("geo", "|Root_grp")
             print("检查模型离世界坐标距离: {}".format(n_root))
-            if not cmds.objExists(n_root):
+            if not cmds.objExists(str(n_root)):
                 print("{} 不存在，跳过该检查".format(n_root))
             else:
-                result = utils.executeInMainThreadWithResult(lambda: get_bbox_min_distance_to_origin(n_root))
+                result = utils.executeInMainThreadWithResult(lambda: get_bbox_min_distance_to_origin(str(n_root)))
                 dist = result['distance']
                 print('BoundingBox: {}'.format(result['bbox']))
                 print('离原点最近距离: {}'.format(dist))

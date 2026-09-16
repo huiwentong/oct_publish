@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
+import math
 import traceback
-from importlib import reload
-import pymel.core as pm
+import maya.cmds as cmds
 import maya.utils as utils
-import maya.api.OpenMaya as om
 from oct.pipeline.task_context import TaskContext
-from publish_components.utils import maya_utils
-reload(maya_utils)
+
+
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
-    检查模型离世界坐标距离 是否
+    检查模型离世界坐标距离（用世界空间包围盒计算）
+    如果该模型为场景元素不进入绑定，请联系制片标记绑定任务状态为弃用
     """
     try:
         task_id = process_data['task_id']
@@ -21,64 +21,41 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 rig_task_status = t.sg_status_list
                 break
 
-        def get_closest_vertex_to_world_center(group_name):
+        def get_bbox_min_distance_to_origin(obj):
             """
-            遍历所有点，获取离世界中心最近的一个，返回点名称和距离
+            用世界空间包围盒计算模型离原点的最近距离，返回 {"bbox": [...], "distance": float}
             """
-            group_name = str(group_name)
-            sel = om.MSelectionList()
-            try:
-                sel.add(group_name)
-            except RuntimeError:
-                om.MGlobal.displayError('Group "{}" not found.'.format(group_name))
-                return None, None
+            # [xmin, ymin, zmin, xmax, ymax, zmax]
+            bbox = cmds.exactWorldBoundingBox(obj)
 
-            root_path = sel.getDagPath(0)
+            xmin, ymin, zmin, xmax, ymax, zmax = bbox
 
-            # 确保是 transform
-            if root_path.apiType() != om.MFn.kTransform:
-                om.MGlobal.displayError('"{}" is not a transform.'.format(group_name))
-                return None, None
+            # 原点到 AABB 在每个轴上的最近距离
+            dx = max(xmin, 0, -xmax)
+            dy = max(ymin, 0, -ymax)
+            dz = max(zmin, 0, -zmax)
 
-            closest_vertex_name = None
-            closest_distance = float("inf")
-            world_center = om.MPoint(0.0, 0.0, 0.0)
+            distance = math.sqrt(dx * dx + dy * dy + dz * dz)
 
-            it_dag = om.MItDag(om.MItDag.kDepthFirst)
-            it_dag.reset(root_path, om.MItDag.kDepthFirst, om.MFn.kMesh)
+            return {
+                "bbox": bbox,
+                "distance": distance
+            }
 
-            while not it_dag.isDone():
-                mesh_path = it_dag.getPath()
-                mesh_fn = om.MFnMesh(mesh_path)
-
-                # 跳过中间形状
-                if mesh_fn.isIntermediateObject:
-                    it_dag.next()
-                    continue
-
-                points = mesh_fn.getPoints(om.MSpace.kWorld)
-
-                for idx, pt in enumerate(points):
-                    dist = pt.distanceTo(world_center)
-                    if dist < closest_distance:
-                        closest_distance = dist
-                        closest_vertex_name = "{}.vtx[{}]".format(
-                            mesh_fn.fullPathName(), idx
-                        )
-
-                it_dag.next()
-
-            return closest_vertex_name, closest_distance
-
+        # 如果它的绑定任务状态为弃用，代表它是一个场景，那么跳过该检查
         if rig_task_status and rig_task_status != 'omt':
             n_root = process_data.get("geo", "|Root_grp")
-            n_root = pm.PyNode(n_root)
-            vtx, dist = utils.executeInMainThreadWithResult(lambda: get_closest_vertex_to_world_center(n_root))
+            print("检查模型离世界坐标距离: {}".format(n_root))
+            if not cmds.objExists(n_root):
+                print("{} 不存在，跳过该检查".format(n_root))
+            else:
+                result = utils.executeInMainThreadWithResult(lambda: get_bbox_min_distance_to_origin(n_root))
+                dist = result['distance']
+                print('BoundingBox: {}'.format(result['bbox']))
+                print('离原点最近距离: {}'.format(dist))
 
-            if dist > 500:
-                msg = "模型距离世界中心距离为{}, 大于500 \n如果该模型为场景元素不进入绑定，请联系制片将该任务的rig状态在SG上改成弃用"
-                return msg
+                if dist > 500:
+                    msg = "模型距离世界中心距离为{}, 大于500 \n如果该模型为场景元素不进入绑定，请联系制片将该任务的rig状态在SG上改成弃用".format(dist)
+                    return msg
     except:
         return traceback.format_exc()
-
-

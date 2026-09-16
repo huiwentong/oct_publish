@@ -2,62 +2,44 @@
 """
 使用项目原生 PublishCli 执行镜头 Blocking 发布。
 
-先核对并修改下方任务、文件路径和版本号，再运行：
+只需填写下方 MA_FILE / PREVIEW_FILE / PUBLISH_TYPE / IS_SPLIT_TASK，然后运行：
 
     rez-env oct_publish PySide2 -- python example/blk_cli.py
 
-直接运行本文件会执行检查和发布、写入 ShotGrid/发布目录，并提交 Deadline 任务。
-仅导入本文件不会发起发布。CLI 模式下不执行 Fix，检查项报错即中断。
+任务 ID 和版本号由工程文件路径自动解析（见 _cli_common.py 里的路径约定），
+Dailies 只跑 runlist 的 Dailies 组：建版本目录、拷预览、创建 SG Version、登记预览 PublishedFile；
+Publish 额外执行全部场景检查、发布工程文件 / USD / component 数据，并提交 Deadline 缓存和镜头 USD 输出任务。
+
+注意：这不是 dry-run，运行会写入 ShotGrid 和发布目录；仅导入本文件不会发起发布。
+CLI 模式下不执行 Fix，检查项报错即中断。
 """
 
-from publish_core.cli import PublishCli, PublishType
-from publish_core.database.entity import get_user
+from publish_core.cli import PublishType
 
+from _cli_common import run_publish
 
-TASK_ID = 185532
 
 MA_FILE = r"W:/projects/mk2/shot/s99/s990120/blk/maya/s990120.blk.blocking.v006.ma"
 
-# 示例预览路径，请替换为实际文件。
 PREVIEW_FILE = r"W:/projects/mk2/shot/s99/s990120/blk/maya/s990120.blk.blocking.v001.mov"
 
-COMMENT = "使用新的 oct_publish CLI 测试发布镜头 blocking s990120"
+# PublishType.DAILY 只提交预览和 SG Version；PublishType.PUBLISH 走完整发布。
+PUBLISH_TYPE = PublishType.DAILY
 
-# 283=正式 971=过程 282=测试
-PUBLISH_TAG_ID = 282
-
-# 显式传入带 v 前缀的版本字符串，并与工程文件版本保持一致。
-VERSION_NUM = 'v006'
-
-# blocking 主任务可选择是否拆分；非 blocking 任务会由接口强制设为 True。
+# 是否为拆分任务。blocking 主任务可自由选择；
+# 其它任务（如 blocking_a）会由接口强制设为 True，这里填什么都不影响。
 IS_SPLIT_TASK = False
 
 
 def main() -> int:
     """执行非 GUI 发布；成功返回 0，失败返回 1。"""
-    publish_cli = PublishCli(
-        user=get_user(),
-        task_id=TASK_ID,
-        gui=False,
-        publish_type=PublishType.PUBLISH,
-        comment=COMMENT,
-        publish_tag_id=PUBLISH_TAG_ID,
-        version_num=VERSION_NUM,
-        dcc="Maya",
-        dcc_file=MA_FILE,
-        preview_paths=[PREVIEW_FILE],
-        input_form={"ma_file": MA_FILE, "is_split_task": IS_SPLIT_TASK},
+    return run_publish(
+        label="镜头 Blocking",
+        ma_file=MA_FILE,
+        preview_file=PREVIEW_FILE,
+        publish_type=PUBLISH_TYPE,
+        extra_form={"is_split_task": IS_SPLIT_TASK},
     )
-
-    publish_cli.log.info("CLI 初始化完成，开始执行镜头 Blocking 发布。")
-    publish_cli.interface.run_in_cli()
-
-    if publish_cli.interface.all_complete:
-        publish_cli.log.info("镜头 Blocking 发布执行完成。")
-        return 0
-
-    publish_cli.log.error("镜头 Blocking 发布失败，请检查日志。")
-    return 1
 
 
 if __name__ == "__main__":

@@ -2,62 +2,39 @@
 """
 使用项目原生 PublishCli 执行镜头 Layout 发布。
 
-先修改下方示例参数，再运行：
+只需填写下方 MA_FILE / PREVIEW_FILE / PUBLISH_TYPE，然后运行：
 
     rez-env oct_publish PySide2 -- python example/lay_cli.py
 
-注意：这不是 dry-run。直接运行本文件会执行检查和发布、写入 ShotGrid/发布目录，
-并提交 Deadline 任务（缓存输出 + 镜头 USD 输出）；仅导入本文件不会发起发布。
-CLI 模式下没有 Fix，检查项报错即中断。
+任务 ID 和版本号由工程文件路径自动解析（见 _cli_common.py 里的路径约定），
+Dailies 只跑 runlist 的 Dailies 组：建版本目录、拷预览、创建 SG Version、登记预览 PublishedFile；
+Publish 额外执行全部场景检查、发布工程文件 / USD / component 数据，并提交 Deadline 缓存和镜头 USD 输出任务。
+
+注意：这不是 dry-run，运行会写入 ShotGrid 和发布目录；仅导入本文件不会发起发布。
+CLI 模式下不执行 Fix，检查项报错即中断。
 """
 
-from publish_core.cli import PublishCli, PublishType
-from publish_core.database.entity import get_user
+from publish_core.cli import PublishType
 
+from _cli_common import run_publish
 
-TASK_ID = 185527
 
 MA_FILE = r"W:\projects\mk2\shot\s99\s990120\lay\maya\s990120.lay.rough_layout.v013.ma"
 
 PREVIEW_FILE = r"W:\projects\mk2\shot\s99\s990120\lay\maya\s990120.lay.rough_layout.v010.mov"
 
-COMMENT = "使用新的 oct_publish CLI 测试发布镜头 layout s990120"
-
-# 283=正式 971=过程 282=测试
-PUBLISH_TAG_ID = 282
-
-VERSION_NUM = 'v013'
+# PublishType.DAILY 只提交预览和 SG Version；PublishType.PUBLISH 走完整发布。
+PUBLISH_TYPE = PublishType.DAILY
 
 
 def main() -> int:
-    """构造 PublishCli 并调用项目已有的非 GUI 发布流程。
-
-    Returns:
-        发布子进程成功返回 0，否则返回 1。
-    """
-    publish_cli = PublishCli(
-        user=get_user(),
-        task_id=TASK_ID,
-        gui=False,
-        publish_type=PublishType.PUBLISH,
-        comment=COMMENT,
-        publish_tag_id=PUBLISH_TAG_ID,
-        version_num=VERSION_NUM,
-        dcc="Maya",
-        dcc_file=MA_FILE,
-        preview_paths=[PREVIEW_FILE],
-        input_form={"ma_file": MA_FILE},
+    """执行非 GUI 发布；成功返回 0，失败返回 1。"""
+    return run_publish(
+        label="镜头 Layout",
+        ma_file=MA_FILE,
+        preview_file=PREVIEW_FILE,
+        publish_type=PUBLISH_TYPE,
     )
-
-    publish_cli.log.info("CLI 初始化完成，开始执行镜头 Layout 发布。")
-    publish_cli.interface.run_in_cli()
-
-    if publish_cli.interface.all_complete:
-        publish_cli.log.info("镜头 Layout 发布执行完成。")
-        return 0
-
-    publish_cli.log.error("镜头 Layout 发布失败，请检查日志。")
-    return 1
 
 
 if __name__ == "__main__":

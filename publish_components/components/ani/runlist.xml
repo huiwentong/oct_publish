@@ -25,7 +25,6 @@
             <check type="maya_shot" name="check_cam_grp"/>
             <check type="maya_shot" name="check_mov_range"/>
             <check type="maya_shot" name="check_start_frame"/>
-            <check type="maya_shot" name="check_file_frame_range"/>
             <check type="maya_shot" name="check_camera_name"/>
             <check type="maya_shot" name="check_camera_attrs"/>
             <check type="maya_shot" name="check_temp_usd_cache"/>
@@ -35,6 +34,7 @@
             <check type="maya_shot" name="check_stage_file_path"/>
             <check type="maya_shot" name="check_stage_dirty"/>
             <check type="ani" name="check_tpose"/>
+            <check type="maya_shot" name="check_file_frame_range"/>
             <check type="maya_shot" name="check_shot_hierarchy"/>
             <check type="maya_shot" name="check_resources"/>
             <check type="maya_shot" name="check_ref_path"/>

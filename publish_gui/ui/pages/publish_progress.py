@@ -203,7 +203,7 @@ class PublishProgressPage(QWidget):
 
 
     def set_step(self, row):
-        step = int((row+1)/self._table.rowCount()) *100
+        step = (row + 1) / self._table.rowCount() * 100
         self._progress_val = step
         if self._progress_val >= 98:self._progress_val = 100
         self._progress.setValue(self._progress_val)

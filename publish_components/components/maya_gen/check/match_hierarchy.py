@@ -58,7 +58,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             can_continue = True
             task_id = process_data["task_id"]
             tc = TaskContext(task_id) or TaskContext.from_env()
-            step_name = tc.step_name.lower()
+            step_name = tc.step.short_name.lower()
             sg_asset_type = tc.entity.sg_asset_type
             version_dir = process_data["version_dir"]
             n_root = process_data.get("root", '|Root_grp')

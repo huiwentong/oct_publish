@@ -15,45 +15,39 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     # 删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
 
     try:
-        def process():
-            high_node = process_data.get('high', '|Root_grp|Geo_grp|high')
-            process_data['non_face_nodes'] = []
-            process_data['non_manifold_meshes'] = []
-            process_data['short_edge_meshes'] = []
-            process_data['lamina_faces'] = []
-            meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
-            for mesh in list(meshes):
-                if mesh.isIntermediateObject():
-                    continue
 
-                if mesh.numFaces() == 0:
-                    logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
-                    # mg.delete_empty_mesh(mesh)
-                    process_data['non_face_nodes'].append(mesh)
-                    continue
+        print("0" * 20)
+        high_node = process_data.get('high', '|Root_grp|Geo_grp|high')
+        process_data['non_face_nodes'] = []
+        process_data['non_manifold_meshes'] = []
+        process_data['short_edge_meshes'] = []
+        process_data['lamina_faces'] = []
+        meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
 
-                # Non-manifold
-                if mg.has_non_manifold(mesh):
-                    process_data['non_manifold_meshes'].append(mesh)
+        for mesh in list(meshes):
+            if mesh.isIntermediateObject():
+                continue
 
-                # Extremely short edge
-                if mg.has_extremely_short_edge(mesh):
-                    process_data['short_edge_meshes'].append(mesh)
+            if mesh.numFaces() == 0:
+                logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
+                # mg.delete_empty_mesh(mesh)
+                process_data['non_face_nodes'].append(mesh)
+                continue
 
-            process_data['lamina_faces'] = mg.find_lamina_faces()
+            # Non-manifold
+            if mg.has_non_manifold(mesh):
+                process_data['non_manifold_meshes'].append(mesh)
 
-            # polygon hole
-            hole_faces = mg.find_hole_faces()
-            if hole_faces:
-                return u'发现以下带洞的面，请手动修复: {}'.format(hole_faces)
+            # Extremely short edge
+            if mg.has_extremely_short_edge(mesh):
+                process_data['short_edge_meshes'].append(mesh)
 
-            mg.clear_selection()
-
-            return None
-
-        result = utils.executeInMainThreadWithResult(process)
-        if result:
-            return result
+        process_data['lamina_faces'] = mg.find_lamina_faces()
+        # polygon hole
+        hole_faces = mg.find_hole_faces()
+        if hole_faces:
+            return u'发现以下带洞的面，请手动修复: {}'.format(hole_faces)
+        mg.clear_selection()
 
     except Exception:
         try:

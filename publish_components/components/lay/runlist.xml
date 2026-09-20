@@ -41,6 +41,7 @@
             <check type="maya_shot" name="check_lay_unique_name"/>
             <check type="maya_shot" name="check_stage_arch_is_new"/>
             <check type="maya_shot" name="check_stage_file_path"/>
+            <check type="maya_shot" name="check_stage_content"/>
             <check type="maya_shot" name="check_stage_dirty"/>
             <check type="maya_shot" name="check_nemo_rig"/>
             <check type="maya_shot" name="check_resources"/>

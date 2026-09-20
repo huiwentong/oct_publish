@@ -50,8 +50,9 @@ def validate_usd_path(usd_path, maya_file):
     """校验一个 filePath 是否指向规范位置，返回错误文本，正确返回空字符串。"""
     maya_file = maya_file.replace('\\', '/')
     work_dir = os.path.dirname(maya_file)
-    expected = expected_usd_path(maya_file)
-    abs_path = resolve_usd_abs_path(usd_path, work_dir)
+    # 比较前消除重复分隔符及 . / ..，避免等价路径被字符串比较误判。
+    expected = os.path.normpath(expected_usd_path(maya_file)).replace('\\', '/')
+    abs_path = os.path.normpath(resolve_usd_abs_path(usd_path, work_dir)).replace('\\', '/')
 
     if os.path.dirname(abs_path).lower() != os.path.dirname(expected).lower():
         return u"USD 文件必须位于 {0} 目录下，当前为: {1}".format(os.path.dirname(expected), usd_path)

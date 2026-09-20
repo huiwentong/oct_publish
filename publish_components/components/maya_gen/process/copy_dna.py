@@ -15,11 +15,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if cmds.ls(type='embeddedNodeRL4'):
                 version_dir = process_data.get('version_dir', '')
                 node = cmds.ls(type='embeddedNodeRL4')[0]
-                local_dna = cmds.getAttr(node + '.dnaFilePath', '')
+                local_dna = cmds.getAttr(node + '.dnaFilePath')
                 if os.path.isfile(local_dna):
                     dest_dna = os.path.join(version_dir, os.path.basename(local_dna)).replace('\\', '/')
                     shutil.copy2(local_dna, dest_dna)
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
     except:
         return traceback.format_exc()

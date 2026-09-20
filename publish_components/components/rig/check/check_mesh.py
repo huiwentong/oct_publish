@@ -1,59 +1,59 @@
 # -*- coding: utf-8 -*-
 import traceback
 import pymel.core as pm
+import maya.utils as utils
 from importlib import reload
 from publish_components.utils.maya_utils import mesh_gen as mg
+
 reload(mg)
+
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
     检查并修复mesh
     """
-    #删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
+    # 删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
 
     try:
-        high_node = process_data.get('high','|Root_grp|Geo_grp|high')
-        non_manifold_meshes = []
-        short_edge_meshes = []
-        meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
-        for mesh in list(meshes):
-            if mesh.isIntermediateObject():
-                continue
+        def process():
+            high_node = process_data.get('high', '|Root_grp|Geo_grp|high')
+            process_data['non_face_nodes'] = []
+            process_data['non_manifold_meshes'] = []
+            process_data['short_edge_meshes'] = []
+            process_data['lamina_faces'] = []
+            meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
+            for mesh in list(meshes):
+                if mesh.isIntermediateObject():
+                    continue
 
-            if mesh.numFaces() == 0:
-                logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
-                mg.delete_empty_mesh(mesh)
-                continue
+                if mesh.numFaces() == 0:
+                    logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
+                    # mg.delete_empty_mesh(mesh)
+                    process_data['non_face_nodes'].append(mesh)
+                    continue
 
-            # Non-manifold
-            if mg.has_non_manifold(mesh):
-                non_manifold_meshes.append(mesh)
+                # Non-manifold
+                if mg.has_non_manifold(mesh):
+                    process_data['non_manifold_meshes'].append(mesh)
 
-            # Extremely short edge
-            if mg.has_extremely_short_edge(mesh):
-                short_edge_meshes.append(mesh)
+                # Extremely short edge
+                if mg.has_extremely_short_edge(mesh):
+                    process_data['short_edge_meshes'].append(mesh)
 
-        lamina_faces = mg.find_lamina_faces()
-        if lamina_faces:
-            logger.warning( '发现重合面:\n{}\n开始清除'.format(lamina_faces))
-            mg.delete_lamina_faces()
+            process_data['lamina_faces'] = mg.find_lamina_faces()
 
-        #Non-manifold
-        if non_manifold_meshes:
-            logger.warning('AUTO FIX: 发现无法展开的面:\n{}\n开始清除'.format(non_manifold_meshes))
-            mg.delete_non_manifold(non_manifold_meshes)
+            # polygon hole
+            hole_faces = mg.find_hole_faces()
+            if hole_faces:
+                return u'发现以下带洞的面，请手动修复: {}'.format(hole_faces)
 
-        # Extremely short edge
-        if short_edge_meshes:
-            logger.warning('AUTO FIX: 发现长度小于 {} 的边:\n{}\n开始清除'.format('0.000010', short_edge_meshes))
-            mg.delete_short_edges(short_edge_meshes)
+            mg.clear_selection()
 
-        # polygon hole
-        hole_faces = mg.find_hole_faces()
-        if hole_faces:
-            return u'发现以下带洞的面: {}'.format(hole_faces)
+            return None
 
-        mg.clear_selection()
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except Exception:
         try:
@@ -62,4 +62,36 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         except Exception:
             pass
 
+        return traceback.format_exc()
+
+
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    try:
+        logger.info(u"AUTO FIX: 修复 high 组下 dag 节点的 overrideEnabled 属性")
+
+        def process():
+            non_face_nodes = process_data.get('non_face_nodes', [])
+            non_manifold_meshes = process_data.get('non_manifold_meshes')
+            short_edge_meshes = process_data.get('short_edge_meshes')
+            lamina_faces = process_data.get('lamina_faces')
+
+            if non_face_nodes:
+                for node in non_face_nodes:
+                    mg.delete_empty_mesh(node)
+                logger.warning('AUTO FIX: 删除没有面的模型节点:\n{}\n开始清除'.format(len(non_face_nodes)))
+
+            if non_manifold_meshes:
+                logger.warning('AUTO FIX: 发现无法展开的面:\n{}\n开始清除'.format(non_manifold_meshes))
+                mg.delete_non_manifold(non_manifold_meshes)
+
+            if short_edge_meshes:
+                logger.warning('AUTO FIX: 发现长度小于 {} 的边:\n{}\n开始清除'.format('0.000010', short_edge_meshes))
+                mg.delete_short_edges(short_edge_meshes)
+
+            if lamina_faces:
+                logger.warning('发现重合面:\n{}\n开始清除'.format(lamina_faces))
+                mg.delete_lamina_faces()
+
+        return utils.executeInMainThreadWithResult(process)
+    except:
         return traceback.format_exc()

@@ -4,6 +4,7 @@
 import traceback
 from publish_components.utils.sg_helper import check_is_internal_rig
 import maya.cmds as mc
+import pymel.core as pm
 import maya.utils as utils
 
 
@@ -58,7 +59,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     logger.warning(u'存在默认数值错误控制器: \n {}'.format('\n'.join(process_data['error_value_list'])))
                     return u'存在默认数值错误控制器: \n {}'.format('\n'.join(process_data['error_value_list']))
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()
@@ -70,9 +73,9 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
             logger.info(u"AUTO FIX: 修复控制器的 Keyable 的 Translate Rotate Scale 到默认值；修复 Keyable 属性到无链接")
             if process_data['error_connection_list']:
                 for ctrl in process_data['error_connection_list']:
-                    con_list = mc.listConnections(ctrl, s=1, d=0, skipConversionNodes=True, connections=True)
-                    for source, dest in con_list:
-                        mc.discnnectAttrs(source, dest)
+                    con_list = pm.listConnections(ctrl, s=1, d=0, c=1, plugs=1)
+                    for con_pair in con_list:
+                        pm.disconnectAttr(con_pair[1], con_pair[0])
 
             if process_data['error_value_list']:
                 for ctrl in process_data['error_value_list']:
@@ -83,11 +86,13 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
                                 mc.setAttr(ctrl + '.' + attr, 0)
                             elif attr in ['sx', 'sy', 'sz']:
                                 mc.setAttr(ctrl + '.' + attr, 1)
+            return None
 
         warning_str = u'自动修复可能会断开连接，重置数值，影响绑定效果，请确认之后再自动修复，修复后再检查效果。 \n'
         warning_str += u'\t是否继续?'
         result = mc.confirmDialog(title='Warning', message=warning_str, button=[u'继续', u'取消'],
                                   defaultButton=u'继续', cancelButton=u'取消')
+
         if result == u'继续':
             return utils.executeInMainThreadWithResult(process)
 

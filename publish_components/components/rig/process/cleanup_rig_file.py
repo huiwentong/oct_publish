@@ -40,7 +40,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         mc.addAttr(vis_ctrl + '.assetName', e=1, en='{}:'.format(entity_name))
             lock_and_hide_channelBox_attrs('high')
             lock_and_hide_channelBox_attrs('Geo_grp')
-        return utils.executeInMainThreadWithResult(process)
+
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

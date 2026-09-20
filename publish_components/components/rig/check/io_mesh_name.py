@@ -11,7 +11,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     try:
         def process():
-            result = None
             l_bad_names = []
             n_high = process_data.get("high", "|Root_grp|Geo_grp|high")
             print("n_high: ", n_high)
@@ -23,11 +22,17 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     if n_mesh.nodeName() == trans_name + 'Shape':
                         l_bad_names.append(n_mesh.nodeName())
 
+            print("len(l_bad_names): ", len(l_bad_names))
             if len(l_bad_names) > 0:
                 result = u'Intermediate Object mesh 节点名不能由 transform + Shape 构成的：' + ', '.join(l_bad_names)
                 logger.warning(result)
+                return result
 
-        utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

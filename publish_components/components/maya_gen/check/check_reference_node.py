@@ -18,9 +18,14 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if l_ref:
                 for ref_node in l_ref:
                     l_errs.append(u'{};'.format(ref_node.name()))
-                logger.warning(u"当前文件中存在 Reference 节点：\n" + '\n'.join(l_errs))
+                msg = u"当前文件中存在 Reference 节点：\n" + '\n'.join(l_errs)
+                logger.warning(msg)
+                return msg
+            return ''
 
-        utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

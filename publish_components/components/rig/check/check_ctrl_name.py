@@ -101,8 +101,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     mc.select(error_name_list)
                     if error_name_list:
                         return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

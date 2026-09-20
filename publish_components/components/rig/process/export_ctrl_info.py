@@ -57,7 +57,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             out_path = os.path.join(version_dir, 'controller_data.json').replace('\\', '/')
             export_ctrl_info(out_path)
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

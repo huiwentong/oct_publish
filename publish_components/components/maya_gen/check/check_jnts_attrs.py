@@ -24,7 +24,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if bad_jnts:
                     return u"root骨骼下有骨骼属性被锁定:{}".format(bad_jnts)
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

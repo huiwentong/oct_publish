@@ -19,7 +19,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 task_id = process_data.get('task_id', '')
                 sg.update('Version', task_id, {'client_code': coco_v})
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

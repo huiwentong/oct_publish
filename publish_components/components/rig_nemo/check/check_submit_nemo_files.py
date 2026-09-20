@@ -65,7 +65,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     else:
                         process_data['export'] = None
 
-        return utils.executeInMainThreadWithResult(process)
+                return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

@@ -15,7 +15,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if mc.objExists('Root_grp'):
                 mc.lockNode(mc.listRelatives('Root_grp', c=1, ad=1, fullPath=1), lock=0)
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

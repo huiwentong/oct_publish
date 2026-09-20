@@ -96,7 +96,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return result
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

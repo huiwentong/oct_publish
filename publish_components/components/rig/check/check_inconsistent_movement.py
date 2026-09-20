@@ -40,8 +40,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     return u"移动大环时不是所有物体都正确位移，请检查。"
 
                 mc.setAttr(root_ctrl + '.translateX', 0)
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
 
     except:

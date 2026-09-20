@@ -29,7 +29,8 @@
             <check type="maya_gen" name="no_name_space"/>
             <check type="mod" name="check_instanced_node"/>
             <check type="rig" name="io_mesh_name"/>
-            <check type="rig" name="check_mesh"/>
+<!--            <check type="rig" name="check_mesh"/>-->
+            <check type="maya_gen" name="mesh_name"/>
             <check type="maya_gen" name="match_hierarchy"/>
             <check type="maya_gen" name="check_mod_hierarchy_order"/>
             <check type="rig" name="check_ctrl_name"/>

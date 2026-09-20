@@ -19,6 +19,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             mc.file(rename=new_work_file)
             mc.file(save=1, f=1)
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
+
     except:
         return traceback.format_exc()

@@ -47,7 +47,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             cmds.file(rename=process_data['v_dir_ma_file'])
             cmds.file(save=1, f=1, type="mayaAscii")
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

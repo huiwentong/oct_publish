@@ -31,7 +31,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     f_dst = v_preview_img_dir + version_name + '.{:04d}.{}'.format(i + 1, 'pur')
                     shutil.copyfile(f_src, f_dst)
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

@@ -22,8 +22,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             if len(process_data['error_node_list']) > 0:
                 return u'发现以下节点的overrideEnabled属性打开了: {}'.format(', '.join(process_data['error_node_list']))
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

@@ -22,8 +22,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 task_id=task_id,
                 rig_file=v_dir_ma_file,
             )
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

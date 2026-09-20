@@ -31,7 +31,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                        os.path.join(target_dir, os.path.basename(process_data['mat_json'])).replace('\\', '/'),
                        type='string')
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
 
     except:
         return traceback.format_exc()

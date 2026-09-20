@@ -14,7 +14,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 生成cms文件
     """
     try:
-        def J_nodesInfo(filter=[]):
+        def J_nodesInfo(filter=[], mesh_path_filter=''):
+            """
+            遍历场景所有节点，收集dg/dag节点信息。
+
+            Args:
+                filter: list, 只保留这些类型的节点，为空则全部保留
+                mesh_path_filter: str, 只有fullName包含该字符串的mesh才读取点线面和材质信息。
+                                  场景里残留的空mesh节点（典型如polySurfaceShape）apiType同样是
+                                  kMesh，但没有模型数据，构造MFnMesh会报错，用它把无关层级排除掉。
+            """
             # 用于存储最终查询得到的数据,每个节点为一个元素
             res = {}
             res['dgNodes'] = []
@@ -45,9 +54,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                             for paIndex in range(0, mfnDagNode.parentCount()):
                                 currentNodeInfo['parent'].append(
                                     om2.MFnDagNode(mfnDagNode.parent(paIndex)).fullPathName())
-                        # 模型节点保存点线面信息
-                        if currentNodeInfo['type'] == 'mesh':
-                            mfnMesh = om2.MFnMesh(mObject)
+                        # 模型节点保存点线面信息，目标层级以外的mesh直接跳过
+                        if currentNodeInfo['type'] == 'mesh' and \
+                                (not mesh_path_filter or mesh_path_filter in currentNodeInfo['fullName']):
+                            try:
+                                mfnMesh = om2.MFnMesh(mObject)
+                            except ValueError:
+                                raise RuntimeError(
+                                    u'节点 {0} 没有有效的模型数据，请检查并删除这个空mesh节点'.format(
+                                        currentNodeInfo['fullName']))
                             currentNodeInfo['meshInfo'] = {}
                             currentNodeInfo['meshInfo']['numVertices'] = str(mfnMesh.numVertices)
                             currentNodeInfo['meshInfo']['numEdges'] = str(mfnMesh.numEdges)
@@ -98,13 +113,17 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             cms = {}
             cms['meshs'] = []
-            for mitem in J_nodesInfo(['mesh'])['dagNodes']:
+            for mitem in J_nodesInfo(['mesh'], mesh_path_filter='|high|')['dagNodes']:
                 if mitem['fullName'].find('|high|') > 0:
                     cms['meshs'].append(mitem)
 
             with open(full_cms_file, 'w') as f:
                 f.write(json.dumps(cms, sort_keys=True, indent=4, separators=(",", ":")))
 
-        return utils.executeInMainThreadWithResult(process)
+            return None
+
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
     except:
         return traceback.format_exc()

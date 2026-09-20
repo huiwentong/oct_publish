@@ -20,7 +20,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         error_nodes = utils.executeInMainThreadWithResult(check)
         if len(error_nodes) > 0:
             process_data["instanced_node_error_nodes"] = error_nodes
-            msg = "以下节点是关联复制的节点：\n{}".format("\n".join(error_nodes))
+            msg = "以下节点是关联复制的节点：\n{}".format(
+                "\n".join([itm.name() for itm in process_data["instanced_node_error_nodes"]]))
             return msg
 
     except:

@@ -125,8 +125,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 cmd += 'FBXExport -f "%s" -s;' % full_fbx
 
                 mel.eval(cmd)
+            return None
 
-        return utils.executeInMainThreadWithResult(process)
-
+        result = utils.executeInMainThreadWithResult(process)
+        if result:
+            return result
     except:
         return traceback.format_exc()

@@ -1,6 +1,7 @@
-﻿"""
+"""
 Entry point for the publish GUI application.
 """
+from __future__ import annotations
 import sys
 from qtpy.QtWidgets import QApplication
 from qtpy.QtCore import Qt

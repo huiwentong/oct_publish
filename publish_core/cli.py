@@ -1,4 +1,6 @@
+from __future__ import annotations
 from dataclasses import dataclass, field, asdict, is_dataclass, fields, asdict
+import sys
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -31,7 +33,7 @@ class PublishStatus(str, Enum):
 
 
 
-@dataclass(slots=True)
+@dataclass(**({"slots": True} if sys.version_info >= (3, 10) else {}))
 class PublishCli:
 
     # core inputs

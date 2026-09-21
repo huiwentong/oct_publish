@@ -44,13 +44,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 bad_vertices = runner.run(meshes)
                 if bad_vertices:
                     msg = "存在一些穿插的模型，并选中了相关顶点！\n请自行判断是否影响下游并修复。如果这些穿插是允许存在的，请跳过该模块。"
+                    utils.executeInMainThreadWithResult(lambda: cmds.select(bad_vertices, r=True))
                     if parent_widget:
-                        result = utils.executeInMainThreadWithResult(
-                            lambda: dialogs.message_dialog("提示", msg, ["继续提交", "停止提交"]))
+                        result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)
                         if result == "停止提交":
-                            utils.executeInMainThreadWithResult(lambda :cmds.select(bad_vertices, add=True))
                             return msg
-        utils.executeInMainThreadWithResult(lambda: cmds.select(clear=True))
+                    else:
+                        return msg
 
     except Exception:
         return traceback.format_exc()
+    finally:
+        utils.executeInMainThreadWithResult(lambda: pm.select(clear=True))

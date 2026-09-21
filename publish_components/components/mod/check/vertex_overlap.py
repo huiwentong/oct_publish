@@ -4,13 +4,18 @@ import pymel.core as pm
 import maya.utils as utils
 import maya.api.OpenMaya as om
 
+from importlib import reload
+from publish_components.utils.maya_utils import dialogs
+reload(dialogs)
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """查找重叠顶点"""
 
     try:
         def check():
             data = {}
+            error_vertices = []
             n_geo = process_data.get("geo", "|Root_grp|Geo_grp")
+
             for mesh in pm.listRelatives(n_geo, ad=True, type="mesh", fullPath=True, ni=True):
                 mesh = str(mesh)
                 sel = om.MSelectionList()
@@ -25,52 +30,72 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     key = (round(p.x, 6), round(p.y, 6), round(p.z, 6))
                     coords.setdefault(key, []).append(i)
 
-                ids = [
-                    group
-                    for group in coords.values()
-                    if len(group) > 1
-                ]
+                groups = [ids for ids in coords.values() if len(ids) > 1]
 
-                if ids:
-                    data[mesh] = ids
+                if groups:
+                    data[mesh] = groups
+                    error_vertices.extend(
+                        "{}.vtx[{}]".format(mesh, i)
+                        for group in groups
+                        for i in group
+                    )
 
-            return data
+            if error_vertices:
+                pm.select(error_vertices, r=True)
 
-        error_data = utils.executeInMainThreadWithResult(check)
+            return data, error_vertices
+
+        error_data, error_vertices = utils.executeInMainThreadWithResult(check)
         process_data["vertex_overlap_error_nodes"] = error_data
 
         if error_data:
-            return "以下模型有重叠顶点:\n{}".format("\n".join(error_data))
+            msg = "以下模型有重叠顶点，帮你选中了这些点，请判断是否跳过，自动修复点击 'fix'按钮:\n{}".format(
+                "\n".join(error_data))
+            if parent_widget:
+                result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)
+                if result and result == "停止提交":
+                    return msg
+            else:
+                return msg
 
     except Exception:
         return traceback.format_exc()
+    finally:
+        utils.executeInMainThreadWithResult(lambda: pm.select(clear=True))
 
 
 def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     try:
         error_data = process_data.get("vertex_overlap_error_nodes", {})
 
+        def find_overlap(mesh):
+            sel = om.MSelectionList()
+            sel.add(mesh)
+            points = om.MFnMesh(sel.getDagPath(0)).getPoints(om.MSpace.kWorld)
+
+            coords = {}
+            for i, p in enumerate(points):
+                key = (round(p.x, 6), round(p.y, 6), round(p.z, 6))
+                coords.setdefault(key, []).append(i)
+
+            return [ids for ids in coords.values() if len(ids) > 1]
+
         def repair():
-            tolerance = 0.00001
+            for mesh in error_data:
+                # 每合并一次重新检测，避免顶点编号发生变化
+                while True:
+                    groups = find_overlap(mesh)
+                    if not groups:
+                        break
 
-            for mesh, groups in error_data.items():
+                    vertices = [
+                        "{}.vtx[{}]".format(mesh, i)
+                        for i in groups[0]
+                    ]
 
-                # 一次性收集这个 mesh 所有需要处理的 vertex id
-                vertex_ids = sorted({
-                    vertex_id
-                    for group in groups
-                    for vertex_id in group
-                })
+                    pm.polyMergeVertex(vertices, d=0.00001, ws=True, ch=False)
 
-                if not vertex_ids:
-                    continue
-
-                vertices = [
-                    "{}.vtx[{}]".format(mesh, i)
-                    for i in vertex_ids
-                ]
-                # 一个 mesh 只执行一次
-                pm.polyMergeVertex(vertices, d=tolerance, ws=True, ch=False)
+            pm.select(clear=True)
 
         utils.executeInMainThreadWithResult(repair)
 

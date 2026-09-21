@@ -55,8 +55,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         msg = utils.executeInMainThreadWithResult(check)
         if msg and parent_widget:
-            result = utils.executeInMainThreadWithResult(
-                lambda: dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"]))
+            result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)
             if result == "停止提交":
                 return msg
 

@@ -2,9 +2,8 @@
 import time
 import traceback
 import maya.utils as maya_utils
-
+import threading
 from Qt import QtCore, QtWidgets
-from publish_gui.ui.theme import STYLESHEET
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 
 
@@ -32,31 +31,69 @@ def run_in_maya_main_thread(func, *args, **kwargs):
     )
 
 
-def message_dialog(title, message, buttons, parent=None):
+class DialogInvoker(QtCore.QObject):
 
-    if get_app() is None:
-        return None
+    request = QtCore.Signal(object)
 
-    def _show():
-        msg_box = QtWidgets.QMessageBox(parent)
-        msg_box.setStyleSheet(STYLESHEET)
-        msg_box.setWindowTitle(title)
-        msg_box.setText(message)
+    def __init__(self):
+        super(DialogInvoker, self).__init__()
+        self.moveToThread(QtWidgets.QApplication.instance().thread())
+        self.request.connect(self._show, QtCore.Qt.QueuedConnection)
+        self._dialogs = set()
+
+    def _show(self, data):
+
+        box = QtWidgets.QMessageBox(data["parent"])
+        box.setWindowTitle(data["title"])
+        box.setText(data["message"])
+
+        # 关键：非模态
+        box.setModal(False)
+        box.setWindowModality(QtCore.Qt.NonModal)
 
         button_map = {}
 
-        for text in buttons:
-            btn = msg_box.addButton(
-                text,
-                QtWidgets.QMessageBox.ActionRole
-            )
+        for text in data["buttons"]:
+            btn = box.addButton(text, QtWidgets.QMessageBox.ActionRole)
             button_map[btn] = text
 
-        msg_box.exec_()
+        self._dialogs.add(box)
 
-        return button_map.get(msg_box.clickedButton())
+        def clicked(button):
+            data["result"] = button_map.get(button)
+            self._dialogs.discard(box)
+            data["event"].set()
+            box.close()
+            box.deleteLater()
 
-    return run_in_maya_main_thread(_show)
+        box.buttonClicked.connect(clicked)
+        box.show()
+
+_dialog = None
+
+
+def message_dialog(title, message, buttons, parent=None):
+    global _dialog
+
+    if _dialog is None:
+        _dialog = DialogInvoker()
+
+    data = {
+        "title": title,
+        "message": message,
+        "buttons": buttons,
+        "parent": parent,
+        "result": None,
+        "event": threading.Event(),
+    }
+
+    _dialog.request.emit(data)
+
+    # 等待的是 worker thread
+    # Maya UI 不会被阻塞
+    data["event"].wait()
+
+    return data["result"]
 
 
 class ProgressUI(object):

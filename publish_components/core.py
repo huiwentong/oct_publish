@@ -460,9 +460,8 @@ if __name__ == "__main__":
         except Exception:
             self.log.error(traceback.format_exc())
         finally:
-            pass
-            # if os.path.exists(python_script):
-            #     os.unlink(python_script)
+            if os.path.exists(python_script):
+                os.unlink(python_script)
 
 
     def check_submit_form(self):

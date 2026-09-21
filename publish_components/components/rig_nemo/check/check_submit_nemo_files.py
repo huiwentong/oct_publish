@@ -37,7 +37,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if not os.path.isfile(process_data['nemo_json']):
                     return u"ma文件中指定的_CONFIG.json不存在，请重新指定"
 
-                if not os.path.isfile(process_data['nemo_json']):
+                if not os.path.isfile(process_data['mat_json']):
                     return u"ma文件中指定的_MAT.json不存在，请重新指定"
 
                 json_dir = os.path.dirname(process_data['nemo_json'])
@@ -65,7 +65,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     else:
                         process_data['export'] = None
 
-                return None
+            return None
 
         result = utils.executeInMainThreadWithResult(process)
         if result:

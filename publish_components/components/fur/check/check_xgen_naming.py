@@ -8,18 +8,19 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
         palettes=mel.eval('ls -long -type "xgmPalette";') or []
         if isinstance(palettes,str):
             palettes=[palettes]
+
         if not palettes:
-            return u"场景中没有找到 XGen Palette"
+            raise RuntimeError(u"场景中没有找到 XGen Palette")
         if len(palettes)>1:
-            return u"场景中存在多个 XGen Palette，请检查：\n{}".format("\n".join(palettes))
+            raise RuntimeError(u"场景中存在多个 XGen Palette，请检查：\n{}".format("\n".join(palettes)))
 
         palette_node=str(palettes[0])
         palette_name=palette_node.rsplit("|",1)[-1]
+
         process_data["xgen_palette_node"]=palette_node
         process_data["xgen_palette_name"]=palette_name
 
         if logger:
             logger.info(u"XGen Palette：{}".format(palette_name))
-        return ""
     except Exception:
         return traceback.format_exc()

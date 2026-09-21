@@ -156,11 +156,38 @@ class CompInterface(InterFace):
     tag_list:list=field(default_factory=lambda:[283,282])
     downstream_dcc_only:str|None="Maya"
 
+    def _initialize_xgen(self):
+        import maya.utils
+        import xgenm.ui as xgui
+
+        xgui.createDescriptionEditor()
+
+        dag_palettes=mel.eval('ls -long -type "xgmPalette";') or []
+        if isinstance(dag_palettes,str):
+            dag_palettes=[dag_palettes]
+
+        core_palettes=set(str(item) for item in (xg.palettes() or []))
+        missing=[]
+
+        for palette_node in dag_palettes:
+            palette_name=str(palette_node).split("|")[-1]
+            if palette_name not in core_palettes:
+                missing.append(palette_name)
+
+        if missing:
+            raise RuntimeError(
+                u"XGen Core 没有加载当前场景 Palette：{}。\n"
+                u"请关闭发布工具，在 XGen 初始化后重新打开 Fur 场景再发布。".format(", ".join(missing))
+            )
+
     def gui_pre_interface(self):
+        self._initialize_xgen()
+
         task=self.task_entity
         step=task.step
         entity=task.entity
         project=task.project
+
         self.process_data.update({
             "task_id":task.id,
             "task_name":task.content,

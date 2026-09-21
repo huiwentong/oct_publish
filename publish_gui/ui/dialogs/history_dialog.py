@@ -1,6 +1,7 @@
 """
 Dialog: view version history for a task.
 """
+from __future__ import annotations
 from qtpy.QtWidgets import (
     QDialog, QVBoxLayout, QTableWidget, QTableWidgetItem,
     QPushButton, QHBoxLayout, QLabel, QHeaderView,

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any
 from publish_core.database.core import ThreadSafeShotgun, FastSg
 import getpass

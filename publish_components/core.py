@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass, fields, field
 from typing import Any
 import ast

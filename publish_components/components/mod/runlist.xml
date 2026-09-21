@@ -71,6 +71,7 @@
         <process type="gen" name="create_sg_version" mode="Dailies"/>
         <process type="mod" name="auto_gener_low_usd" mode="Publish"/>
         <process type="gen" name="asset_reassembly" mode="Submit"/>
+        <process type="gen" name="message_to_downstream" mode="Publish"/>
     </processcontainer>
 
 </root>

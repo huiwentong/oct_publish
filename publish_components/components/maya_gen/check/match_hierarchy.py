@@ -67,7 +67,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             mesh_xml = None
             mod_version = None
             desp = u''
-            md_msg = u''
 
             # MOD
             if step_name == 'mod':
@@ -166,30 +165,23 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
                     if step_name == 'tex' and sg_asset_type == 'CH':
                         logger.warning(err_missing)
-                    else:
-                        md_msg += err_missing
 
                 if md.l_new:
                     err_new = build_error_message(md.l_new, u"个mesh被创建了: ")
-                    md_msg += err_new
 
                 if md.l_moved:
                     err_moved = build_error_message(md.l_moved, u"个mesh被改变了层级: ")
-                    md_msg += err_moved
 
                 if md.l_topology_changed:
                     err_topology_changed = build_error_message(md.l_topology_changed, u"个mesh被改变了拓扑: ")
-                    md_msg += err_topology_changed
 
                 if md.l_vtx_num:
                     err_vtx_num = build_error_message(md.l_vtx_num,
                                                       u"个mesh 点数不一致（可以用 Maya > Mesh > Cleanup > 'Invalid Component' 清理）: ")
-                    md_msg += err_vtx_num
 
                 if md.l_wrong_order:
                     err_wrong_order = u'\n有 {} 个mesh顺序不一样'.format(len(md.l_wrong_order))
                     err_wrong_order += u''.join(md.l_wrong_order)
-                    md_msg += err_wrong_order
 
                 # MOD Publish
                 if step_name == 'mod':
@@ -197,11 +189,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     if not err_missing and not err_new and not err_moved and not err_topology_changed:
                         description = u" 本版本无层级拓扑变化。"
                         auto_descriptions[desp] = description
-                        md_msg += desp + description
                     else:
                         description = (err_missing + err_new + err_moved + err_topology_changed + err_vtx_num)
                         description = description.replace('Shape', '')
                         auto_descriptions[desp] = description
+                        process_data.update({"meg_to_downstream": auto_descriptions})
                     process_data.update({"auto_description": auto_descriptions})
 
                 else:

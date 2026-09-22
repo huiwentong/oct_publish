@@ -1,14 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
-镜头 Layout 发布 —— lay 环节（rough_layout 任务）。
 
-检查镜头层级 / 相机 / 帧范围 / USD Stage / 引用资产，把工作文件、maya_usd 和
-镜头 component 信息发布到版本目录，更新 SG 版本、Component，
-最后提交 Deadline 输出缓存和镜头 USD。
-
-迁移自老 publish_tool: depts/mk2/lay
-镜头类 Maya 环节（lay / blk / ani）共用的检查、发布项放在 components/maya_shot 下。
 """
+镜头 Layout 发布 —— lay 环节（rough_layout 任务）
+"""
+
 import traceback
 from dataclasses import dataclass, field
 

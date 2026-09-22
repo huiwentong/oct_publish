@@ -1,12 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    迁移自老 publish_tool/depts/mk2/blk。
-    Daily -> Dailies；Downstream / Downstream 2 -> Publish。
-    Submit 与 Publish 均运行所有检查和发布项，旧 allow_skip 全部改为硬性阻断。
-    generic_check 合并 Maya / 单位 / unknown_plugins / unlock_default_nodes。
-    version_up_going 在 version_name 前执行，避免修复后发布路径仍使用旧版本号。
-    两次 hierarchy / save_scene 保留旧流程顺序；blk/ani 使用 export_shot_usd_ani。
--->
 <root>
     <checkcontainer>
         <check_group name="Dailies">
@@ -31,7 +23,6 @@
             <check type="maya_shot" name="check_temp_usd_cache"/>
             <check type="maya_shot" name="check_split_task_comps"/>
             <check type="maya_shot" name="check_nemo_rig"/>
-            <check type="maya_shot" name="check_shot_hierarchy"/>
             <check type="maya_shot" name="check_stage_arch_is_new"/>
             <check type="maya_shot" name="check_stage_file_path"/>
             <check type="maya_shot" name="check_stage_dirty"/>
@@ -63,9 +54,9 @@
         <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
-        <process type="ani" name="update_sg_version" mode="Dailies"/>
+        <process type="maya_shot" name="update_sg_version" mode="Dailies"/>
         <process type="maya_shot" name="update_sg_components" mode="Publish"/>
         <process type="maya_shot" name="sub_to_deadline_cache" mode="Publish"/>
-        <process type="ani" name="sub_to_deadline_export_shot_usd" mode="Publish"/>
+        <process type="maya_shot" name="sub_to_deadline_export_shot_usd" mode="Publish"/>
     </processcontainer>
 </root>

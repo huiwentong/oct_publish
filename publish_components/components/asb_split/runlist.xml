@@ -1,13 +1,4 @@
 <?xml version="1.0"?>
-<!--
-    ASB 拆分发布 —— mod 环节 + ASB 资产 + assembly 任务
-    迁移自 depts/mk2/asb 的 publish_checks.xml + publish_processes.xml
-
-    老的 4 个 check_group（Daily / General / Model Work Standard）已按新架构
-    压平成 Dailies / Publish 两组；process 的 mode 由 daily/downstream 改为 Dailies/Publish。
-
-    标 [骨架] 的组件目前是空实现（直接 return ""），待逐个迁移。
--->
 <root>
 
     <checkcontainer>
@@ -27,6 +18,8 @@
             <check type="asb_split" name="check_asb_split_marks"/>
             <check type="asb_split" name="check_asset_name_unique"/>
             <check type="maya_gen" name="generic_check"/>
+            <!-- 表单里选的文件必须是当前打开的场景：检查看的是当前场景，用表单路径推工作目录 -->
+            <check type="maya_shot" name="check_picked_file_is_current"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_frame_rate"/>
             <check type="maya_gen" name="no_name_space"/>

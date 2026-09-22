@@ -18,14 +18,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     # 执行 export_shot_usd / export_shot_usd_ani 生成镜头 USD；场景没有 |World 组时跳过。
     # 依赖 gen/create_sg_version 写入的 process_data['sg_version']。
     try:
-        export_command = process_data.get('shot_usd_export_command', 'export_shot_usd')
-        if export_command not in ('export_shot_usd', 'export_shot_usd_ani'):
-            return u'不支持的镜头 USD 导出命令: {0}'.format(export_command)
         if not utils.executeInMainThreadWithResult(lambda: cmds.objExists('|World')):
             logger.info(u"场景没有 |World 组，不提交镜头 USD 输出任务")
         else:
             tc = TaskContext(process_data['task_id'])
             proj_name = tc.project_name.lower()
+            # Bk / An 环节用动画版导出命令，判断方式与 update_sg_components 一致
+            export_command = 'export_shot_usd_ani' if tc.step_name in ('Bk', 'An') else 'export_shot_usd'
             version_name = process_data['version_name']
             version_id = process_data['sg_version']['id']
             # export_shot_usd 按 '/' 拆分路径获取项目名，Windows 下也必须保留正斜杠。

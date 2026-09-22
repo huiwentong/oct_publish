@@ -13,13 +13,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     把 Stage 引用的 maya_usd 目录下的 usda 拷贝到版本目录
     """
-    # W 盘工作目录 maya_usd/xxx.usda -> I 盘版本目录 maya_usd/xxx.usda。旧架构 Stage 不拷。
+    # W 盘工作目录 maya_usd/<版本 ma 文件名>.usda -> I 盘版本目录 maya_usd/<版本 ma 文件名>.usda。旧架构 Stage 不拷。
+    # 目标文件名跟着版本 ma 的 stem 走：镜头两者同名，资产的版本 ma 会改名为 <资产名>.ma，
+    # edit_ma_file 改写路径时也是按 ma stem 拼的，这里必须保持一致。
     try:
         source_file = (submit_data.get('ma_file') or '').replace('\\', '/')
         if not source_file or not os.path.isfile(source_file):
             return u"工作文件不存在: {0}".format(source_file)
         work_dir = os.path.dirname(source_file)
         publish_dir = process_data['version_dir'].replace('\\', '/')
+        target_stem = os.path.splitext(os.path.basename(process_data['v_dir_ma_file']))[0]
 
         def read_proxies():
             if is_old_asb_architecture():
@@ -32,8 +35,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             usd_path = shot_usd.normalize_usd_path(usd_path)
             if not usd_path:
                 continue
-            # filePath 可能是绝对路径也可能是相对路径，统一用文件名拼出版本目录下的相对位置
-            rel_path = 'maya_usd/{0}'.format(os.path.basename(usd_path))
+            # filePath 可能是绝对路径也可能是相对路径，目标统一落在版本目录 maya_usd 下
+            rel_path = 'maya_usd/{0}{1}'.format(target_stem, os.path.splitext(usd_path)[1])
             if rel_path in copied:
                 continue
             copied.add(rel_path)

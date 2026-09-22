@@ -1,12 +1,4 @@
 <?xml version="1.0"?>
-<!--
-    ASB 组装发布 —— mod 环节 + ASB 资产 + model 任务
-    迁移自 depts/mk2/mod_asb 的 publish_checks.xml + publish_processes.xml
-
-    老的 Daily / Downstream 两组对应新架构的 Dailies / Publish。
-
-    专属组件通过 process_data 传递根组、USD 数据和 SG 关联清单。
--->
 <root>
 
     <checkcontainer>
@@ -21,13 +13,14 @@
         </check_group>
 
         <check_group name="Publish">
-            <!-- 合并 this_is_maya + check_maya_unit + unknown_nodes + unknown_plugins + unlock_default_nodes -->
             <check type="maya_gen" name="generic_check"/>
-            <!-- 合并 check_work_file + version_name_match -->
+            <check type="maya_shot" name="check_picked_file_is_current"/>
             <check type="maya_gen" name="check_work_file"/>
+            <check type="asb_build" name="check_arch_is_new"/>
             <check type="asb_build" name="check_assets_hierarchy"/>
-            <check type="asb_build" name="check_usd_dirty"/>
+            <check type="maya_shot" name="check_stage_dirty"/>
             <check type="asb_build" name="check_usd_relative_path"/>
+            <check type="maya_shot" name="check_resources"/>
         </check_group>
     </checkcontainer>
 
@@ -38,11 +31,13 @@
         <!-- ASB 收集场景内全部贴图，不按普通模型的 high/材质连接过滤 -->
         <process type="asb_build" name="copy_scene_images" mode="Publish"/>
         <process type="asb_build" name="collect_asb_comp_data" mode="Publish"/>
-        <process type="asb_build" name="export_asset_ma" mode="Publish"/>
+        <!-- 与 lay 一样三步：拷工作文件、拷 usda、把版本 ma 里的 usda 路径改写成 I 盘 -->
+        <process type="gen" name="copy_work_file_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="copy_usd_file_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="edit_ma_file" mode="Publish"/>
         <process type="asb_build" name="create_asb_usd" mode="Publish"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
         <process type="asb_build" name="update_sg_sub_asset" mode="Publish"/>
-        <!-- 老 assembly/create_sg_version 拆成两步：通用建版本 + ASB 专属的 component 关联 -->
         <process type="gen" name="create_sg_version" mode="Dailies"/>
         <process type="asb_build" name="link_component_versions" mode="Publish"/>
         <process type="gen" name="sym_link_no_num_version" mode="Publish"/>

@@ -123,21 +123,6 @@ def proxy_paths(proxies: list, maya_file: str) -> list:
     return paths
 
 
-def dirty_proxies(proxies: list) -> list:
-    """Find unsaved root layers in the single-stage architecture."""
-    return [proxy for proxy in proxies if stage_for(proxy).GetRootLayer().dirty]
-
-
-def save_usd_roots(proxies: list) -> None:
-    """Save dirty file-backed root layers; anonymous layers require an artist-selected path."""
-    for proxy in proxies:
-        layer = stage_for(proxy).GetRootLayer()
-        if layer.anonymous:
-            raise RuntimeError('USD Layer 尚未另存为文件: ' + proxy)
-        if layer.dirty and not layer.Save():
-            raise RuntimeError('USD Layer 保存失败: ' + proxy)
-
-
 def collect_components(entity_name: str) -> dict:
     """Collect legacy multi-stage or single-stage assembly data in AsbStepUsd format."""
     root, legacy, proxies = scene_info(entity_name)

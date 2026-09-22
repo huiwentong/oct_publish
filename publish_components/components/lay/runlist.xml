@@ -1,18 +1,5 @@
 <?xml version="1.0"?>
-<!--
-    镜头 Layout 发布 —— lay 环节 rough_layout 任务
-    迁移自 depts/mk2/lay 的 publish_checks.xml + publish_processes.xml
-
-    老的 3 个 check_group（Daily / Downstream / Downstream 2）已按新架构
-    压平成 Dailies / Publish 两组；process 的 mode 由 daily/downstream 改为 Dailies/Publish。
-
-    老 runlist 里 allow_skip="true" 的项（check_dcc_rv / unknown_plugins / check_mov_range /
-    check_file_frame_range / check_resources / check_asset_version）新架构全部按硬性阻断处理。
-
-    镜头类 Maya 环节（lay / blk / ani）共用的组件放在 maya_shot 下，方便后续迁 blk / ani 复用。
--->
 <root>
-
     <checkcontainer>
         <check_group name="Dailies">
             <check type="gen" name="check_dcc_rv"/>

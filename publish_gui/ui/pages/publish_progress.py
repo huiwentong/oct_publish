@@ -205,9 +205,9 @@ class PublishProgressPage(QWidget):
     def set_step(self, row):
         step = (row + 1) / self._table.rowCount() * 100
         self._progress_val = step
-        if self._progress_val >= 98:self._progress_val = 100
         self._progress.setValue(self._progress_val)
-        if self._progress_val >= 100:
+        # 与 check_panel 一致，按行号判定完成，不用百分比阈值
+        if row + 1 >= self._table.rowCount():
             self._show_result()
 
 

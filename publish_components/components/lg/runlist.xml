@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<root>
+
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="lg" name="check_rv"/>
+            <check type="lg" name="check_version_name"/>
+            <check type="lg" name="check_version_increment"/>
+            <check type="lg" name="check_cut_range"/>
+            <check type="lg" name="check_external_shot"/>
+            <check type="lg" name="check_preview_path"/>
+            <check type="lg" name="check_movie_range"/>
+            <check type="lg" name="check_preview_frames"/>
+            <check type="lg" name="check_status"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="lg" name="guard_uat_target" mode="Dailies"/>
+        <process type="lg" name="create_version_dirs" mode="Dailies"/>
+        <process type="lg" name="copy_preview" mode="Dailies"/>
+        <process type="lg" name="copy_thumbnail" mode="Dailies"/>
+        <process type="lg" name="create_sg_version" mode="Dailies"/>
+        <process type="lg" name="lock_version" mode="Dailies"/>
+    </processcontainer>
+
+</root>

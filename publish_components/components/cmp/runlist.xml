@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+<root>
+
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="cmp" name="check_rv"/>
+            <check type="cmp" name="check_version_name"/>
+            <check type="cmp" name="check_cut_range"/>
+            <check type="cmp" name="check_version_increment"/>
+            <check type="cmp" name="check_preview_path"/>
+            <check type="cmp" name="check_movie_range"/>
+            <check type="cmp" name="check_status"/>
+        </check_group>
+        <check_group name="Publish">
+            <check type="cmp" name="check_nuke_source"/>
+            <check type="cmp" name="check_publish_preview"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="cmp" name="guard_publish_uat_target" mode="Publish"/>
+        <process type="cmp" name="save_nuke_script" mode="Publish"/>
+        <process type="cmp" name="create_publish_version_dirs" mode="Publish"/>
+        <process type="cmp" name="copy_nuke_script" mode="Publish"/>
+        <process type="cmp" name="copy_or_generate_publish_preview" mode="Publish"/>
+        <process type="cmp" name="scan_nuke_dependencies" mode="Publish"/>
+        <process type="cmp" name="write_publish_version_info" mode="Publish"/>
+        <process type="cmp" name="create_publish_sg_version" mode="Publish"/>
+        <process type="cmp" name="lock_publish_version" mode="Publish"/>
+        <process type="cmp" name="version_up_workfile" mode="Publish"/>
+        <process type="cmp" name="guard_uat_target" mode="Dailies"/>
+        <process type="cmp" name="create_version_dirs" mode="Dailies"/>
+        <process type="cmp" name="copy_or_generate_preview" mode="Dailies"/>
+        <process type="cmp" name="write_version_info" mode="Dailies"/>
+        <process type="cmp" name="create_sg_version" mode="Dailies"/>
+        <process type="cmp" name="lock_version" mode="Dailies"/>
+    </processcontainer>
+
+</root>

@@ -1,0 +1,30 @@
+from __future__ import annotations
+
+
+MIN_VERSION_NUMBER = 1
+MAX_VERSION_NUMBER = 999
+
+DAILY_MODE = "Dailies"
+SUBMIT_MODE = "Submit"
+PUBLISH_MODE = "Publish"
+
+VALID_PUBLISH_MODES = (DAILY_MODE, SUBMIT_MODE, PUBLISH_MODE)
+
+SHOT_ENTITY_TYPE = "Shot"
+ASSET_ENTITY_TYPE = "Asset"
+SEQUENCE_ENTITY_TYPE = "Sequence"
+
+NUKE_DCC = "Nuke"
+
+
+SG_VERSION_TYPE_DAILIES = "Dailies"
+SG_VERSION_TYPE_SUBMIT = "Submit"
+SG_VERSION_TYPE_PUBLISH = "Publish"
+
+SG_STATUS_OMT = "omt"
+SG_STATUS_FIN = "fin"
+SG_STATUS_HLD = "hld"
+SG_STATUS_RDONE = "rdone"
+
+LGT_STEP_NAMES = ("Lgt", "LGT", "lg")
+CMP_STEP_NAMES = ("Cm", "CMP", "cmp")

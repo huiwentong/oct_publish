@@ -26,6 +26,17 @@ _STEP_ALIASES = {
 }
 
 
+def task_content_for_workfile(step_hint: str, file_task: str) -> str:
+    """Map a review-workfile label to its owning SG Task, not a new Task."""
+    if str(file_task).lower() == "slapcomp":
+        step_key = str(step_hint).lower()
+        if step_key in ("lg", "lgt"):
+            return "lighting"
+        if step_key in ("cm", "cmp"):
+            return "compositing"
+    return file_task
+
+
 class TaskResolutionError(RuntimeError):
     """Raised when a workfile cannot be resolved to one unique ShotGrid Task."""
 
@@ -94,6 +105,25 @@ def parse_nuke_workfile(
     )
 
 
+def is_slapcomp_source_for_version(script_path: str, version_key: str) -> bool:
+    """Accept only a same-shot/step slapcomp source for its canonical Task."""
+    try:
+        source = parse_nuke_workfile(script_path)
+        target = parse_nuke_workfile(str(version_key or "") + ".v001.nk")
+    except TaskResolutionError:
+        return False
+    if source.task_content.lower() != "slapcomp":
+        return False
+    source_steps = _STEP_ALIASES.get(source.step_hint, set())
+    target_steps = _STEP_ALIASES.get(target.step_hint, set())
+    return bool(
+        source_steps.intersection(target_steps)
+        and source.entity_code.lower() == target.entity_code.lower()
+        and task_content_for_workfile(source.step_hint, source.task_content).lower()
+        == target.task_content.lower()
+    )
+
+
 def resolve_task_from_path(
     script_path: str,
     sg: Any = None,
@@ -143,7 +173,9 @@ def resolve_task_from_path(
         [["entity", "is", entity]],
         ["id", "content", "step", "entity", "project", "sg_status_list"],
     )
-    task_content = parsed.task_content.lower()
+    task_content = task_content_for_workfile(
+        parsed.step_hint, parsed.task_content,
+    ).lower()
     tasks = [
         task
         for task in tasks
@@ -173,9 +205,11 @@ def resolve_task_from_path(
 
     if not matches:
         raise TaskResolutionError(
-            "No ShotGrid Task matches shot '{}', step '{}', task '{}'.".format(
+            "No ShotGrid Task matches shot '{}', step '{}', task '{}' "
+            "(workfile task token '{}').".format(
                 parsed.entity_code,
                 parsed.step_hint,
+                task_content,
                 parsed.task_content,
             )
         )

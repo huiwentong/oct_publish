@@ -18,6 +18,7 @@ from .preview import (
     classify_preview_paths,
 )
 from .result import CheckResult
+from .task_resolver import is_slapcomp_source_for_version
 from .versions import format_version_name, get_max_sg_version
 
 
@@ -176,14 +177,16 @@ def check_cmp_nuke_source(
 
     version_key = str(context.get("version_key") or "")
     basename = os.path.basename(path)
-    if not version_key or not re.match(
+    standard_source = bool(version_key) and re.match(
         r"^{}\.v\d{{3}}\.nk$".format(re.escape(version_key)),
         basename,
         re.IGNORECASE,
-    ):
+    )
+    if not standard_source and not is_slapcomp_source_for_version(path, version_key):
         return CheckResult.fail(
             name,
-            "Nuke 文件名与当前任务不一致，应匹配 {}.v###.nk".format(
+            "Nuke 文件名与当前任务不一致，应匹配 {}.v###.nk，"
+            "或使用同镜头、同环节的 slapcomp.v###.nk".format(
                 version_key or "<task>"
             ),
         )

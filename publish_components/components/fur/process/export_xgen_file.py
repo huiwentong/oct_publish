@@ -36,7 +36,7 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
                 pm.setAttr(hs + '.simulationMethod', 1)
                 pm.setAttr(hs + '.active', 0)
             pm.saveFile(f=1)
-
+            process_data.update({"new_v_xgen_file": xgen_file_path})
         utils.executeInMainThreadWithResult(process)
     except Exception:
         return traceback.format_exc()

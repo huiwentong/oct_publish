@@ -17,6 +17,9 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
             if cmds.objExists('xgGroom'):
                 cmds.delete('xgGroom')
 
+            if not cmds.pluginInfo("AbcExport", q=True, loaded=True):
+                cmds.loadPlugin("AbcExport")
+
             palettes = xg.palettes()
             pale = palettes[0]
             dess = xg.descriptions(pale)

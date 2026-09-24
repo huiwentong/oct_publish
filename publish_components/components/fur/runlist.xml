@@ -14,6 +14,7 @@
         </check_group>
 
         <check_group name="Publish">
+            <check type="fur" name="setup_fur_scene"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_hierarchy_main"/>

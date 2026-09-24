@@ -31,7 +31,7 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
         version_dir = process_data.get("version_dir")
         version_dir = str(version_dir).replace("\\","/").rstrip("/")
         high_usd = "{}/high.usd".format(usd_dir)
-        xgen_file = glob(version_dir + '/*.xgen')[0]
+        xgen_file = process_data.get("new_v_xgen_file", '')
         xgen_file = str(xgen_file).replace("\\","/")
         shader_ma = "{}/srf_shaders.ma".format(version_dir)
         geom_file = "{}/alembic/base.abc".format(version_dir)

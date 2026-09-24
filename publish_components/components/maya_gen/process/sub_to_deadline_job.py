@@ -4,6 +4,7 @@ import subprocess
 import maya.utils as utils
 from oct.pipeline.task_context import TaskContext
 from oct_maya.tools.utils.oct_asset_turntable.core.api import TurntableAPI
+from publish_components.utils.sg_helper import get_asset_kind, MAYA_SCENE_TAG, UE_SCENE_TAG
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """提交deadline任务: Turntable"""
@@ -41,7 +42,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 subprocess.run(cmd, check=True, env=env_dict, creationflags=subprocess.CREATE_NO_WINDOW)
                 logger.debug('run submitTurntableToDeadline args: {} {} {} {}'.format(proj_name, asset_name, dept, task))
 
-        if tc.entity.sg_asset_type.lower() in ["chr", "ch", "prop", "prp"]:
+        # Maya场景 / UE场景资产不做 turntable
+        is_scene_asset = get_asset_kind(task_id) in (MAYA_SCENE_TAG, UE_SCENE_TAG)
+        if not is_scene_asset and tc.entity.sg_asset_type.lower() in ["chr", "ch", "prop", "prp"]:
             submit_to_deadline_turntable()
 
     except Exception:

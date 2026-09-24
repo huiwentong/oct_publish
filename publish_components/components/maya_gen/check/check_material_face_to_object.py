@@ -49,14 +49,50 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
 
 def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-    """将单材质模型改为整物体赋材质"""
+    """打断残留的空材质连接，并将单材质模型改为整物体赋材质"""
     try:
         def repair():
-            fix_data = process_data.get("face_material_fix_data", {})
-            for mesh, sg in fix_data.items():
-                pm.sets(sg, e=True, forceElement=mesh)
-                logger.warning("AUTO FIX: 材质改为整物体赋值: {} -> {}".format(mesh, sg))
-        utils.executeInMainThreadWithResult(repair)
+            cut = 0
+            forced = 0
+            n_high = process_data.get("high", "|Root_grp|Geo_grp|high")
+            for shape in pm.listRelatives(n_high, ad=True, type="mesh", ni=True, fullPath=True) or []:
+                conns = pm.listConnections(shape, type="shadingEngine", c=True, p=True) or []
+
+                # 按实际成员区分：整体赋值 / 按面赋值 / 没有成员（残留的空连接）
+                used, face_sgs = set(), set()
+                for sg in set(plug.node() for _, plug in conns):
+                    for item in pm.sets(sg, q=True) or []:
+                        if isinstance(item, pm.MeshFace):
+                            if item.node() == shape:
+                                used.add(sg)
+                                face_sgs.add(sg)
+                        elif item == shape or (isinstance(item, pm.nt.Transform) and shape in item.getShapes()):
+                            used.add(sg)
+
+                # 改过材质后会残留指向旧 SG 的连接，里面没有这个模型的成员，直接打断
+                for shape_plug, sg_plug in conns:
+                    if sg_plug.node() in used:
+                        continue
+                    if pm.isConnected(shape_plug, sg_plug):
+                        pm.disconnectAttr(shape_plug, sg_plug)
+                    elif pm.isConnected(sg_plug, shape_plug):
+                        pm.disconnectAttr(sg_plug, shape_plug)
+                    cut += 1
+                    logger.warning("AUTO FIX: 打断残留材质连接: {} -> {}".format(shape_plug, sg_plug))
+
+                # 只剩一个材质但按面赋值的，改为整物体赋值
+                if len(used) == 1 and face_sgs:
+                    sg = used.pop()
+                    pm.sets(sg, e=True, forceElement=shape)
+                    forced += 1
+                    logger.warning("AUTO FIX: 材质改为整物体赋值: {} -> {}".format(shape.longName(), sg.name()))
+
+            return cut, forced
+
+        cut, forced = utils.executeInMainThreadWithResult(repair)
+        if not cut and not forced:
+            return "没有可自动修复的内容：报错中的模型确实使用了多个材质，请手动改为单个材质整物体赋值"
+        logger.info("材质修复完成：打断残留连接 {} 处，整物体赋值 {} 个模型".format(cut, forced))
 
     except Exception:
         return traceback.format_exc()

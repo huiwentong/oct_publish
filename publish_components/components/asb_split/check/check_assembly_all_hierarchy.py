@@ -91,9 +91,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             "root": asb_root,
             "geo": asb_root,
             "high": asb_root,
-            "low": None,
             "gen_asset_data": gen_asset_data,
         })
+        # low 这个键不写：ASB 场景没有 low 组。写成 None 的话，下游
+        # process_data.get('low', 默认路径) 会拿到 None（.get 的默认值只在键不存在时生效），
+        # 再传给 pm.objExists 就是 "Too few arguments given"
 
         logger.info(u"本次将拆分 {0} 个资产: {1}".format(
             len(gen_asset_data), u"、".join(gen_asset_data.keys())))

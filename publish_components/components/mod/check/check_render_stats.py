@@ -2,6 +2,7 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -37,10 +38,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return data
 
-        error_data = utils.executeInMainThreadWithResult(check)
-        if error_data:
-            process_data["mesh_render_attr_error_nodes"] = error_data
-            return "以下 Mesh 渲染属性不正确:\n{}".format("\n".join(error_data))
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            error_data = utils.executeInMainThreadWithResult(check)
+            if error_data:
+                process_data["mesh_render_attr_error_nodes"] = error_data
+                return "以下 Mesh 渲染属性不正确:\n{}".format("\n".join(error_data))
 
     except Exception:
         return traceback.format_exc()

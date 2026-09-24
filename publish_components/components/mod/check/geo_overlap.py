@@ -2,6 +2,7 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """检查疑似完全重叠的几何体"""
@@ -24,12 +25,14 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             ]
             return overlapping
 
-        overlap_nodes = utils.executeInMainThreadWithResult(check)
-        if overlap_nodes:
-            msg = ""
-            for group in overlap_nodes:
-                msg += "疑似完全重叠的模型: {} \n".format(" 和 ".join(str(node) for node in group))
-            return msg
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            overlap_nodes = utils.executeInMainThreadWithResult(check)
+            if overlap_nodes:
+                msg = ""
+                for group in overlap_nodes:
+                    msg += "疑似完全重叠的模型: {} \n".format(" 和 ".join(str(node) for node in group))
+                return msg
 
     except Exception:
         return traceback.format_exc()

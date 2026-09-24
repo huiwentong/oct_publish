@@ -3,10 +3,11 @@ import traceback
 import pymel.core as pm
 import maya.utils as utils
 import maya.api.OpenMaya as om
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
-    检查四边面
+    检查不能大于四边面
     """
     try:
         def check():
@@ -33,9 +34,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 pm.select(l_invalid_faces, r=True)
             return l_invalid_meshes
 
-        invalid_meshes = utils.executeInMainThreadWithResult(check)
-        if len(invalid_meshes) > 0:
-            return u'有些polygon几何体有多于4条棱的面:\n' + ', '.join(invalid_meshes)
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            invalid_meshes = utils.executeInMainThreadWithResult(check)
+            if len(invalid_meshes) > 0:
+                return u'有些polygon几何体有多于4条棱的面:\n' + ', '.join(invalid_meshes)
 
     except:
         return traceback.format_exc()

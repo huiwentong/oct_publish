@@ -10,6 +10,7 @@ from oct.pipeline.shotgun.models import Asset, Tag, Task
 from oct.pipeline.task_context import TaskContext
 
 from publish_components.utils.maya_utils import get_asb_nodes
+from publish_components.utils.sg_helper import get_asset_kind, SCENE_TAG_IDS
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -17,7 +18,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     在SG上创建所有拆分后的资产，记录到gen_asset.json文件
     """
     # ！！本组件会往 ShotGrid 写数据，重跑前请留意 ！！
-    #   1. 为每个拆分出来的层级创建 Asset（已存在则复用），并打上「ASB自动拆分」标签
+    #   1. 为每个拆分出来的层级创建 Asset（已存在则复用），打上「ASB自动拆分」标签，
+    #      并把父 ASB 的场景标签（Maya场景 / UE场景）一并打上
     #   2. 为每个资产创建 model 任务（已存在则复用）
     #   3. 覆盖式更新每个 ASB 资产的 assets 字段（子资产 + ENV 占位）
     # 创建部分是幂等的，重跑不会产生重复资产；第 3 步是覆盖写，
@@ -65,11 +67,25 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 )
                 logger.info(u"创建资产: {0} (id={1})".format(asset_name, sg_asset.id))
 
-            # 打上「ASB自动拆分」标签，便于之后检索这批自动生成的资产
-            sg_tag = get_tag_or_create(tag_name='ASB自动拆分')
-            tags_list = sg_asset.tags[:]
-            if sg_tag not in tags_list:
-                tags_list.append(sg_tag)
+            # 给子资产打两个标签：
+            #   「ASB自动拆分」—— 标记这批资产是自动生成的，便于之后在 SG 上检索
+            #   场景标签（Maya场景 / UE场景）—— 跟父 ASB 保持一致
+            # 场景标签同一时刻只能挂一个，所以先把旧的摘掉再打新的。
+            # 举个例子：主 ASB 的标签从 Maya 改成 UE（或反过来）后重新拆分时，不摘旧标签的话
+            # 子资产身上会两个并存，而 get_asset_kind 是先判 Maya 再判 UE，
+            # 改成 UE 的那次就会被旧的 Maya 标签顶掉，判定跟父 ASB 对不上
+            old_tags = sg_asset.tags[:]
+            scene_tag_ids = set(SCENE_TAG_IDS.values())
+            tags_list = [t for t in old_tags if t.id not in scene_tag_ids]
+
+            new_tags = [get_tag_or_create(tag_name='ASB自动拆分')]
+            if scene_tag_id:
+                new_tags.append(Tag.get(id=scene_tag_id))
+            for sg_tag in new_tags:
+                if sg_tag not in tags_list:
+                    tags_list.append(sg_tag)
+
+            if {t.id for t in tags_list} != {t.id for t in old_tags}:
                 sg_asset.tags = tags_list
                 sg_asset.save()
 
@@ -91,6 +107,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             )
             logger.info(u"创建 model 任务: {0} (id={1})".format(sg_asset.code, sg_task.id))
             return sg_task
+
+        # 父 ASB 打的是哪个场景标签，子资产就跟着打哪个；父 ASB 本身没打标签时
+        # get_asset_kind 会回退成 UE_SCENE_TAG，这里同样照搬，保证父子判定一致
+        scene_tag_id = SCENE_TAG_IDS.get(get_asset_kind(process_data['task_id']))
 
         tc = TaskContext(process_data['task_id']) or TaskContext.from_env()
         version_dir = process_data["version_dir"]

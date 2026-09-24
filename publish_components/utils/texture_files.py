@@ -334,3 +334,84 @@ def set_texture_path(node_attr, new_path):
 
     if color_space:
         cmds.setAttr(node + '.colorSpace', color_space, type='string')
+
+
+# 文件名后缀取 md5 的前几位，足够区分又不会让文件名太长
+HASH_LENGTH = 8
+
+
+def get_asset_texture_nodes(n_root):
+    """
+    找出资产层级下用到的贴图节点，按 shadingEngine 的上游节点判断，与 maya_gen/copy_asset_images 一致。
+
+    Args:
+        n_root: PyNode, 资产根层级
+
+    Returns:
+        list, [(节点名, 属性名), ...]，去重
+    """
+    import pymel.core as pm
+
+    from publish_components.utils.maya_utils import get_upstream_nodes
+
+    root_path = n_root.fullPath() + '|'
+    texture_nodes = []
+    seen = set()
+    for se in pm.ls(type='shadingEngine'):
+        upstream = get_upstream_nodes.get_nodes(se)
+        if not any(node_path.startswith(root_path) for node_path in upstream):
+            continue
+        for node_path in upstream:
+            node = pm.PyNode(node_path)
+            attr_name = TEXTURE_NODE_ATTRS.get(node.nodeType())
+            if attr_name and node.name() not in seen:
+                seen.add(node.name())
+                texture_nodes.append((node.name(), attr_name))
+
+    return texture_nodes
+
+
+def group_textures(texture_nodes, resolver, logger):
+    """
+    按解析后的路径模式归并贴图节点，同一套贴图被多个节点引用时只处理一次。
+
+    Returns:
+        dict, {pattern小写: {'pattern', 'files', 'nodes': [(node_attr, raw_path), ...]}}
+    """
+    groups = {}
+    for node, attr_name in texture_nodes:
+        raw_path, pattern = resolve_texture_pattern(node, attr_name)
+        if not pattern:
+            continue
+
+        key = pattern.lower()
+        if key not in groups:
+            files = resolver.find_files(pattern)
+            if not files:
+                logger.warning(u'贴图不存在，跳过: {0}.{1} = {2}'.format(node, attr_name, raw_path))
+                groups[key] = None
+            else:
+                groups[key] = {'pattern': pattern, 'files': files, 'nodes': []}
+
+        if groups[key]:
+            groups[key]['nodes'].append((node + '.' + attr_name, raw_path))
+
+    return {key: info for key, info in groups.items() if info}
+
+
+def assign_suffixes(groups, logger):
+    """
+    找出文件名相同的贴图组，同名同内容的合并，同名不同内容的给每组分配哈希后缀。
+
+    Args:
+        groups: dict, group_textures 的结果，会就地给每组加上 'suffix' 键（没冲突为空字符串）
+    """
+    conflict_count = assign_collision_suffixes(groups.values(), hash_length=HASH_LENGTH)
+    if not conflict_count:
+        return
+
+    logger.info(u'检测到实际输出文件名冲突，{0} 组贴图按哈希改名:'.format(conflict_count))
+    for info in groups.values():
+        if info['suffix']:
+            logger.info(u'   {0} -> {1}'.format(
+                info['pattern'], add_suffix(os.path.basename(info['pattern']), info['suffix'])))

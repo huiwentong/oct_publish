@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 import maya.cmds as cmds
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -19,11 +20,13 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
             return list(set(result))
 
-        check_result = get_meshes_with_colorset()
-        if check_result:
-            text = u'以下模型带有colorset: \n{}'.format('\n'.join(list(set(check_result))))
-            process_data["check_mod_color_set_error_nodes"] = check_result
-            return text
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            check_result = get_meshes_with_colorset()
+            if check_result:
+                text = u'以下模型带有colorset: \n{}'.format('\n'.join(list(set(check_result))))
+                process_data["check_mod_color_set_error_nodes"] = check_result
+                return text
     except:
         return traceback.format_exc()
 

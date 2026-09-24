@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 import traceback
+
 import pymel.core as pm
 import maya.utils as utils
-from oct.pipeline.path_acs import old_get_path
+
+from publish_components.utils.sg_helper import (
+    get_asset_kind, MAYA_SCENE_TAG, UE_SCENE_TAG)
+
 
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -10,6 +14,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
 
     try:
+        # Maya 场景 / UE 场景类资产的模型不按 body 等类型组划分，放在 high 下面就算合格
+        is_scene_asset = get_asset_kind(process_data.get('task_id')) in (
+            MAYA_SCENE_TAG, UE_SCENE_TAG)
+
         def check():
             if not pm.objExists('|Root_grp'):
                 return u"找不到最高层级的组 |Root_grp"
@@ -18,7 +26,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 return u"找不到保存面的组 |Root_grp|Geo_grp"
 
             n_geo = pm.PyNode('|Root_grp|Geo_grp')
-            l_children = pm.listRelatives(n_geo, c=True)
+            l_children = pm.listRelatives(n_geo, c=True) or []
             if len(l_children) == 0:
                 return u"|Root_grp|Geo_grp 组下为空"
 
@@ -28,18 +36,22 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             if not pm.objExists('|Root_grp|Geo_grp|high'):
                 return u"Geo_grp 组下没有 high 组"
 
-            if not pm.objExists('|Root_grp|Geo_grp|low'):
+            if not is_scene_asset and not pm.objExists('|Root_grp|Geo_grp|low'):
                 return u"Geo_grp 组下没有 low 组"
 
-            if not pm.objExists('|Root_grp|Geo_grp|high|body'):
-                return u"high 组下没有body组"
+            h_children = pm.listRelatives('|Root_grp|Geo_grp|high', c=True) or []
+            if not h_children:
+                return u"|Root_grp|Geo_grp|high 组下为空"
 
-            h_children = pm.listRelatives('high', c=True)
-            for child in h_children:
-                if pm.listRelatives(child, s=1):
-                    return u'high下面应该是各个类型组，不能直接放模型'
+            if not is_scene_asset:
+                if not pm.objExists('|Root_grp|Geo_grp|high|body'):
+                    return u"high 组下没有body组"
 
-            trans_list = pm.listRelatives('|Root_grp|Geo_grp|high', ad=1, type='transform')
+                for child in h_children:
+                    if pm.listRelatives(child, s=1):
+                        return u'high下面应该是各个类型组，不能直接放模型'
+
+            trans_list = pm.listRelatives('|Root_grp|Geo_grp|high', ad=1, type='transform') or []
             error_hierarchy_node_list = []
             gpu_loaded = pm.pluginInfo('gpuCache', q=1, loaded=True)
             for trans in trans_list:
@@ -62,8 +74,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 'root': pm.PyNode('|Root_grp'),
                 'geo': pm.PyNode('|Root_grp|Geo_grp'),
                 'high': pm.PyNode('|Root_grp|Geo_grp|high'),
-                'low': pm.PyNode('|Root_grp|Geo_grp|low') if pm.objExists('|Root_grp|Geo_grp|low') else None,
             })
+        # 场景类资产可以没有 low，仅存在这个组才写这个键，给None的话后面取会报错
+        if pm.objExists('|Root_grp|Geo_grp|low'):
+            process_data['low'] = pm.PyNode('|Root_grp|Geo_grp|low')
 
     except:
         return traceback.format_exc()

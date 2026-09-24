@@ -8,6 +8,7 @@ import maya.utils as utils
 from oct.pipeline.task_context import TaskContext
 
 from publish_components.utils.maya_utils import get_asb_nodes
+from publish_components.utils.sg_helper import get_asset_kind
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -20,6 +21,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     # 依赖 create_sub_asset_and_record 回写的 id / model_task_id，
     # 并把 deadline_job_file 路径回写进 gen_asset_data 供 submit_asb_deadline_task 使用。
     try:
+        # 农场端按这个值决定子资产走哪套发布流程。取的是父 ASB 的标签，
+        # 而且只在这里查一次写进 json：json 是本次拆分的快照，
+        # 农场端重新查 SG 的话，中途改标签会导致前后两段流程判定不一致
+        asset_kind = get_asset_kind(process_data['task_id'])
+
         tc = TaskContext(process_data['task_id']) or TaskContext.from_env()
         version_dir = process_data["version_dir"]
         gen_asset_data = process_data["gen_asset_data"]
@@ -63,6 +69,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 'asset_id': asset_info['id'],
                 'asset_name': sub_asset_name,
                 'asset_type': asset_info['asset_type'],
+                'asset_kind': asset_kind,
                 'sub_assets_data': sub_assets_data,
                 'env_assets_data': env_assets_data,
                 'model_task_id': asset_info['model_task_id'],

@@ -2,6 +2,8 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
+
+
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     隐藏low组
@@ -9,8 +11,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     try:
         def check():
             n_low = process_data.get('low', '|Root_grp|Geo_grp|low')
-            n_low = pm.PyNode(n_low)
+
+            # 场景类资产可以没有 low 组，先判断再取 PyNode
             if pm.objExists(n_low):
+                n_low = pm.PyNode(n_low)
                 logger.warning("AUTO FIX: 设置 low 组不可见！")
                 n_low.setAttr("v", lock=False)
                 n_low.visibility.set(False)
@@ -19,5 +23,3 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
     except:
         return traceback.format_exc()
-
-

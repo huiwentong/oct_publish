@@ -4,6 +4,7 @@ import random
 import pymel.core as pm
 import maya.mel as mel
 import maya.utils as utils
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -18,10 +19,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if (pm.polyUVSet(mesh, q=True, allUVSets=True) or []) != ["map1"]
             ]
 
-        error_nodes = utils.executeInMainThreadWithResult(check)
-        if error_nodes:
-            process_data["uv_set_error_nodes"] = error_nodes
-            return "以下模型 UV Set 不正确:\n{}".format("\n".join(error_nodes))
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            error_nodes = utils.executeInMainThreadWithResult(check)
+            if error_nodes:
+                process_data["uv_set_error_nodes"] = error_nodes
+                return "以下模型 UV Set 不正确:\n{}".format("\n".join(error_nodes))
 
     except Exception:
         return traceback.format_exc()

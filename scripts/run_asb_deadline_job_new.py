@@ -44,6 +44,49 @@ PROCESS_LIST = [
     ('gen',       'create_sg_version'),
 ]
 
+# 打了「Maya场景」标签的 ASB 拆出来的 PROP 子资产，按 mod 环节发布。
+# 只有 PROP 适用：standard_structure 会把 PROP 整理成 |Root_grp|Geo_grp|high，
+# 正是 mod 组件假设的层级；ASB 类型子资产保持自身层级，套不上，仍走 PROCESS_LIST。
+PROCESS_LIST_MOD = [
+    ('gen',       'create_v_dir'),
+    ('gen',       'copy_preview_to_v_dir'),
+    ('asb_split', 'standard_structure'),
+    ('asb_split', 'group_align_cleanup'),
+    ('mod',       'unlock_normal_and_soften_edge'),
+    ('maya_gen',  'clean_scene'),
+    ('maya_gen',  'clean_asset_scene'),
+    ('mod',       'clean_mod_scene'),
+    ('maya_gen',  'maya_version_attr'),
+    ('maya_gen',  'asset_mesh_xml'),
+    ('maya_gen',  'copy_asset_images'),
+    ('mod',       'export_asset_ma'),
+    ('mod',       'export_asset_usd'),
+    ('mod',       'update_asset_poly_cnt'),
+    ('gen',       'create_manifest_file'),
+    ('gen',       'lock_v_dir'),
+    ('gen',       'sym_link_no_num_version'),
+    ('gen',       'create_sg_version'),
+    ('mod',       'auto_gener_low_usd'),
+]
+
+# gen_asb_deadline_job 写进 job json 的值，和 publish_components.utils.sg_helper
+# 的 MAYA_SCENE_TAG 对应。这里不 import sg_helper：农场端要少拉依赖，
+# 而且这个值来自 json 快照，不该再回头查 SG
+MAYA_SCENE_KIND = 'maya_scene'
+
+
+def pick_process_list(job_data):
+    """按资产类别和类型选发布流程。
+
+    Args:
+        job_data: dict, gen_asb_deadline_job 写出的 *.deadline_job.json
+    Returns:
+        (list, str) 组件列表和流程名，流程名只用于日志
+    """
+    if job_data.get('asset_kind') == MAYA_SCENE_KIND and job_data['asset_type'] == 'PROP':
+        return PROCESS_LIST_MOD, 'mod'
+    return PROCESS_LIST, 'asb'
+
 # 农场自动发布出来的版本固定用「正式」标签，描述也固定
 PUBLISH_TAG_ID = 283          # 283 = 正式
 PUBLISH_DESCRIPTION = 'Deadline 自动发布ASB模型版本'
@@ -148,6 +191,7 @@ def build_process_data(job_data):
         # ── 发布表单 ──
         'preview_paths': [job_data['thumb_file']],
         'comment': PUBLISH_DESCRIPTION,
+        'auto_description': {},
         'publish_type': 'Publish',
         'publish_tag_id': PUBLISH_TAG_ID,
         'is_deadline_job': True,
@@ -171,12 +215,14 @@ def main(job_data):
     submit_data = {}
     user = job_data['user']
 
-    logger.info('>>>> Publishing {0} ({1}) -> {2}'.format(
+    process_list, flow_name = pick_process_list(job_data)
+    logger.info('>>>> Publishing {0} ({1}) -> {2} [flow: {3}]'.format(
         process_data['entity_name'],
         process_data['entity_asset_type'],
-        process_data['version_dir']))
+        process_data['version_dir'],
+        flow_name))
 
-    for ctype, name in PROCESS_LIST:
+    for ctype, name in process_list:
         module_path = 'publish_components.components.{0}.process.{1}'.format(ctype, name)
         module = importlib.import_module(module_path)
 

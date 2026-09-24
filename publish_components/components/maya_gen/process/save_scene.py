@@ -88,8 +88,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             try:
                 task = SGEntity('Task', process_data['task_id'])
                 if task.entity.type in ['Shot', 'Sequence']:
+                    # 这里如果直接  pm.saveFile(force=True) 有时候会报错说需要 rename
+                    pm.renameFile(pm.sceneName())
                     pm.saveFile(force=True)
                 else:
+                    pm.renameFile(pm.sceneName())
                     pm.saveFile(force=True, uiConfiguration=False)
             except:
                 return traceback.format_exc()

@@ -6,6 +6,7 @@ import maya.api.OpenMaya as om
 
 from importlib import reload
 from publish_components.utils.maya_utils import dialogs
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 reload(dialogs)
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """查找重叠顶点"""
@@ -45,18 +46,20 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return data, error_vertices
 
-        error_data, error_vertices = utils.executeInMainThreadWithResult(check)
-        process_data["vertex_overlap_error_nodes"] = error_data
+        # UE 场景资产不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+            error_data, error_vertices = utils.executeInMainThreadWithResult(check)
+            process_data["vertex_overlap_error_nodes"] = error_data
 
-        if error_data:
-            msg = "以下模型有重叠顶点，帮你选中了这些点，请判断是否跳过，自动修复点击 'fix'按钮:\n{}".format(
-                "\n".join(error_data))
-            if parent_widget:
-                result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)
-                if result and result == "停止提交":
+            if error_data:
+                msg = "以下模型有重叠顶点，帮你选中了这些点，请判断是否跳过，自动修复点击 'fix'按钮:\n{}".format(
+                    "\n".join(error_data))
+                if parent_widget:
+                    result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)
+                    if result and result == "停止提交":
+                        return msg
+                else:
                     return msg
-            else:
-                return msg
 
     except Exception:
         return traceback.format_exc()

@@ -38,6 +38,20 @@
             <check type="maya_gen" name="check_display_layers"/>
             <check type="mod" name="check_node_override"/>
             <check type="mod" name="assign_shaders"/>
+
+            <!-- ↓ 以下检查只对打了「Maya场景」标签的资产生效。UE 场景资产、
+                 以及没打标签的 ASB（get_asset_kind 会回退成 UE_SCENE_TAG），
+                 都会在各组件内部自行跳过 -->
+            <check type="mod" name="check_mesh"/>
+            <check type="mod" name="vertex_overlap"/>
+            <check type="mod" name="vertex_isolated"/>
+            <check type="mod" name="geo_overlap"/>
+            <check type="mod" name="face_edge_chr"/>
+            <check type="mod" name="check_mod_color_set"/>
+            <check type="mod" name="check_render_stats"/>
+            <check type="maya_gen" name="check_multi_uv_sets"/>
+            <check type="maya_gen" name="check_facesets"/>
+            <check type="maya_gen" name="check_unused_material"/>
         </check_group>
     </checkcontainer>
 
@@ -48,6 +62,9 @@
         <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>
         <process type="asb_split" name="clean_asb_scene" mode="Publish"/>
         <process type="maya_gen" name="clean_scene" mode="Publish"/>
+        <!-- 贴图收进版本目录并按哈希去重，紧接着 export_asb_source_scene 把 source.ma 的
+             路径指过去，两者必须相邻：中间插别的组件会让 tex_rename 和场景状态对不上 -->
+        <process type="asb_split" name="copy_asb_asset_images" mode="Publish"/>
         <process type="asb_split" name="export_asb_source_scene" mode="Publish"/>
         <process type="asb_split" name="snapshot_each_object" mode="Publish"/>
         <process type="asb_split" name="create_sub_asset_and_record" mode="Publish"/>

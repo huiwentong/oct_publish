@@ -2,15 +2,16 @@
 import traceback
 import os
 import glob
+
 from pxr import Usd
 import pymel.core as pm
-from importlib import reload
+
 from oct.data.usd import step_pub_usds
 from oct.pipeline.path_acs import make_dirs
-from publish_components.utils.sg_helper import is_rig_task_omit
 from oct_maya.utils.maya_utils.shape import is_scene_has_instance
+from publish_components.utils.sg_helper import get_asset_kind, DEFAULT_ASSET_TAG
 from publish_components.utils.maya_utils.export_usd_core import batch_export_mod_usd
-reload(step_pub_usds)
+
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """导出资产的版本 USD 文件"""
@@ -21,12 +22,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         v_dir_usd = process_data["v_dir_usd"]
         version_dir = process_data["version_dir"]
         n_low = process_data.get("low", "|Root_grp|Geo_grp|low")
-        is_env = is_rig_task_omit(task_id)
+        is_scene_asset = get_asset_kind(task_id) != DEFAULT_ASSET_TAG
         pm.loadPlugin('mayaUsdPlugin', quiet=True)
 
-        # 如果它的绑定任务状态为弃用，代表它是一个场景
         # 场景如果带有关联复制，无法导出usd，需要设置导出usd参数 exportInstances=False
-        if is_env and is_scene_has_instance():
+        if is_scene_asset and is_scene_has_instance():
             export_instances_value = False
         else:
             export_instances_value = True
@@ -62,7 +62,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         Usd.Stage.Open(v_dir_usd + '/high.usd')
 
         has_low = False
-        if is_env and pm.objExists(n_low):
+        if is_scene_asset and pm.objExists(n_low):
             has_low = bool(pm.listRelatives(n_low, allDescendents=True, shapes=True))
         step_pub_usds.ModStepUsd(version_folder=version_dir,task_id=task_id, has_low=has_low)
 

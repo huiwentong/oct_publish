@@ -17,6 +17,7 @@ from publish_components.utils.lgt_cmp_publish.form import (
     reset_nuke_submit_requirements,
 )
 from publish_components.utils.lgt_cmp_publish.history_ui import install_lgt_cmp_history
+from publish_components.utils.lgt_cmp_publish.notify_ui import sort_notify_people
 from publish_components.utils.lgt_cmp_publish.cli_adapter import (
     initialize_cli_interface,
 )
@@ -233,6 +234,7 @@ class CompInterface(InterFace):
 
     def gui_post_interface(self):
         localize_notify_label(self.ui_parent)
+        sort_notify_people(self.ui_parent, self.task_entity)
         configure_required_tag_combo(self.ui_parent._tag_combo)
         self._configure_publish_mode_ui()
         self.update_version_fields(self.ui_parent)

@@ -4,13 +4,13 @@ Page 5 - Pre-publish validation checks panel.
 from qtpy.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
     QLabel, QTableWidget, QTableWidgetItem, QHeaderView,
-    QProgressBar
+    QProgressBar, QAbstractItemView
 )
 import inspect
 import traceback
 from publish_core.cli import PublishCli, get_user
 from publish_components.core import Component
-from qtpy.QtCore import Qt, QTimer, Signal, QObject, QThread # type: ignore
+from qtpy.QtCore import Qt, QTimer, Signal, Slot, QObject, QThread # type: ignore
 from qtpy.QtGui import QColor
 from publish_gui.ui.theme import Color, font_header
 import time
@@ -113,6 +113,8 @@ class CheckPanelPage(QWidget):
         self._table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
         self._table.verticalHeader().setVisible(False)
         self._table.setWordWrap(False)
+        # 按像素滚动，自动定位到当前检查项时更平滑
+        self._table.setVerticalScrollMode(QAbstractItemView.ScrollMode.ScrollPerPixel)
         self._table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Fixed)
         self._table.verticalHeader().setDefaultSectionSize(40)
         self._table.setStyleSheet(
@@ -200,7 +202,11 @@ class CheckPanelPage(QWidget):
         self.worker = ComponentWorker(all_comps)
         self.worker.moveToThread(self._worker_thread)
         self.worker.finished.connect(self.on_component_finished)
-        self.worker.process.connect(self.on_component_processing)
+        # worker 在独立线程中；等待 GUI 完成定位和绘制后，才执行当前检查。
+        # 注意：阻塞连接下 GUI 线程不能反过来等 worker（如 thread.wait()），否则会死锁
+        self.worker.process.connect(
+            self.on_component_processing, Qt.ConnectionType.BlockingQueuedConnection
+        )
         self.worker.failed.connect(self.on_component_failed)
         self.worker.final.connect(self.on_all_components_finnal)
         self.worker.final.connect(self._worker_thread.quit)
@@ -269,6 +275,8 @@ class CheckPanelPage(QWidget):
         if self._table.cellWidget(row, 4):
             self._table.cellWidget(row, 4).setEnabled(True)
 
+    # 显式声明为槽，供跨线程阻塞连接调用
+    @Slot(Component, int)
     def on_component_processing(self, comp, row):
         comp.log.info(f'start check {comp.name}')
         item_status = self._table.item(row, 3)
@@ -287,6 +295,11 @@ class CheckPanelPage(QWidget):
         if self._table.cellWidget(row, 4):
             self._table.cellWidget(row, 4).setEnabled(False)
         item_status.setText('processing...')
+        # 把当前检查项滚到表格中间
+        self._table.scrollToItem(item_main, QAbstractItemView.ScrollHint.PositionAtCenter)
+        # 立即重绘，不等事件循环；否则检查开始后卡住主线程，界面停在旧状态
+        self._table.viewport().repaint()
+        self._table.verticalScrollBar().repaint()
 
 
     def _fix_component(self, comp: Component, row: int) -> None:

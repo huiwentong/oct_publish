@@ -13,6 +13,8 @@
         </check_group>
 
         <check_group name="Publish">
+            <!-- 场景标签决定后面哪些检查生效、贴图怎么收拢，最先确认 -->
+            <check type="asb_split" name="check_asb_scene_tag"/>
             <!-- 数据种子：构建 gen_asset_data，Publish 的 4 个 process 全依赖它，三项顺序不能动 -->
             <check type="asb_split" name="check_assembly_all_hierarchy"/>
             <check type="asb_split" name="check_asb_split_marks"/>

@@ -14,48 +14,58 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     """
     # 删除空mesh节点, 删除重合面, 删除无法展开的面, 删除距离太近的边
 
-    try:
-
-        print("0" * 20)
-        high_node = process_data.get('high', '|Root_grp|Geo_grp|high')
-        process_data['non_face_nodes'] = []
-        process_data['non_manifold_meshes'] = []
-        process_data['short_edge_meshes'] = []
-        process_data['lamina_faces'] = []
-        meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
-
-        for mesh in list(meshes):
-            if mesh.isIntermediateObject():
-                continue
-
-            if mesh.numFaces() == 0:
-                logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
-                # mg.delete_empty_mesh(mesh)
-                process_data['non_face_nodes'].append(mesh)
-                continue
-
-            # Non-manifold
-            if mg.has_non_manifold(mesh):
-                process_data['non_manifold_meshes'].append(mesh)
-
-            # Extremely short edge
-            if mg.has_extremely_short_edge(mesh):
-                process_data['short_edge_meshes'].append(mesh)
-
-        process_data['lamina_faces'] = mg.find_lamina_faces()
-        # polygon hole
-        hole_faces = mg.find_hole_faces()
-        if hole_faces:
-            return u'发现以下带洞的面，请手动修复: {}'.format(hole_faces)
-        mg.clear_selection()
-
-    except Exception:
+    def check_meshes() -> str | None:
+        """Run mesh operations and failure cleanup on Maya's main thread."""
         try:
-            mg.disable_poly_select_constraint()
-            mg.clear_selection()
-        except Exception:
-            pass
 
+            print("0" * 20)
+            high_node = process_data.get('high', '|Root_grp|Geo_grp|high')
+            process_data['non_face_nodes'] = []
+            process_data['non_manifold_meshes'] = []
+            process_data['short_edge_meshes'] = []
+            process_data['lamina_faces'] = []
+            meshes = pm.listRelatives(high_node, allDescendents=True, type='mesh') or []
+
+            for mesh in list(meshes):
+                if mesh.isIntermediateObject():
+                    continue
+
+                if mesh.numFaces() == 0:
+                    logger.warning('AUTO FIX: 删除没有面的模型节点: {}'.format(mesh))
+                    # mg.delete_empty_mesh(mesh)
+                    process_data['non_face_nodes'].append(mesh)
+                    continue
+
+                # Non-manifold
+                if mg.has_non_manifold(mesh):
+                    process_data['non_manifold_meshes'].append(mesh)
+
+                # Extremely short edge
+                if mg.has_extremely_short_edge(mesh):
+                    process_data['short_edge_meshes'].append(mesh)
+
+            process_data['lamina_faces'] = mg.find_lamina_faces()
+            # polygon hole
+            hole_faces = mg.find_hole_faces()
+            if hole_faces:
+                return u'发现以下带洞的面，请手动修复: {}'.format(hole_faces)
+            mg.clear_selection()
+
+        except Exception:
+            try:
+                mg.disable_poly_select_constraint()
+                mg.clear_selection()
+            except Exception:
+                pass
+
+            return traceback.format_exc()
+
+    try:
+        result = utils.executeInMainThreadWithResult(check_meshes)
+        # Keep CLI concatenated bodies running after a successful component.
+        if result:
+            return result
+    except Exception:
         return traceback.format_exc()
 
 

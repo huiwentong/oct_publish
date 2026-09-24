@@ -1,5 +1,4 @@
 import pymel.core as pm
-import maya.utils as utils
 
 CLEANUP_LAMINA_CHECK = (
     'polyCleanupArgList 4 '
@@ -32,16 +31,16 @@ CLEANUP_HOLE_CHECK = (
 )
 
 def mel_eval(command):
-    return utils.executeInMainThreadWithResult(lambda: pm.mel.eval(command))
+    return pm.mel.eval(command)
 
 def clear_selection():
-    utils.executeInMainThreadWithResult(lambda: pm.select(clear=True))
+    pm.select(clear=True)
 
 def select_nodes(ns):
-    utils.executeInMainThreadWithResult(lambda: pm.select(ns, replace=True))
+    pm.select(ns, replace=True)
 
 def disable_poly_select_constraint():
-    utils.executeInMainThreadWithResult(lambda: pm.polySelectConstraint(disable=True))
+    pm.polySelectConstraint(disable=True)
 
 def delete_empty_mesh(m):
     m_t = m.getParent()
@@ -127,4 +126,4 @@ def find_hole_faces():
     """
     clear_selection()
     mel_eval(CLEANUP_HOLE_CHECK)
-    return utils.executeInMainThreadWithResult(lambda: pm.ls(selection=True)) or []
+    return pm.ls(selection=True) or []

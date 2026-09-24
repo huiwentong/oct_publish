@@ -262,11 +262,15 @@ def run_job(job_data):
 
 
 if __name__ == '__main__':
+    exit_code = 1
     try:
         job_json_file = sys.argv[1]
         with open(job_json_file, 'r') as f:
             job_data = json.load(f)
         exit_code = run_job(job_data)
     finally:
-        maya.standalone.uninitialize()
-    sys.exit(exit_code)
+        # mayapy 加载过 mtoa 后正常退出会在 finalizing 阶段崩溃并返回 255，
+        # 用 os._exit 跳过 finalizing，让退出码只反映发布结果
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(exit_code)

@@ -21,7 +21,7 @@
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
 
         <process type="efx" name="gener_broken_asset" mode="Submit"/>
-        <process type="efx" name="copy_efx_cache" mode="Submit"/>
+        <process type="efx" name="copy_efx_cache" mode="Dailies"/>
         <process type="efx" name="efx_gener_usd_file" mode="Submit"/>
         <process type="efx" name="upload" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>

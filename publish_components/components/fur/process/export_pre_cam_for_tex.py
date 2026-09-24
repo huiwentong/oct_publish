@@ -5,27 +5,13 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
     """查找 rig 环节的 pre_cam.abc，并拷贝到当前版本 tmp_cam 目录。"""
     try:
         version_dir=process_data.get("version_dir")
-        if not version_dir:
-            raise RuntimeError(u"没有获取到 version_dir")
-
-        version_dir=str(version_dir).replace("\\","/").rstrip("/")
-        asset_root=os.path.dirname(os.path.dirname(version_dir))
-        pattern=os.path.join(asset_root,"rig","*.rig.rigging","tmp_cam","pre_cam.abc")
-        pre_cams=glob.glob(pattern)
-
-        if pre_cams:
-            tmp_cam_dir=os.path.join(version_dir,"tmp_cam")
-            if not os.path.isdir(tmp_cam_dir):
-                os.makedirs(tmp_cam_dir)
-
-            target=os.path.join(tmp_cam_dir,"pre_cam.abc")
-            shutil.copy2(pre_cams[0],target)
-            process_data["pre_cam_file"]=target.replace("\\","/")
-
-            if logger:
-                logger.info(u"Pre Cam 缓存拷贝完成：{}".format(process_data["pre_cam_file"]))
-        elif logger:
-            logger.info(u"未找到 rig pre_cam.abc，跳过拷贝")
+        modCamPattern = os.path.dirname(os.path.dirname(version_dir)) + "/rig/*.rig.rigging/tmp_cam/pre_cam.abc"
+        modCam = glob.glob(modCamPattern)
+        if modCam:
+            pre_cam_path = version_dir + '/tmp_cam/pre_cam.abc'
+            if not os.path.isdir(version_dir + '/tmp_cam'):
+                os.makedirs(version_dir + '/tmp_cam')
+            shutil.copy(modCam[0], pre_cam_path)
 
     except Exception:
         return traceback.format_exc()

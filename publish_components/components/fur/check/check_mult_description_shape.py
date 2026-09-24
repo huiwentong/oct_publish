@@ -1,31 +1,32 @@
 # -*- coding: utf-8 -*-
 import traceback
+import xgenm as xg
 import maya.cmds as cmds
-import maya.mel as mel
+import maya.utils as utils
 
 def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
     """检查每个 XGen Description 下不能存在多个 Transform。"""
     try:
-        def get_descriptions():
-            descriptions=mel.eval('ls -long -type "xgmDescription";') or []
-            if isinstance(descriptions,str):
-                descriptions=[descriptions]
-            return descriptions
+        def check():
+            palettes = xg.palettes()
+            if len(palettes) != 1:
+                return u"xgen palette数量不是一个， 请检查"
 
-        descriptions=get_descriptions()
-        if not descriptions:
-            raise RuntimeError(u"没有找到 XGen Description")
+            wrong_des = []
+            dess = xg.descriptions(palettes[0])
+            for des in dess:
+                cmds.setAttr(des + '.v', 1)
+                trans = cmds.listRelatives(des, c=1, type='transform')
+                if len(trans) > 1:
+                    wrong_des.append(des)
 
-        wrong_des=[]
-        for description in descriptions:
-            transforms=cmds.listRelatives(description,children=True,type="transform",fullPath=True) or []
-            if len(transforms)>1:
-                wrong_des.append(u"{}：{}".format(description,", ".join(transforms)))
+            if wrong_des:
+                return u"发现有多个transform在同一个description的情况：{}".format("\n".join(wrong_des))
+            return None
 
-        if wrong_des:
-            raise RuntimeError(u"发现同一个 XGen Description 下存在多个 Transform：\n{}".format("\n".join(wrong_des)))
+        result = utils.executeInMainThreadWithResult(check)
+        if result:
+            return result
 
-        if logger:
-            logger.info(u"XGen Description Transform 检查通过")
     except Exception:
         return traceback.format_exc()

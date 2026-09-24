@@ -1,26 +1,37 @@
 # -*- coding: utf-8 -*-
+import re
 import traceback
-import maya.mel as mel
+import xgenm as xg
+import maya.utils as utils
+from oct.pipeline.task_context import TaskContext
 
 def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
-    """检查场景中 XGen Palette 数量是否为一个，并缓存 Palette 信息。"""
+    """检查xgen collection数量和命名"""
+    #"Collection有且仅有一个（对应仅一个.xgen文件），并且名字为资产名_任务名。Description 命名：部位_细节名称_Hair 例：Head_Eyebrows_Hair"
     try:
-        palettes=mel.eval('ls -long -type "xgmPalette";') or []
-        if isinstance(palettes,str):
-            palettes=[palettes]
+        task_id = process_data.get("task_id")
+        tc = TaskContext(task_id) or TaskContext.from_env()
+        task_name = tc.task_name
+        entity_name = tc.entity_name
 
-        if not palettes:
-            raise RuntimeError(u"场景中没有找到 XGen Palette")
-        if len(palettes)>1:
-            raise RuntimeError(u"场景中存在多个 XGen Palette，请检查：\n{}".format("\n".join(palettes)))
+        def check():
+            error_msg = ""
+            palette_num = len(xg.palettes())
+            if palette_num != 1:
+                error_msg = u"xgen palette数量不是一个， 请检查"
 
-        palette_node=str(palettes[0])
-        palette_name=palette_node.rsplit("|",1)[-1]
+            palette = xg.palettes()[0]
+            if palette != entity_name + '_' + task_name:
+                error_msg =  u'xgen palette名字不是当前资产名_任务名：{}_{}'.format(entity_name, task_name)
 
-        process_data["xgen_palette_node"]=palette_node
-        process_data["xgen_palette_name"]=palette_name
+            for description in xg.descriptions():
+                if not re.match('(.*)_(.*)_Hair', description):
+                    error_msg += u'xgen description名字不符合规范：部位_细节名称_Hair   {}\n'.format(description)
 
-        if logger:
-            logger.info(u"XGen Palette：{}".format(palette_name))
+            return error_msg
+
+        error = utils.executeInMainThreadWithResult(check)
+        if error:
+            return error
     except Exception:
         return traceback.format_exc()

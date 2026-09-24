@@ -1,37 +1,44 @@
 # -*- coding: utf-8 -*-
 import re,traceback
+import xgenm as xg
 import maya.cmds as cmds
-import maya.mel as mel
+import maya.utils as utils
 
 def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
     """检查 XGen xgVersion 中的 Maya 版本，不正确则自动修复。"""
     try:
-        palette_node=process_data.get("xgen_palette_node")
-        if not palette_node:
-            raise RuntimeError(u"没有获取到 XGen Palette 节点信息")
+        def check():
+            palettes = xg.palettes()
+            if len(palettes) != 1:
+                return u"xgen palette数量不是一个， 请检查"
 
-        plug="{}.xgVersion".format(palette_node)
-        if not cmds.objExists(plug):
-            raise RuntimeError(u"XGen Palette 没有 xgVersion 属性：{}".format(palette_node))
+            palette = palettes[0]
+            xgVersion = cmds.getAttr(palette+'.xgVersion')
+            maya_version = cmds.about(version=True)
 
-        xg_version=cmds.getAttr(plug) or ""
-        maya_version=str(mel.eval("about -version;"))
-        expected_version="Maya{}".format(maya_version)
+            if maya_version not in xgVersion:
+                return 'xgen属性xgVersion的maya版本错误'
+            return None
 
-        if expected_version not in xg_version:
-            if logger:
-                logger.warning(u"XGen xgVersion 的 Maya 版本错误：{}".format(xg_version))
-                logger.warning(u"AUTO FIX: 修改 xgVersion 为 {}".format(expected_version))
+        result = utils.executeInMainThreadWithResult(check)
+        if result:
+            return result
 
-            if re.search(r"Maya\d+",xg_version):
-                new_xg_version=re.sub(r"Maya\d+",expected_version,xg_version)
-            else:
-                new_xg_version=expected_version
+    except Exception:
+        return traceback.format_exc()
 
-            cmds.setAttr(plug,new_xg_version,type="string")
-            mel.eval("file -save -force;")
+def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
+    """自动修复。"""
+    try:
+        def repair():
+            palette = xg.palettes()[0]
+            xgVersion = cmds.getAttr(palette + '.xgVersion')
+            maya_version = cmds.about(version=True)
+            new_xgVersion = re.sub('Maya\d+', 'Maya{}'.format(maya_version), xgVersion)
+            cmds.setAttr(palette + '.xgVersion', new_xgVersion, type='string')
+            cmds.file(save=1, force=True)
 
-        if logger:
-            logger.info(u"XGen xgVersion 检查完成：{}".format(expected_version))
+        utils.executeInMainThreadWithResult(repair)
+
     except Exception:
         return traceback.format_exc()

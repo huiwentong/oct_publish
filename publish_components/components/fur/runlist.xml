@@ -5,8 +5,8 @@
 
             <check type="gen" name="check_dcc_rv"/>
             <check type="gen" name="check_status"/>
+            <check type="maya_gen" name="version_up_going"/>
             <check type="gen" name="version_name"/>
-            <check type="gen" name="version_up_going"/>
             <check type="gen" name="check_selected_preview"/>
             <check type="gen" name="check_publish_root"/>
             <check type="gen" name="check_frame_rate"/>
@@ -14,39 +14,33 @@
         </check_group>
 
         <check_group name="Publish">
-
+            <check type="maya_gen" name="generic_check"/>
+            <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_hierarchy_main"/>
-            <check type="fur" name="unknown_check"/>
-            <check type="fur" name="unlock_default_nodes"/>
-            <check type="fur" name="no_name_space"/>
+            <check type="maya_gen" name="mesh_name"/>
+            <check type="maya_gen" name="no_name_space"/>
             <check type="fur" name="check_hierarchy_cfx"/>
-
-            <check type="fur" name="check_xgen_context"/>
-
+            <check type="fur" name="collect_fur_materials"/>
             <check type="fur" name="check_xgen_naming"/>
             <check type="fur" name="check_bound_geo_naming"/>
+            <check type="fur" name="check_xgen_mask_location"/>
+            <check type="fur" name="check_shader"/>
+            <check type="fur" name="check_AOV"/>
+            <check type="fur" name="check_xgen_desc_shader"/>
+            <check type="fur" name="check_mult_description_shape"/>
             <check type="fur" name="check_bound_geo_uv"/>
             <check type="fur" name="check_bound_geo_history"/>
             <check type="fur" name="check_bound_geo_wrapped"/>
-
-            <check type="fur" name="check_mult_description_shape"/>
-            <!--check type="fur" name="check_xgen_mask_location"/!-->
             <check type="fur" name="check_xgen_disable_module"/>
             <check type="fur" name="check_xgen_noise_baked"/>
-
-            <check type="fur" name="check_shader"/>
-            <check type="fur" name="check_xgen_desc_shader"/>
-
-            <!--check type="fur" name="check_xgen_active_arnold_renderer"/!-->
+            <check type="fur" name="check_xgen_active_arnold_renderer"/>
             <check type="fur" name="check_xgen_version"/>
             <check type="fur" name="check_wrap_node"/>
-
         </check_group>
     </checkcontainer>
 
     <processcontainer>
-
-        <process type="fur" name="save_as_scene" mode="Publish"/>
+        <process type="maya_gen" name="save_scene" mode="Publish"/>
         <process type="maya_gen" name="clean_scene" mode="Publish"/>
         <process type="maya_gen" name="clean_asset_scene" mode="Publish"/>
         <process type="gen" name="create_v_dir" mode="Dailies"/>
@@ -60,17 +54,15 @@
         <process type="fur" name="export_guides_file" mode="Publish"/>
         <process type="fur" name="export_xgen_file" mode="Publish"/>
         <process type="fur" name="export_xgen_bound_geometry" mode="Publish"/>
-        <process type="fur" name="export_wrap_file" mode="Publish"/>
-        <process type="fur" name="build_fur_mat_map" mode="Publish"/>
+<!--        <process type="fur" name="export_wrap_file" mode="Publish"/>-->
+<!--        <process type="fur" name="export_dyn_file" mode="Publish"/>-->
         <process type="fur" name="export_pre_cam_for_tex" mode="Publish"/>
-        <process type="fur" name="export_dyn_file" mode="Publish"/>
         <process type="fur" name="export_usd_utils" mode="Publish"/>
-
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
         <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
-        <process type="fur" name="submit_publish_deadline_jobs" mode="Publish"/>
-
+        <process type="maya_gen" name="sub_to_deadline_job" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <process type="gen" name="asset_reassembly" mode="Submit"/>
 
     </processcontainer>
 

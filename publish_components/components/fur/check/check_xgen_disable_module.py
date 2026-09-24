@@ -1,40 +1,30 @@
 # -*- coding: utf-8 -*-
 import traceback
 import xgenm as xg
+import maya.utils as utils
 
 def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
     """检查 XGen Modifier 是否处于启用状态。"""
     try:
-        palette=process_data.get("xgen_palette_name")
-        descriptions=process_data.get("xgen_descriptions",[])
+        def check():
+            palettes = xg.palettes()
+            if len(palettes) != 1:
+                return u"xgen palette数量不是一个， 请检查"
 
-        if not palette:
-            raise RuntimeError(u"没有获取到 XGen Palette 信息")
-        if not descriptions:
-            raise RuntimeError(u"没有获取到 XGen Description 信息")
+            error_msg = ''
+            palette = palettes[0]
+            descriptions = xg.descriptions(str(palette))
+            for _des in descriptions:
+                for _mod in xg.fxModules(str(palette), str(_des)):
+                    if xg.getAttr('active', str(palette), str(_des), str(_mod)) == 'false':
+                        error_msg += u'"{}"-"{}"修改器未启用，如不需要请删除 \n'.format(_des, _mod)
+            if error_msg:
+                return error_msg
+            return None
 
-        errors=[]
-        for description_path in descriptions:
-            description=description_path.split("|")[-1]
+        result = utils.executeInMainThreadWithResult(check)
+        if result:
+            return result
 
-            try:
-                modifiers=xg.fxModules(str(palette),str(description)) or []
-            except Exception:
-                raise RuntimeError(u"XGen API 无法读取 Description {} 的 Modifier".format(description))
-
-            for modifier in modifiers:
-                try:
-                    active=xg.getAttr("active",str(palette),str(description),str(modifier))
-                except Exception:
-                    raise RuntimeError(u'XGen API 无法读取 "{}"-"{}" 的 active 属性'.format(description,modifier))
-
-                if str(active).strip().lower() in ("false","0"):
-                    errors.append(u'"{}"-"{}" 修改器未启用，如不需要请删除'.format(description,modifier))
-
-        if errors:
-            raise RuntimeError("\n".join(errors))
-
-        if logger:
-            logger.info(u"XGen Modifier 检查通过")
     except Exception:
         return traceback.format_exc()

@@ -299,7 +299,7 @@ class TexWidget(QtWidgets.QWidget):
         super().__init__(parent)
 
         self.input_form = input_form
-        self.input_form.update({"ma_file": "",
+        self.input_form.update({"ma_file": "test",
                                 "src_tex_files": ["test"]
                                 })
         main_layout = QtWidgets.QVBoxLayout(self)

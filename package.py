@@ -25,6 +25,7 @@ requires = [
     'oct',
     'psycopg2_binary',
     'requests',
+    'ffmpeg'
 ]
 
 def commands():

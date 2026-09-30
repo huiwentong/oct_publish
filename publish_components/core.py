@@ -393,10 +393,19 @@ def main():
 if __name__ == "__main__":
     res = main()
     logger.error(res)
+    #后台退出 maya/arnold 时容易崩溃，但所有提交模块都执行完毕，修改成只要执行成功，强制返回0，失败返回1
     if res:
-        raise RuntimeError(res)
-    
+        print(res, flush=True)
+        sys.stdout.flush()
+        sys.stderr.flush()
+        os._exit(1)
+
+    print("PUBLISH_SUCCESS", flush=True)
+    sys.stdout.flush()
+    sys.stderr.flush()
+    os._exit(0)
         """
+
         for check in self.check_files:
             c = Component(self, str(check), False, self.log)
             all_imports.update(c.import_module)
@@ -442,22 +451,33 @@ if __name__ == "__main__":
             )
 
             self.log.info(cmd)
-            try:
-                result = subprocess.run(
-                    cmd,
-                    shell=True,
-                    check=True,
-                    capture_output=True,
-                    text=True
-                )
-                if result.stdout:
-                    self.log.info(f"stdout: {result.stdout}")
+            process = subprocess.Popen(
+                cmd,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True,
+                bufsize=1,
+            )
+
+            # 实时读取并打印子进程输出
+            if process.stdout:
+                for line in process.stdout:
+                    line = line.rstrip()
+                    print(line, flush=True)
+                    self.log.info(line)
+
+            # 等待 cmd 完全执行结束
+            returncode = process.wait()
+
+            if returncode == 0:
                 self.all_complete = True
-            except subprocess.CalledProcessError as e:
-                self.log.error(f"stdout: {e.stdout}")
-                self.log.error(f"stderror: {e.stderr}")
-                
-            
+                self.log.info('CLI publish completed successfully.')
+            else:
+                self.log.error(
+                    f'CLI publish failed, return code: {returncode}'
+                )
+
         except Exception:
             self.log.error(traceback.format_exc())
         finally:

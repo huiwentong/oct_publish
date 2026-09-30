@@ -35,4 +35,6 @@ def commands():
     env.PYTHONPATH.append('{root}/publish_components')
     env.PYTHONPATH.append('{root}/publish_gui')
 
+    alias('batch_cli', 'python {root}/publish_core/batch_cli.py')
+
 uuid = 'newpublish'

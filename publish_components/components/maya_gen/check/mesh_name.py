@@ -40,7 +40,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if len(error_nodes) > 0:
                 msg = u"发现以下节点的名字不是 transform + Shape 组成的：\n{}".format(
                     '\n'.join([i.nodeName() for i in error_nodes]))
-                if step_short_name == 'fur' and parent_widget and msg:
+                if step_short_name == 'fur' and parent_widget:
                     msg += ("请reload mod文件后，再次检查!\n"
                             "还是报错，请告知协调人员 联系 mod 制作人员检查以上节点！！")
                     result = dialogs.message_dialog("提示", msg, ["跳过检查", "停止提交"], parent=parent_widget)

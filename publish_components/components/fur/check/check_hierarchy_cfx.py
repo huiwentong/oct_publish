@@ -56,7 +56,7 @@ def main(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
 
         errors = utils.executeInMainThreadWithResult(check)
         if errors:
-            return errors
+            return str(errors)
 
     except Exception:
         return traceback.format_exc()
@@ -113,11 +113,8 @@ def fix(submit_data:dict,process_data:dict,parent_widget=None,logger=None):
         errors = utils.executeInMainThreadWithResult(repair)
         if errors:
             return errors
-        msg = "自动修复成功！请检查是否正确！！"
-        if parent_widget:
-            dialogs.message_dialog("提示", msg, ["好的"], parent=parent_widget)
-        else:
-            logger.info(msg)
+
+        logger.info("AUTO FIX: 自动修复成功！请检查是否正确！！")
 
     except Exception:
         return traceback.format_exc()

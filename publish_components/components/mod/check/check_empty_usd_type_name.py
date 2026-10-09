@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback
 import maya.cmds as cmds
+import pymel.core as pm
 import maya.utils as utils
 
 
@@ -11,6 +12,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         def check():
             root = process_data.get("geo", "|Root_grp|Geo_grp")
+            # check_hierarchy_main 存进来的是 PyNode，cmds 只认字符串
+            if isinstance(root, pm.PyNode):
+                root = root.longName()
             if not cmds.objExists(root):
                 return None
             nodes = [root] + (cmds.listRelatives(root, allDescendents=True, fullPath=True) or [])

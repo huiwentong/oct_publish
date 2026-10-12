@@ -3,6 +3,7 @@
 
     <checkcontainer>
         <check_group name="Dailies">
+            <check type="gen" name="check_asset_is_old"/>
             <check type="gen" name="check_dcc_rv"/>
             <check type="maya_gen" name="version_up_going"/>
             <check type="gen" name="version_name"/>

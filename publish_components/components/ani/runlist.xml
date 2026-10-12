@@ -24,6 +24,7 @@
             <check type="maya_shot" name="check_nemo_rig"/>
             <check type="maya_shot" name="check_stage_arch_is_new"/>
             <check type="maya_shot" name="check_stage_file_path"/>
+            <check type="maya_shot" name="check_stage_sublayer"/>
             <check type="maya_shot" name="check_stage_dirty"/>
             <check type="ani" name="check_tpose"/>
             <check type="maya_shot" name="check_file_frame_range"/>

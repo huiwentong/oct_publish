@@ -33,6 +33,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not pm.objExists('|root_jnt'):
                 return u'世界下没有root_jnt'
 
+            if not (pm.objExists('|Root_grp|Rig_grp|Master_ctrl_PH|Master_ctrl_SN|master_ctrl') or
+                    pm.objExists('|Root_grp|Rig_grp|master_ctrl')):
+                return u'master_ctrl 不存在，或者所在层级不正确'
+
             if pm.objExists('master_ctrl.displayType'):
                 if pm.getAttr('master_ctrl.displayType') != 2:
                     return u'master_ctrl的displayType属性要设置为reference'

@@ -25,8 +25,7 @@ Visibility 的 displayType 通道是否连接模型的显示属性
                         error_list.append(k)
 
             if error_list:
-                process_data['vis_dsp_typ_error_list'] = error_list
-                return u"以下节点设置错误：{}".format(', '.join(process_data['vis_dsp_typ_error_list']))
+                return u"以下节点设置错误：{}".format(', '.join(error_list))
             return ""
 
         result = utils.executeInMainThreadWithResult(process)

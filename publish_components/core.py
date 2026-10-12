@@ -535,8 +535,12 @@ if __name__ == "__main__":
         self.get_all_check_process()
         if not self.is_gui:
             self.init_process_data()
-            self.fill_submit_form()
-            self.check_submit_form()
+
+            if self.submit_type == 'Dailies':
+                self.submit_form = {}
+            else:
+                self.fill_submit_form()
+                self.check_submit_form()
 
     
 if __name__ == "__main__":

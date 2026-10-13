@@ -3,7 +3,7 @@
 import os
 import shutil
 import traceback
-import maya.utils as utils
+# import maya.utils as utils
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -33,9 +33,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             return None
 
-        result = utils.executeInMainThreadWithResult(process)
-        if result:
-            return result
+        process()
+        # result = utils.executeInMainThreadWithResult(process)
+        # if result:
+        #     return result
 
     except:
         return traceback.format_exc()

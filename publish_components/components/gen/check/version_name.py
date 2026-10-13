@@ -7,12 +7,12 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     检查版本(Version)的命名是否规范。
     """
-    def version_num_with_file(file):
-        if file != '':
-            scene_v = int(file.split('.')[-2][1:])
-            v_number = 'v{:03d}'.format(scene_v)
-            return v_number
-        return None
+    def version_num_with_file(file_path):
+        if not file_path:
+            return None
+        scene_v = int(file_path.split('.')[-2][1:])
+        return 'v{:03d}'.format(scene_v)
+
 
     def _fix_rig(in_str):
         return in_str.replace("绑定", "rig")
@@ -33,8 +33,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         if form_widget:
             version_num = form_widget._version_edit.text()
         else:
-            dcc_file = process_data["dcc_file"]
-            version_num = process_data.get("version_num", version_num_with_file(dcc_file))
+            version_num = process_data.get("version_num")
+            if not version_num:
+                dcc_file = process_data.get("dcc_file") or ""
+                version_num = version_num_with_file(dcc_file)
+
 
         logger.info('version_num: {}'.format(version_num))
         version_name = version_key + '.' + version_num

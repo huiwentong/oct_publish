@@ -21,7 +21,7 @@ from publish_components.utils.runlist_db import RunListDB
 DCC_COMMANDS = {
     
     'cmd':
-        'rez-env oct_publish -- python {script} {scene}',
+        'rez-env PySide2 oct_publish -- python {script} {scene}',
 
     '.hip':
         'rez-env oct_houdini houdini-20.5 -- hython {script} {scene}',
@@ -343,6 +343,16 @@ class InterFace():
             
         if not runlist.exists():
             raise FileNotFoundError(f"can not find file {runlist}")
+
+        step = Path(module_file).parent.stem
+
+        self.log.info(
+            f'RunListDB input: '
+            f'runlist={runlist}, '
+            f'publish_type={self.submit_type}, '
+            f'step={step}, '
+            f'module={module_name}'
+        )
         
         db = RunListDB(runlist_file=runlist, file_first=True if self.runlist else False, publish_type=self.submit_type, step=Path(module_file).parent.stem)
         self.check_files = db.check_files
@@ -377,6 +387,7 @@ class InterFace():
         all_imports = set()
         all_funcs = []
         funcs_template = """
+import os
 import sys
 from publish_core.log.core import PublishLog
 {maya_standalone}
@@ -427,15 +438,21 @@ if __name__ == "__main__":
 
 
     def run_in_cli(self):
-        
-        if not self.dcc_file:
-            raise RuntimeError(f'In no-gui mode, the dcc argument is required.')
-        if self.dcc_file != 'cmd':
-            suffix = Path(self.dcc_file).suffix.lower()
+        scene_name = self.dcc_file
+
+        if not scene_name:
+            if self.submit_type == 'Dailies':
+                scene_name = 'cmd'
+            else:
+                raise RuntimeError('In no-gui mode, the dcc argument is required.')
+
+        if scene_name != 'cmd':
+            suffix = Path(scene_name).suffix.lower()
         else:
             suffix = 'cmd'
         if suffix not in DCC_COMMANDS:
             raise RuntimeError(f'Unsupported dcc file: {suffix}')
+
         fd, python_script = tempfile.mkstemp(
             suffix='.py',
             prefix='publish_'
@@ -443,11 +460,11 @@ if __name__ == "__main__":
         try:
             os.close(fd)
             with open(python_script, 'w', encoding='utf-8') as f:
-                f.write(self.generate_publish_script(self.dcc_file))
-            
+                f.write(self.generate_publish_script(scene_name))
+
             cmd = DCC_COMMANDS[suffix].format(
                 script=str(Path(python_script).resolve()),
-                scene='' if suffix=='cmd' else self.dcc_file
+                scene='' if suffix=='cmd' else scene_name
             )
 
             self.log.info(cmd)
@@ -533,12 +550,11 @@ if __name__ == "__main__":
 
     def __post_init__(self):
         self.get_all_check_process()
+
         if not self.is_gui:
             self.init_process_data()
 
-            if self.submit_type == 'Dailies':
-                self.submit_form = {}
-            else:
+            if self.submit_type != 'Dailies':
                 self.fill_submit_form()
                 self.check_submit_form()
 

@@ -481,10 +481,12 @@ if __name__ == "__main__":
 
             # 实时读取并打印子进程输出
             if process.stdout:
+                stdout_encoding = sys.stdout.encoding or 'utf-8'
                 for line in process.stdout:
                     line = line.rstrip()
-                    print(line, flush=True)
-                    self.log.info(line)
+                    safe_line = line.encode(stdout_encoding, errors='replace').decode(stdout_encoding, errors='replace')
+                    print(safe_line, flush=True)
+                    self.log.info(safe_line)
 
             # 等待 cmd 完全执行结束
             returncode = process.wait()

@@ -125,9 +125,6 @@ class PublishCli:
                     'In no-gui mode, the publish_tag_id, comment, and preview_paths arguments are required.'
                 )
 
-            if self.publish_type == PublishType.DAILY and not self.dcc_file:
-                self.dcc_file = 'cmd'
-
             if self.publish_type != PublishType.DAILY and not self.dcc_file:
                 raise RuntimeError('In no-gui Publish mode, the dcc_file argument is required.')
 

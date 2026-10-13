@@ -88,10 +88,12 @@ def execute(args):
 
 if __name__ == "__main__":
     cli_args = parse_args()
-    with open(cli_args.json_file, "r") as f:
+    with open(cli_args.json_file, encoding='utf-8') as f:
         args = json.load(f)
 
     try:
         execute(args)
+    except Exception as e:
+        print("Batch cli failed, Because: \n{}".format(e))
     finally:
         os.remove(cli_args.json_file)

@@ -32,8 +32,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if len(paths) > 1:
                     error_nodes[file_name] = node_list
 
-            print(error_nodes)
-
             msg = ""
             if error_nodes:
                 msg += "以下材质节点的路径不同，但是文件名相同:\n"

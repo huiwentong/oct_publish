@@ -1,4 +1,4 @@
-import json, argparse
+import json, argparse, os
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Batch Publish Tool",
@@ -90,4 +90,8 @@ if __name__ == "__main__":
     cli_args = parse_args()
     with open(cli_args.json_file, "r") as f:
         args = json.load(f)
-    execute(args)
+
+    try:
+        execute(args)
+    finally:
+        os.remove(cli_args.json_file)

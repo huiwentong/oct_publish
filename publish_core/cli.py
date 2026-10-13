@@ -119,8 +119,18 @@ class PublishCli:
         if not self.gui:
             self.log = PublishLog()
             self.log.info('publish cli initial!!')
-            if not self.dcc_file or not self.publish_tag_id or not self.comment or not self.preview_paths:
-                raise RuntimeError(f'In no-gui mode, the dcc_file, publish_tag_id, comment, and preview_paths arguments are required.')
+
+            if not self.publish_tag_id or not self.comment or not self.preview_paths:
+                raise RuntimeError(
+                    'In no-gui mode, the publish_tag_id, comment, and preview_paths arguments are required.'
+                )
+
+            if self.publish_type == PublishType.DAILY and not self.dcc_file:
+                self.dcc_file = 'cmd'
+
+            if self.publish_type != PublishType.DAILY and not self.dcc_file:
+                raise RuntimeError('In no-gui Publish mode, the dcc_file argument is required.')
+
             self.tag_entity = SGEntity('Tag', self.publish_tag_id)
             self.interface = module.CompInterface(
                 log=self.log,

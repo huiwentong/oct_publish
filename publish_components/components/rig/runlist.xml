@@ -39,6 +39,7 @@
             <check type="rig" name="check_control_values"/>
             <check type="rig" name="check_ctrl_key_frames"/>
             <check type="rig" name="check_visibility_display_type"/>
+            <check type="rig" name="check_texture_files"/>
             <check type="maya_gen" name="check_display_layers"/>
             <check type="maya_gen" name="check_display_override"/>
             <check type="maya_gen" name="check_texture_path_locked"/>

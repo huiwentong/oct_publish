@@ -43,6 +43,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return has_anim_keys_ctrl_list
 
         def process():
+            process_data['anim_keys_error_list'] = []
             all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'])
             has_anim_keys_ctrl_list = check_has_anim_keys(all_possible_ctrls)
             if has_anim_keys_ctrl_list:

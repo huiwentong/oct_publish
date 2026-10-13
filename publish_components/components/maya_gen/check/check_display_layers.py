@@ -18,7 +18,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         hidden_layers = utils.executeInMainThreadWithResult(find_hidden_layers)
 
         if hidden_layers:
-            return u'以下动画层被隐藏，请显示后确认对画面有无影响， 有影响需要ctrl+h隐藏: {}'.format(", ".join(hidden_layers))
+            return u'以下显示层被隐藏，请显示后确认对画面有无影响， 有影响需要ctrl+h隐藏: {}'.format(", ".join(hidden_layers))
 
     except Exception:
         return traceback.format_exc()

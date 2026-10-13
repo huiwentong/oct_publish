@@ -17,6 +17,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                     l_instanced.extend(l_parents)
 
             return l_instanced
+
+        process_data["instanced_node_error_nodes"] = []
         error_nodes = utils.executeInMainThreadWithResult(check)
         if len(error_nodes) > 0:
             process_data["instanced_node_error_nodes"] = error_nodes

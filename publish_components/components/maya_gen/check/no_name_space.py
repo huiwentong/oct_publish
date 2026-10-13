@@ -58,6 +58,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                     n_fix_nodes.append(n)
             return n_fix_nodes
 
+        process_data["no_name_space_error_nodes"] = []
         need_fix_nodes = utils.executeInMainThreadWithResult(check)
         if len(need_fix_nodes) > 0:
             process_data["no_name_space_error_nodes"] = need_fix_nodes

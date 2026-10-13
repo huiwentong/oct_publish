@@ -74,8 +74,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return normal
 
         def process():
-            error_name_list = []
-            process_data['error_name_list'] = []
+            ctrl_error_list = []
+            process_data['ctrl_error_list'] = []
             if not mc.objExists('Root_grp.cocoVersion'):
                 task_id = process_data.get("task_id")
                 if process_data.get("is_internal_rig") is None:
@@ -96,11 +96,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         if node == 'Visibility':
                             continue
 
-                        error_name_list.append(node)
+                        ctrl_error_list.append(node)
 
-                    mc.select(error_name_list)
-                    if error_name_list:
-                        return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(error_name_list))
+                    mc.select(ctrl_error_list)
+                    if ctrl_error_list:
+                        return u'以下控制器没有以 _ctrl 结尾: {}'.format(', '.join(ctrl_error_list))
             return None
 
         result = utils.executeInMainThreadWithResult(process)
@@ -114,9 +114,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     try:
         def process():
-            if process_data.get('error_name_list'):
+            if process_data.get('ctrl_error_list'):
                 logger.info(u"AUTO FIX: 修复不符合规范的控制器，添加 _ctrl 后缀")
-                for node in process_data['error_name_list']:
+                for node in process_data['ctrl_error_list']:
                     mc.rename(node, node + '_ctrl')
 
         return utils.executeInMainThreadWithResult(process)

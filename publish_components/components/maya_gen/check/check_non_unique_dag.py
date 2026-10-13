@@ -14,7 +14,7 @@ import maya.utils as utils
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
-检查重命名的Dag节点
+检查重复命名的Dag节点
     """
 
     try:

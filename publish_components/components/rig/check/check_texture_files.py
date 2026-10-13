@@ -9,7 +9,7 @@ from pathlib import Path
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
-贴图文件是否有重命名
+贴图文件名相同，但是路径不同
     """
     try:
         def process():
@@ -34,7 +34,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             msg = ""
             if error_nodes:
-                msg += "以下材质节点的路径不同，但是文件名相同:\n"
+                msg += "以下材质节点的贴图文件名相同，但是路径不同:\n"
 
                 for file_name, node_list in error_nodes.items():
                     msg += f"  文件名: {file_name}\n"

@@ -24,7 +24,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             for p in unknown_plugins:
                 try:
                     pm.unknownPlugin(p, r=True)
-                    logger.warning("开始清理位置插件：{}".format(p))
+                    logger.warning("开始清理未知插件：{}".format(p))
                 except:
                     l_cant_remove.append(p)
                     pass

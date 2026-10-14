@@ -44,7 +44,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             job.set_command(command)
             job.set_priority(priority=100)
             job.set_pool(pool='cache')
-            job.set_secondary_pool(pool='user')
+            job.set_secondary_pool(pool='cache')
             job.set_batch_name('{0} - {1}'.format(proj_name, version_name.rsplit('.', 1)[0]))
             job.set_comment(datetime.now().strftime('%Y%m%d%H%M'))
             job.set_environment({'OCT_USER_DEPARTMENT': 'Animation',

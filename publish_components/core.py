@@ -479,14 +479,15 @@ if __name__ == "__main__":
                 bufsize=1,
             )
 
-            # 实时读取并打印子进程输出
             if process.stdout:
-                stdout_encoding = sys.stdout.encoding or 'utf-8'
+                # Deadline/Windows 控制台可能使用 GBK；无法编码的字符用替代符显示。
+                if hasattr(sys.stdout, 'reconfigure'):
+                    sys.stdout.reconfigure(errors='replace')
+
                 for line in process.stdout:
                     line = line.rstrip()
-                    safe_line = line.encode(stdout_encoding, errors='replace').decode(stdout_encoding, errors='replace')
-                    print(safe_line, flush=True)
-                    self.log.info(safe_line)
+                    print(line, flush=True)
+                    self.log.info(line)
 
             # 等待 cmd 完全执行结束
             returncode = process.wait()
@@ -502,8 +503,9 @@ if __name__ == "__main__":
         except Exception:
             self.log.error(traceback.format_exc())
         finally:
-            if os.path.exists(python_script):
-                os.unlink(python_script)
+            pass
+            # if os.path.exists(python_script):
+            #     os.unlink(python_script)
 
 
     def check_submit_form(self):

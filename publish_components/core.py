@@ -474,16 +474,11 @@ if __name__ == "__main__":
                 stdout=subprocess.PIPE,
                 stderr=subprocess.STDOUT,
                 text=True,
-                encoding='utf-8',
-                errors='replace',
                 bufsize=1,
             )
 
+            # 实时读取并打印子进程输出
             if process.stdout:
-                # Deadline/Windows 控制台可能使用 GBK；无法编码的字符用替代符显示。
-                if hasattr(sys.stdout, 'reconfigure'):
-                    sys.stdout.reconfigure(errors='replace')
-
                 for line in process.stdout:
                     line = line.rstrip()
                     print(line, flush=True)

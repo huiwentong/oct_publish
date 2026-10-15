@@ -10,7 +10,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
     try:
         if parent_widget:
-            print("#"*100)
             dcc_rv = "C:/Program Files/Shotgun/RV-7.7.0/bin/rv.exe"
             dcc_rvio = "C:/Program Files/Shotgun/RV-7.7.0/bin/rvio_hw.exe"
             dcc_rvls = "C:/Program Files/Shotgun/RV-7.7.0/bin/rvls.exe"

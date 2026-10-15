@@ -20,9 +20,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             path for path in preview_files
             if not path.lower().endswith(".mov")
         ]
-
+        duration = len(img_files)
         if img_files:
-            create_shot_mov.create(img_files, preview_mov, len(img_files))
+            is_deadline_job = process_data.get("is_deadline_job")
+            if is_deadline_job:
+                create_shot_mov.create(img_files, preview_mov, duration, use='ffmpeg')
+            else:
+                create_shot_mov.create(img_files, preview_mov, duration)
             extra_movs = mov_files
         else:
             shutil.copyfile(mov_files[0], preview_mov)

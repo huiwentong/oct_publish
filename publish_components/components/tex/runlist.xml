@@ -11,6 +11,7 @@
             <check type="gen" name="check_publish_root"/>
         </check_group>
         <check_group name="Publish">
+            <check type="maya_gen" name="relink_outsource_paths"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_dcc_mtoa"/>

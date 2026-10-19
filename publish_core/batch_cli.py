@@ -44,7 +44,7 @@ publish_type 可选值:
 def send_message_for_usr(publish_cli, user, comment):
     from publish_core.database.entity import  get_step_short_name
     from publish_core.message_utils.message import send_simple_message
-    vername = f'{publish_cli.task_entity.entity.code}.{get_step_short_name(publish_cli.task_entity.step)}.{publish_cli.task_entity.content}.v{str(publish_cli.version_num).zfill(3)}'
+    vername = f'{publish_cli.task_entity.entity.code}.{get_step_short_name(publish_cli.task_entity.step)}.{publish_cli.task_entity.content}.{str(publish_cli.version_num).zfill(3)}'
     msg_data = {
         'message': comment,
         'type': publish_cli.publish_type,

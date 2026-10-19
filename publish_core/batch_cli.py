@@ -41,6 +41,19 @@ publish_type 可选值:
 
     return parser.parse_args()
 
+def send_message_for_usr(publish_cli, user, comment):
+    from publish_core.database.entity import  get_step_short_name
+    from publish_core.message_utils.message import send_simple_message
+    vername = f'{publish_cli.task_entity.entity.code}.{get_step_short_name(publish_cli.task_entity.step)}.{publish_cli.task_entity.content}.v{str(publish_cli.version_num).zfill(3)}'
+    msg_data = {
+        'message': comment,
+        'type': publish_cli.publish_type,
+        'vname': vername,
+        'tname': publish_cli.task_entity.content,
+        'ename': publish_cli.task_entity.entity.code,
+    }
+    send_simple_message(msg_data, '来自发布者的提醒', user)
+
 
 def execute(args):
     from publish_core.cli import PublishCli, get_user, PublishType
@@ -84,7 +97,14 @@ def execute(args):
     if publish_cli.interface.all_complete:
         publish_cli.log.info('全部运行成功！')
         publish_cli.notify_pp()
-
+    elif len(publish_cli.interface.critical_error) > 0:
+        error_message = "cli 提交失败，报错信息：\n{}".format('\n'.join(publish_cli.interface.critical_error))
+        send_message_for_usr(publish_cli, user, error_message)
+        raise RuntimeError(error_message)
+    else:
+        error_message = "cli 提交失败, 未知原因报错，联系Td！"
+        send_message_for_usr(publish_cli, user, error_message)
+        raise error_message
 
 if __name__ == "__main__":
     cli_args = parse_args()

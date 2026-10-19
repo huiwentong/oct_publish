@@ -9,6 +9,7 @@ import inspect
 import importlib
 from importlib import util
 import sys
+import re
 from pprint import pprint
 import os
 import tempfile
@@ -313,6 +314,8 @@ class InterFace():
     process_comps:list = field(default_factory=list)
     check_comps:list = field(default_factory=list[Component])
 
+    critical_error: list = field(default_factory=list)
+
 
     def init_process_data(self):
         if not self.process_data:
@@ -453,6 +456,17 @@ if __name__ == "__main__":
         if suffix not in DCC_COMMANDS:
             raise RuntimeError(f'Unsupported dcc file: {suffix}')
 
+        # 用于避免同一条错误被不同日志格式重复输出
+        error_messages_seen = set()
+
+        error_patterns = (
+            # 2026-10-16 ... [ERROR] ... - 错误内容
+            re.compile(r'\[ERROR\].*?\s-\s(?P<message>.+)$'),
+
+            # TEMP_PYTHON : ERROR : 错误内容
+            re.compile(r'\bERROR\s*:\s*(?P<message>.+)$', re.IGNORECASE)
+        )
+
         fd, python_script = tempfile.mkstemp(
             suffix='.py',
             prefix='publish_'
@@ -479,12 +493,24 @@ if __name__ == "__main__":
 
             # 实时读取并打印子进程输出
             if process.stdout:
-                for line in process.stdout:
-                    line = line.rstrip()
+                for raw_line in process.stdout:
+                    line = raw_line.rstrip('\r\n')
+
                     print(line, flush=True)
                     self.log.info(line)
 
-            # 等待 cmd 完全执行结束
+                    for pattern in error_patterns:
+                        match = pattern.search(line)
+                        if not match:
+                            continue
+
+                        error_message = match.group('message').strip()
+                        if error_message not in error_messages_seen:
+                            error_messages_seen.add(error_message)
+                            self.critical_error.append(error_message)
+
+                        break
+
             returncode = process.wait()
 
             if returncode == 0:

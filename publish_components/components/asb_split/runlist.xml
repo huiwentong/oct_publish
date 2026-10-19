@@ -44,6 +44,7 @@
             <!-- ↓ 以下检查只对打了「Maya场景」标签的资产生效。UE 场景资产、
                  以及没打标签的 ASB（get_asset_kind 会回退成 UE_SCENE_TAG），
                  都会在各组件内部自行跳过 -->
+            <check type="mod" name="check_empty_meshes_and_lamina_faces"/>
             <check type="mod" name="check_mesh"/>
             <check type="mod" name="vertex_overlap"/>
             <check type="mod" name="vertex_isolated"/>

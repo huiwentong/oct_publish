@@ -21,6 +21,7 @@
             <check type="mod" name="one_geo_only"/>
             <check type="maya_gen" name="mesh_name"/>
             <check type="mod" name="unique_name"/>
+            <check type="mod" name="check_empty_meshes_and_lamina_faces"/>
             <check type="mod" name="check_mesh"/>
             <check type="maya_gen" name="match_hierarchy"/>
             <check type="tex" name="check_illegal_path"/>

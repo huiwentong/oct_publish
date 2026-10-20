@@ -446,7 +446,12 @@ if __name__ == "__main__":
         error_patterns = (
             re.compile(r'\[ERROR\].*?\s-\s(?P<message>.+)$'),
             re.compile(
-                r'\bTEMP_PYTHON\s*:\s*ERROR\s*:\s*(?P<message>.+)$',
+                r'\bTEMP_PYTHON\s*:\s*ERROR\s*:\s*'
+                r'(?P<message>.+)$',
+                re.IGNORECASE
+            ),
+            re.compile(
+                r'(?P<message>RuntimeError\s*:\s*.+)$',
                 re.IGNORECASE
             ),
         )
@@ -460,7 +465,7 @@ if __name__ == "__main__":
             print(line, flush=True)
             self.log.info(line)
 
-            # INFO 表示当前错误块结束
+            # 遇到 INFO，结束当前错误块
             if '[INFO]' in line:
                 if capturing_error and error_lines:
                     critical_errors.append(
@@ -480,7 +485,7 @@ if __name__ == "__main__":
                     error_match = match
                     break
 
-            # ERROR 表示新的错误块开始
+            # 遇到错误，开始捕获
             if error_match:
                 if capturing_error and error_lines:
                     critical_errors.append(
@@ -493,11 +498,11 @@ if __name__ == "__main__":
                 capturing_error = True
                 continue
 
-            # ERROR 后、INFO 前的内容全部保存
+            # 错误之后、INFO 之前的内容全部保存
             if capturing_error:
                 error_lines.append(line)
 
-        # stdout 结束时保存最后一个错误块
+        # stdout 结束时保存最后一个错误
         if capturing_error and error_lines:
             critical_errors.append(
                 '\n'.join(error_lines).strip()

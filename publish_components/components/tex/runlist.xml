@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <root>
     <checkcontainer>
+        <check_group name="Publish">
+            <check type="maya_gen" name="relink_outsource_paths"/>
+        </check_group>
         <check_group name="Dailies">
             <check type="gen" name="check_asset_is_old"/>
             <check type="gen" name="check_dcc_rv"/>
@@ -11,7 +14,6 @@
             <check type="gen" name="check_publish_root"/>
         </check_group>
         <check_group name="Publish">
-            <check type="maya_gen" name="relink_outsource_paths"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_dcc_mtoa"/>

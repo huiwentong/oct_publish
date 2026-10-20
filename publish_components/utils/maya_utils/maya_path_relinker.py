@@ -198,35 +198,61 @@ def relink_xgen_files(index, report, make_backup=True):
             report.errors.append("{}: {}".format(path, exc))
 
 
-def execute_relinker(maya_file, image_root):
-    """将原 MA 移到 image_root/source，替换路径并以原名输出；返回报告。"""
-    index, scene = AssetIndex(image_root), Path(maya_file).expanduser().resolve()
+def execute_relinker(maya_file, image_root, output_name=None):
+    """将原 MA 移到 image_root/source_project，替换路径并以指定文件名输出；返回报告。"""
+    index, scene = AssetIndex(image_root), Path(maya_file).expanduser().absolute()
+    output_name = str(output_name or scene.name)
+    if Path(output_name).name != output_name:
+        raise ValueError("output_name 只能是文件名，不能包含目录路径。")
+    output = Path(output_name)
+    if not output.suffix:
+        output = output.with_suffix(scene.suffix)
+    if output.suffix.casefold() != scene.suffix.casefold():
+        raise ValueError("output_name 的扩展名必须与原 Maya 文件一致。")
+    output = scene.with_name(output.name)
     text, encoding = _read_text_file(scene)
     _encode_maya_ascii(text, encoding)
     source = index.root / "source_project"
     source.mkdir(exist_ok=True)
-    backup = source / scene.name
-    stamp, counter = datetime.datetime.now().strftime("%Y%m%d_%H%M%S"), 0
-    while backup.exists():
-        suffix = "." + str(counter) if counter else ""
-        backup = source / "{}.{}{}{}".format(scene.stem, stamp, suffix, scene.suffix)
-        counter += 1
-    shutil.move(str(scene), str(backup))
+
+    def backup_path(path):
+        backup = source / path.name
+        stamp, counter = datetime.datetime.now().strftime("%Y%m%d_%H%M%S"), 0
+        while backup.exists():
+            suffix = "." + str(counter) if counter else ""
+            backup = source / "{}.{}{}{}".format(path.stem, stamp, suffix, path.suffix)
+            counter += 1
+        return backup
+
+    backup = backup_path(scene)
+    output_backup = backup_path(output) if output != scene and output.exists() else None
     report, staged = RelinkReport(), None
+    scene_moved = output_moved = False
     try:
+        shutil.move(str(scene), str(backup))
+        scene_moved = True
+        if output_backup:
+            shutil.move(str(output), str(output_backup))
+            output_moved = True
         data = _encode_maya_ascii(rewrite_maya_ascii(text, index, report), encoding)
         with tempfile.NamedTemporaryFile(mode="wb", prefix=".maya_relink_", suffix=".tmp",
-                                         dir=scene.parent, delete=False) as handle:
+                                         dir=output.parent, delete=False) as handle:
             staged = Path(handle.name)
             handle.write(data)
-        os.replace(staged, scene)
+        os.replace(staged, output)
     except Exception:
-        shutil.move(str(backup), str(scene))
+        if output_moved and output_backup.exists() and not output.exists():
+            shutil.move(str(output_backup), str(output))
+        if scene_moved and backup.exists() and not scene.exists():
+            shutil.move(str(backup), str(scene))
         raise
     finally:
         if staged and staged.exists():
             staged.unlink()
-    report.external_files.extend(["Maya 原文件备份: {}".format(backup), "Maya 新文件: {}".format(scene)])
+    report.external_files.append("Maya 原文件备份: {}".format(backup))
+    if output_backup:
+        report.external_files.append("Maya 已有目标文件备份: {}".format(output_backup))
+    report.external_files.append("Maya 新文件: {}".format(output))
     relink_xgen_files(index, report)
     print(report.text())
-    return report
+    return output, report

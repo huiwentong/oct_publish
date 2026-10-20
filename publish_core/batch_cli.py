@@ -24,6 +24,10 @@ JSON 配置文件示例:
     "input_form": {
         "ma_file" : "/path/to/test.ma",
         "zb_file" : "/path/to/test.zb",
+    },
+    "extra_data":
+    {
+        "is_outsourcing":true
     }
 }
 
@@ -54,18 +58,28 @@ def send_message_for_usr(publish_cli, user, comment):
     }
     send_simple_message(msg_data, '来自发布者的提醒', user)
 
+def get_next_version_name(task_id):
+    from oct.pipeline.task_context import TaskContext
+    tc = TaskContext(int(task_id))
+    next_version_name = ""
+    if tc.task:
+        next_version_name = tc.task.next_version().split(".")[-1]
+    return next_version_name
 
 def execute(args):
     from publish_core.cli import PublishCli, get_user, PublishType
 
     task_id = args["task_id"]
     dcc_file = args["dcc_file"]
-    version_num = args["version_num"]
+    version_num = args.get("version_num")
+    if not version_num:
+        version_num = get_next_version_name(task_id)
     publish_tag_id = args["publish_tag_id"]
     input_form = args.get('input_form', {})
     preview_paths = args.get('preview_paths', [])
     comment = args.get('comment', 'batch publish tool')
     publish_type = args.get('publish_type', '')
+    extra_data = args.get('extra_data', {})
     if publish_type:
         assert publish_type in ["Dailies", "Submit", "Publish"], "{} is not a valid publish type !!".format(publish_type)
         publish_type = PublishType(publish_type)
@@ -91,6 +105,8 @@ def execute(args):
         publish_type=publish_type,
         preview_paths=preview_paths)
 
+    if extra_data:
+        publish_cli.interface.process_data.update(extra_data)
     publish_cli.log.info('cli初始化完毕')
     publish_cli.interface.run_in_cli()
     publish_cli.log.info('cli程序运行完毕！')

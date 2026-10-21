@@ -120,7 +120,7 @@ def execute(args):
     else:
         error_message = "cli 提交失败, 未知原因报错，联系Td！"
         send_message_for_usr(publish_cli, user, error_message)
-        raise error_message
+        raise RuntimeError(error_message)
 
 if __name__ == "__main__":
     cli_args = parse_args()

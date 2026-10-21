@@ -13,11 +13,11 @@
             <check type="gen" name="version_name"/>
             <check type="gen" name="check_selected_preview"/>
             <check type="gen" name="check_publish_root"/>
-            <check type="gen" name="check_frame_rate"/>
 
         </check_group>
 
         <check_group name="Publish">
+            <check type="gen" name="check_frame_rate"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_gen" name="check_hierarchy_main"/>

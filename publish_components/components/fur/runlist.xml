@@ -2,7 +2,7 @@
 <root>
     <checkcontainer>
         <check_group name="Publish">
-            <check type="fur" name="setup_fur_scene"/>
+            <check type="fur" name="setup_fur_scene" single_end="backend"/>
         </check_group>
 
         <check_group name="Dailies">

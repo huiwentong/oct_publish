@@ -2,7 +2,7 @@
 <root>
     <checkcontainer>
         <check_group name="Publish">
-            <check type="maya_gen" name="relink_outsource_paths"/>
+            <check type="maya_gen" name="relink_outsource_paths" single_end="backend"/>
         </check_group>
         <check_group name="Dailies">
             <check type="gen" name="check_asset_is_old"/>
@@ -77,6 +77,7 @@
         <process type="maya_gen" name="sub_to_deadline_job" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
         <process type="gen" name="asset_reassembly" mode="Submit"/>
+        <process type="maya_gen" name="open_published_ma" mode="Publish"/>
     </processcontainer>
 
 </root>

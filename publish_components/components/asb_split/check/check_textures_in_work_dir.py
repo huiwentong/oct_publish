@@ -8,7 +8,7 @@ import maya.utils as utils
 from qtpy import QtCore, QtWidgets
 
 from publish_components.utils.texture_files import (TOKEN_PATTERN, TEXTURE_NODE_ATTRS, TextureFileResolver,
-                                                    add_suffix, assign_collision_suffixes,
+                                                    add_suffix, assign_collision_suffixes, file_md5,
                                                     is_under_dir, need_copy, norm_path,
                                                     resolve_texture_pattern, set_texture_path)
 
@@ -34,14 +34,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             return u"没有指定工作文件，无法确定工作目录"
         work_dir = norm_path(os.path.dirname(work_file))
         tex_dir = work_dir + '/sourceimages'
-
-        def get_dest_dir(pattern):
-            # 源文件的父文件夹名不是 sourceimages 时，在 sourceimages 下保留这一级文件夹名，
-            # 避免不同来源的同名贴图互相覆盖，与 oct_save_as 的做法一致
-            parent_name = os.path.basename(os.path.dirname(pattern))
-            if parent_name.lower() == 'sourceimages':
-                return tex_dir
-            return tex_dir + '/' + parent_name
 
         # 遍历贴图节点要读 Maya 属性，收进 collect() 调度回主线程
         def collect():
@@ -71,7 +63,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                             'pattern': pattern,
                             'files': files}
                     if not is_under_dir(pattern, work_dir):
-                        info['dest_dir'] = get_dest_dir(pattern)
+                        # 统一拷到 sourceimages 下，不同来源的同名贴图由 fix() 按内容加哈希后缀区分
+                        info['dest_dir'] = tex_dir
                         outside.append(info)
                     elif not os.path.isabs(raw_path.replace('\\', '/')):
                         # 文件已经在工作目录下，不用拷贝，原地改成绝对路径
@@ -156,6 +149,12 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
                 seen.add(key)
                 copy_jobs.append((src_file, dst_file))
 
+        def same_content(src_file, dst_file):
+            # 先比大小，大小一样再算 md5，避免对明显不同的大贴图做哈希
+            return (os.path.isfile(dst_file)
+                    and os.path.getsize(src_file) == os.path.getsize(dst_file)
+                    and file_md5(src_file) == file_md5(dst_file))
+
         copied = 0
         if copy_jobs:
             # fix 由按钮点击直接调用，在主线程，可以弹进度条；CLI 下没有父窗口就不弹
@@ -171,7 +170,8 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
                 dest_dir = os.path.dirname(dst_file)
                 if not os.path.isdir(dest_dir):
                     os.makedirs(dest_dir)
-                if need_copy(src_file, dst_file):
+                # 目标已存在且内容相同就不重复拷贝，只改引用路径
+                if need_copy(src_file, dst_file) and not same_content(src_file, dst_file):
                     shutil.copy2(src_file, dst_file)
                     copied += 1
 
@@ -207,7 +207,7 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
 
         utils.executeInMainThreadWithResult(replace_paths)
 
-        logger.info(u"共 {0} 个文件，实际拷贝 {1} 个，其余已存在且未变化。".format(len(copy_jobs), copied))
+        logger.info(u"共 {0} 个文件，实际拷贝 {1} 个，其余目标已存在且内容相同，只改了路径。".format(len(copy_jobs), copied))
         if missing:
             logger.warning(u"另有 {0} 个贴图文件不存在，无法自动修复，请手动处理。".format(len(missing)))
 

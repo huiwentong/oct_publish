@@ -357,7 +357,14 @@ class InterFace():
             f'module={module_name}'
         )
         
-        db = RunListDB(runlist_file=runlist, file_first=True if self.runlist else False, publish_type=self.submit_type, step=Path(module_file).parent.stem)
+        db = RunListDB(
+            runlist_file=runlist, 
+            file_first=True if self.runlist else False, 
+            publish_type=self.submit_type, 
+            step=Path(module_file).parent.stem,
+            runended=['backend', 'gui'][self.is_gui]
+            )
+        
         self.check_files = db.check_files
         self.process_files = db.process_files
         self.process_data.update({'filetypes': db.file_types})

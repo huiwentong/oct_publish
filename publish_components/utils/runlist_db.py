@@ -6,17 +6,17 @@ from publish_components.utils.register import unpack_xml
 class RunListDB():
     runlist_pool = None
 
-    def __init__(self, runlist_file, file_first=False, publish_type='Dailies' ,step='mod') -> None:
+    def __init__(self, runlist_file, file_first=False, publish_type='Dailies' ,step='mod', runended='gui') -> None:
         self.check_files = self.process_files = []
         self.file_types = []
         if file_first:
-            self.check_files, self.process_files, self.file_types = unpack_xml(runlist_file, publish_type)
+            self.check_files, self.process_files, self.file_types = unpack_xml(runlist_file, publish_type, runended)
         else:
             RunListDB.connect_db(Config())
             if self.runlist_pool:
                 self.check_files, self.process_files, self.file_types = self.find_file_from_db(step, publish_type)
             else:
-                self.check_files, self.process_files, self.file_types = unpack_xml(runlist_file, publish_type)
+                self.check_files, self.process_files, self.file_types = unpack_xml(runlist_file, publish_type, runended)
                 
         if not self.check_files or not self.process_files:
             raise RuntimeError('failed to find runlist data!')

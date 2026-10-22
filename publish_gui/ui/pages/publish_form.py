@@ -97,6 +97,71 @@ QScrollBar::sub-page:horizontal {{
 '''
 
 
+class EnglishFilterProxyModel(QtCore.QSortFilterProxyModel):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setFilterCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
+
+    def filterAcceptsRow(self, source_row: int, source_parent: QtCore.QModelIndex) -> bool:
+        model = self.sourceModel()
+        index = model.index(source_row, 0, source_parent)
+
+        chinese = str(model.data(index) or "")
+        try:
+            english = str(
+                model.data(index, Qt.ItemDataRole.UserRole)['login'] or ""
+            )
+        except:
+            english = ''
+        keyword = self.filterRegularExpression().pattern().lower()
+        
+
+        if (
+            keyword in chinese.lower()
+            or keyword in english.lower()
+        ):
+            # print(chinese, english)
+            # print(keyword)
+            return True
+        else:
+            return False
+
+
+class EnglishCompleter(QtWidgets.QCompleter):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        popup = self.popup()
+        popup.setStyleSheet("""
+            QListView {
+                background-color: #252526;
+                color: #cccccc;
+                border: 1px solid #3e3e42;
+                outline: none;
+                font-size: 13px;
+            }
+
+            QListView::item {
+                height: 28px;
+                padding-left: 8px;
+                border: none;
+            }
+
+            QListView::item:hover {
+                background-color: #2a2d2e;
+            }
+
+            QListView::item:selected {
+                background-color: #094771;
+                color: #ffffff;
+            }
+        """)
+
+
+
+    def splitPath(self, path):
+        print('splitpath'+path)
+        return [""]
+
 class ThumbLabel(QLabel):
     clicked = Signal()
     def __init__(self, parent=None):
@@ -440,18 +505,39 @@ class PublishFormPage(QWidget):
 
         # 下拉菜单：选择人员
         self._notify_combo = QComboBox()
+        self._notify_combo.setEditable(True)
         self._notify_combo.setFixedSize(160, 35)
 
         self.pp_model = QtGui.QStandardItemModel()
-        self.completer = QtWidgets.QCompleter()
-        self.completer.setModel(self.pp_model)
+        self._notify_combo.setModel(self.pp_model)
+
+        self.proxy_model = EnglishFilterProxyModel()
+        self.proxy_model.setSourceModel(self.pp_model)
+
+        self.completer = EnglishCompleter(self.proxy_model, self._notify_combo)
+        # self.completer.setModel(self.proxy_model)
+        self.completer.setCompletionColumn(0)
         self.completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive) 
         self.completer.setFilterMode(Qt.MatchFlag.MatchContains) 
         self.completer.setCompletionMode(QtWidgets.QCompleter.CompletionMode.PopupCompletion) 
         self.completer.setMaxVisibleItems(10) 
         self._notify_combo.setCompleter(self.completer)
-        self._notify_combo.setModel(self.pp_model)
-        self._notify_combo.setEditable(True)
+        def on_text_edited(text):
+            self.proxy_model.setFilterFixedString(text)
+            # print("代理模型行数:", self.proxy_model.rowCount())
+            # print("补全前缀:", self.completer.completionPrefix())
+            # print("补全结果:", self.completer.completionCount())
+            # print("弹窗可见:", self.completer.popup().isVisible())
+            
+            self.completer.complete()
+            if text and self.proxy_model.rowCount() > 0:
+                # self.completer.setCompletionPrefix('')
+                self.completer.complete()
+            else:
+                pass
+                self.completer.popup().hide()
+
+        self._notify_combo.lineEdit().textEdited.connect(on_text_edited)
         notify_row.addWidget(self._notify_combo)
 
         for k,v in {'test1': 12, 'test2': 123, 'test3':855}.items():

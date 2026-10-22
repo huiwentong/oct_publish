@@ -2,7 +2,7 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
-
+from publish_components.utils.maya_utils import dialogs
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """检查 high 组下隐藏的几何体"""
@@ -20,7 +20,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
         if error_nodes:
             process_data["visibility_error_nodes"] = error_nodes
-            return "以下节点被隐藏:\n{}".format("\n".join(error_nodes))
+            message = "以下节点被隐藏，请自行判断是否修复。如果这些是允许的，请‘跳过检查’。:\n{}".format("\n".join(error_nodes))
+            if parent_widget:
+                selected = dialogs.message_dialog("提示", message, ["跳过检查", "停止提交"], parent=parent_widget)
+                if selected == "停止提交":
+                    return message
+            else:
+                return message
 
     except Exception:
         return traceback.format_exc()

@@ -36,10 +36,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not pm.objExists('master_ctrl'):
                 return u'master_ctrl 不存在'
 
-            if pm.objExists('master_ctrl.displayType'):
-                if pm.getAttr('master_ctrl.displayType') != 2:
-                    return u'master_ctrl的displayType属性要设置为reference'
-
             return None
 
         result = utils.executeInMainThreadWithResult(process)

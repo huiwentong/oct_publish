@@ -44,12 +44,12 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
             for itm in process_data['vis_dsp_typ_setting']:
                 if pm.objExists(itm):
                     correct_v = process_data['vis_dsp_typ_setting'][itm]
-                    if pm.getAttr(correct_v) != itm:
+                    if pm.getAttr(itm) != correct_v:
                         node = pm.PyNode(itm)
                         node.unlock()
                         pm.setAttr(itm, correct_v)
                 else:
-                    return u"未找到: {}".format(itm)
+                    logger.info(u"未找到: {}".format(itm))
 
         return utils.executeInMainThreadWithResult(process)
 

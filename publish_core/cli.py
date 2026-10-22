@@ -207,7 +207,7 @@ class PublishCli:
         if not self.task_entity:
             raise RuntimeError('can not find cli task entity!')
         
-        vername = f'{self.task_entity.entity.code}.{get_step_short_name(self.task_entity.step)}.{self.task_entity.content}.v{str(self.version_num).zfill(3)}'
+        vername = f'{self.task_entity.entity.code}.{get_step_short_name(self.task_entity.step)}.{self.task_entity.content}.{str(self.version_num).zfill(3)}'
         msg_data = {
             'message': self.comment,
             'type': self.publish_type,

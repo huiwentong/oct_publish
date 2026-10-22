@@ -51,3 +51,7 @@ def get_utils_env():
     for k,v in env.items():
         env[k] = v.replace('huiwentong', os.environ['username'])
     return env
+
+def is_outsourcing(path):
+    tokens = str(path).replace('\\', '/').split('/')
+    return len(tokens) > 3 and tokens[3] == "outsourcing"

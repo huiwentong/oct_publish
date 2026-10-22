@@ -30,7 +30,8 @@
             <check type="maya_gen" name="no_name_space"/>
             <check type="mod" name="check_instanced_node"/>
             <check type="rig" name="io_mesh_name"/>
-            <check type="rig" name="check_mesh"/>
+            <check type="mod" name="check_empty_meshes_and_lamina_faces"/>
+            <check type="mod" name="check_mesh"/>
             <check type="maya_gen" name="mesh_name"/>
             <check type="maya_gen" name="match_hierarchy"/>
             <check type="maya_gen" name="check_mod_hierarchy_order"/>
@@ -61,7 +62,7 @@
         <process type="maya_gen" name="copy_asset_images" mode="Publish"/>
         <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>
         <process type="rig" name="export_ctrl_info" mode="Publish"/>
-        <process type="maya_gen" name="version_up" mode="Publish"/>
+<!--        <process type="maya_gen" name="version_up" mode="Publish"/>-->
         <process type="maya_gen" name="export_asset_ma" mode="Publish"/>
         <process type="maya_gen" name="copy_dna" mode="Publish"/>
         <process type="maya_gen" name="export_cms" mode="Publish"/>

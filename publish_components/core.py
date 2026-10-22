@@ -446,6 +446,76 @@ if __name__ == "__main__":
             load_file=body
         )
 
+    def _capture_critical_errors(self, stdout):
+        """实时读取输出并返回捕获到的错误列表。"""
+        critical_errors = []
+
+        error_patterns = (
+            re.compile(r'\[ERROR\].*?\s-\s(?P<message>.+)$'),
+            re.compile(
+                r'\bTEMP_PYTHON\s*:\s*ERROR\s*:\s*'
+                r'(?P<message>.+)$',
+                re.IGNORECASE
+            ),
+            re.compile(
+                r'(?P<message>RuntimeError\s*:\s*.+)$',
+                re.IGNORECASE
+            ),
+        )
+
+        capturing_error = False
+        error_lines = []
+
+        for raw_line in stdout:
+            line = raw_line.rstrip('\r\n')
+
+            print(line, flush=True)
+            self.log.info(line)
+
+            # 遇到 INFO，结束当前错误块
+            if '[INFO]' in line:
+                if capturing_error and error_lines:
+                    critical_errors.append(
+                        '\n'.join(error_lines).strip()
+                    )
+
+                capturing_error = False
+                error_lines = []
+                continue
+
+            error_match = None
+
+            for pattern in error_patterns:
+                match = pattern.search(line)
+
+                if match:
+                    error_match = match
+                    break
+
+            # 遇到错误，开始捕获
+            if error_match:
+                if capturing_error and error_lines:
+                    critical_errors.append(
+                        '\n'.join(error_lines).strip()
+                    )
+
+                error_lines = [
+                    error_match.group('message').strip()
+                ]
+                capturing_error = True
+                continue
+
+            # 错误之后、INFO 之前的内容全部保存
+            if capturing_error:
+                error_lines.append(line)
+
+        # stdout 结束时保存最后一个错误
+        if capturing_error and error_lines:
+            critical_errors.append(
+                '\n'.join(error_lines).strip()
+            )
+
+        return critical_errors
 
     def run_in_cli(self):
         scene_name = self.dcc_file
@@ -463,17 +533,6 @@ if __name__ == "__main__":
         if suffix not in DCC_COMMANDS:
             raise RuntimeError(f'Unsupported dcc file: {suffix}')
 
-        # 用于避免同一条错误被不同日志格式重复输出
-        error_messages_seen = set()
-
-        error_patterns = (
-            # 2026-10-16 ... [ERROR] ... - 错误内容
-            re.compile(r'\[ERROR\].*?\s-\s(?P<message>.+)$'),
-
-            # TEMP_PYTHON : ERROR : 错误内容
-            re.compile(r'\bERROR\s*:\s*(?P<message>.+)$', re.IGNORECASE)
-        )
-
         fd, python_script = tempfile.mkstemp(
             suffix='.py',
             prefix='publish_'
@@ -485,7 +544,7 @@ if __name__ == "__main__":
 
             cmd = DCC_COMMANDS[suffix].format(
                 script=str(Path(python_script).resolve()),
-                scene='' if suffix=='cmd' else scene_name
+                scene='' if suffix == 'cmd' else scene_name
             )
 
             self.log.info(cmd)
@@ -500,23 +559,8 @@ if __name__ == "__main__":
 
             # 实时读取并打印子进程输出
             if process.stdout:
-                for raw_line in process.stdout:
-                    line = raw_line.rstrip('\r\n')
-
-                    print(line, flush=True)
-                    self.log.info(line)
-
-                    for pattern in error_patterns:
-                        match = pattern.search(line)
-                        if not match:
-                            continue
-
-                        error_message = match.group('message').strip()
-                        if error_message not in error_messages_seen:
-                            error_messages_seen.add(error_message)
-                            self.critical_error.append(error_message)
-
-                        break
+                errors = self._capture_critical_errors(process.stdout)
+                self.critical_error.extend(errors)
 
             returncode = process.wait()
 

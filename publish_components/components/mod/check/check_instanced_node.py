@@ -2,6 +2,10 @@
 import traceback
 import pymel.core as pm
 import maya.utils as utils
+
+from publish_components.utils.sg_helper import get_asset_kind, DEFAULT_ASSET_TAG
+
+
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
     检查最高组之下是否有关联复制的节点。如果出现，自动转成普通节点
@@ -19,12 +23,16 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             return l_instanced
 
         process_data["instanced_node_error_nodes"] = []
-        error_nodes = utils.executeInMainThreadWithResult(check)
-        if len(error_nodes) > 0:
-            process_data["instanced_node_error_nodes"] = error_nodes
-            msg = "以下节点是关联复制的节点：\n{}".format(
-                "\n".join([itm.name() for itm in process_data["instanced_node_error_nodes"]]))
-            return msg
+        # 场景资产允许关联复制
+        task_id = process_data['task_id']
+        is_scene_asset = get_asset_kind(task_id) != DEFAULT_ASSET_TAG
+        if not is_scene_asset:
+            error_nodes = utils.executeInMainThreadWithResult(check)
+            if len(error_nodes) > 0:
+                process_data["instanced_node_error_nodes"] = error_nodes
+                msg = "以下节点是关联复制的节点：\n{}".format(
+                    "\n".join([itm.name() for itm in process_data["instanced_node_error_nodes"]]))
+                return msg
 
     except:
         return traceback.format_exc()

@@ -10,6 +10,8 @@
             <check type="gen" name="check_publish_root"/>
         </check_group>
         <check_group name="Publish">
+            <!-- 外包 cli 发布：按 SG 下一版本号另存 ma / usda，必须先于所有针对工程文件的检查 -->
+            <check type="maya_shot" name="rename_outsource_version"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_shot" name="check_picked_file_is_current"/>
             <check type="maya_gen" name="check_work_file"/>

@@ -53,7 +53,5 @@ def get_utils_env():
     return env
 
 def is_outsourcing(path):
-    tokens = str(path).split('/')
-    if not tokens:
-        return False
-    return tokens[3] == "outsourcing"
+    tokens = str(path).replace('\\', '/').split('/')
+    return len(tokens) > 3 and tokens[3] == "outsourcing"

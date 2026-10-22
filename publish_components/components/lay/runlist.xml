@@ -12,6 +12,8 @@
         </check_group>
 
         <check_group name="Publish">
+            <!-- 外包 cli 发布：按 SG 下一版本号另存 ma / usda，必须先于所有针对工程文件的检查 -->
+            <check type="maya_shot" name="rename_outsource_version"/>
             <!-- 老 this_is_maya + check_maya_unit + unknown_plugins + unlock_default_nodes -->
             <check type="maya_gen" name="generic_check"/>
             <!-- 老 this_is_picked_file：表单里选的文件必须是当前打开的场景 -->

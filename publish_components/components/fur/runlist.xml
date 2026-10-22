@@ -1,10 +1,6 @@
 <?xml version="1.0"?>
 <root>
     <checkcontainer>
-        <check_group name="Publish">
-            <check type="fur" name="setup_fur_scene" single_end="backend"/>
-        </check_group>
-
         <check_group name="Dailies">
             <check type="gen" name="check_asset_is_old"/>
             <check type="gen" name="check_dcc_rv"/>
@@ -13,10 +9,10 @@
             <check type="gen" name="version_name"/>
             <check type="gen" name="check_selected_preview"/>
             <check type="gen" name="check_publish_root"/>
-
         </check_group>
 
         <check_group name="Publish">
+            <check type="maya_gen" name="relink_outsource_paths" single_end="backend"/>
             <check type="gen" name="check_frame_rate"/>
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_work_file"/>

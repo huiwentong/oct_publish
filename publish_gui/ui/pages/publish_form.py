@@ -113,16 +113,16 @@ class EnglishFilterProxyModel(QtCore.QSortFilterProxyModel):
             )
         except:
             english = ''
-
         if hasattr(self, "filterRegularExpression"):
             keyword = self.filterRegularExpression().pattern().lower()
+            if not keyword:
+                keyword = self.filterRegExp().pattern().lower()
         else:
             keyword = self.filterRegExp().pattern().lower()
         if (
             keyword in chinese.lower()
             or keyword in english.lower()
         ):
-            print(keyword)
             return True
         else:
             return False
@@ -525,10 +525,10 @@ class PublishFormPage(QWidget):
         self._notify_combo.setCompleter(self.completer)
         def on_text_edited(text):
             self.proxy_model.setFilterFixedString(text)
-            print("代理模型行数:", self.proxy_model.rowCount())
-            print("补全前缀:", self.completer.completionPrefix())
-            print("补全结果:", self.completer.completionCount())
-            print("弹窗可见:", self.completer.popup().isVisible())
+            # print("代理模型行数:", self.proxy_model.rowCount())
+            # print("补全前缀:", self.completer.completionPrefix())
+            # print("补全结果:", self.completer.completionCount())
+            # print("弹窗可见:", self.completer.popup().isVisible())
             
             self.completer.complete()
             if text and self.proxy_model.rowCount() > 0:

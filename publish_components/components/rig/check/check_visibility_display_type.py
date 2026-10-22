@@ -19,10 +19,12 @@ Visibility 的 displayType 通道是否连接模型的显示属性
 
         def process():
             error_list = []
-            for k, v in process_data['vis_dsp_typ_setting'].items():
-                if pm.objExists(k):
-                    if pm.getAttr(k) != v:
-                        error_list.append(k)
+            for itm, val in process_data['vis_dsp_typ_setting'].items():
+                if pm.objExists(itm):
+                    if pm.getAttr(itm) != val:
+                        error_list.append(itm)
+                else:
+                    logger.info(u"未找到: {}，已跳过".format(itm))
 
             if error_list:
                 return u"以下节点设置错误：{}".format(', '.join(error_list))
@@ -32,8 +34,6 @@ Visibility 的 displayType 通道是否连接模型的显示属性
         if result:
             return result
 
-
-
     except:
         return traceback.format_exc()
 
@@ -41,15 +41,14 @@ Visibility 的 displayType 通道是否连接模型的显示属性
 def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     try:
         def process():
-            for itm in process_data['vis_dsp_typ_setting']:
+            for itm, val in process_data['vis_dsp_typ_setting'].items():
                 if pm.objExists(itm):
-                    correct_v = process_data['vis_dsp_typ_setting'][itm]
-                    if pm.getAttr(itm) != correct_v:
+                    if pm.getAttr(itm) != val:
                         node = pm.PyNode(itm)
                         node.unlock()
-                        pm.setAttr(itm, correct_v)
+                        pm.setAttr(itm, val)
                 else:
-                    logger.info(u"未找到: {}".format(itm))
+                    logger.info(u"未找到: {}，已跳过".format(itm))
 
         return utils.executeInMainThreadWithResult(process)
 

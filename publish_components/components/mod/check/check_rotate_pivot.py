@@ -25,7 +25,9 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 root = process_data.get("geo", pm.PyNode('|Root_grp'))
                 for trans in pm.listRelatives(root, ad=True, type='transform'):
                     rotate_pivot, scale_pivot = trans.getPivots(worldSpace=1)
-                    if rotate_pivot.length() != 0 and scale_pivot.length() != 0:
+                    # 父级带旋转/缩放时 setPivots 换算回来有 1e-13 量级残差，不能精确比 0。
+                    # 容差 1e-4 = 0.0001 厘米（1 微米），离原点不到 1 微米即视为通过
+                    if rotate_pivot.length() > 1e-4 and scale_pivot.length() > 1e-4:
                         error_nodes.append(trans)
             return error_nodes
 

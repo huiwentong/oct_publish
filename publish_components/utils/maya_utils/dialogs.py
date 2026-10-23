@@ -45,7 +45,16 @@ class DialogInvoker(QtCore.QObject):
 
         box = QtWidgets.QMessageBox(data["parent"])
         box.setWindowTitle(data["title"])
-        box.setText(data["message"])
+        # 消息太长时弹窗会超出屏幕，按钮点不到；正文只放前 30 行 / 1500 字，全文放到可滚动的详情里。
+        # 有的检查把整个列表格式化成一行，单靠行数拦不住，所以字数也要限
+        message = data["message"]
+        lines = message.splitlines()
+        if len(lines) > 30 or len(message) > 1500:
+            preview = "\n".join(lines[:30])[:1500]
+            box.setText(preview + "\n……内容过长，完整内容见 Show Details")
+            box.setDetailedText(message)
+        else:
+            box.setText(message)
 
         # 关键：非模态
         box.setModal(False)

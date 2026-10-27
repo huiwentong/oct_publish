@@ -113,12 +113,15 @@ class EnglishFilterProxyModel(QtCore.QSortFilterProxyModel):
             )
         except:
             english = ''
-        if hasattr(self, "filterRegularExpression"):
-            keyword = self.filterRegularExpression().pattern().lower()
-            if not keyword:
+        try:
+            if hasattr(self, "filterRegularExpression"):
+                keyword = self.filterRegularExpression().pattern().lower()
+                if not keyword:
+                    keyword = self.filterRegExp().pattern().lower()
+            else:
                 keyword = self.filterRegExp().pattern().lower()
-        else:
-            keyword = self.filterRegExp().pattern().lower()
+        except:
+            keyword = ''
         if (
             keyword in chinese.lower()
             or keyword in english.lower()

@@ -63,6 +63,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         if str(step_name).lower() in ["texture", "tex"]:
             v_dir_imgs = v_dir_imgs + '/4096/'
         v_dir_srcs = version_dir + '/sourcefiles'
+        v_dir_extra = version_dir + '/extra_files'
         v_dir_klf = ""
         if task.entity.type == 'Asset':
             v_dir_ma_file = version_dir + '/' + entity_name + '.ma'
@@ -88,6 +89,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                             "v_dir_shot_json": v_dir_shot_json,
                             "v_dir_imgs": v_dir_imgs,
                             "v_dir_srcs": v_dir_srcs,
+                            "v_dir_extra": v_dir_extra,
                             "v_dir_ma_file": v_dir_ma_file,
                             "v_dir_mb_file": v_dir_mb_file,
                             "v_dir_klf": v_dir_klf,

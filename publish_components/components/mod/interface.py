@@ -29,7 +29,7 @@ class ModWidget(QtWidgets.QWidget):
     def __init__(self,input_form, parent=None):
         super().__init__(parent)
         self.input_form = input_form
-        self.input_form.update({"zb_file": "test", "ma_file": "test"})
+        self.input_form.update({"zb_file": "test", "ma_file": "test", "extra_files": []})
         main_layout = QtWidgets.QVBoxLayout(self)
 
         self.ma_widget = QtWidgets.QWidget()
@@ -59,6 +59,27 @@ class ModWidget(QtWidgets.QWidget):
         main_layout.addWidget(self.ma_widget)
         main_layout.addWidget(self.zb_widget)
 
+        self.extra_files_widget = QtWidgets.QWidget()
+        self.extra_files_widget.setStyleSheet(STYLESHEET)
+        extra_files_layout = QtWidgets.QVBoxLayout(self.extra_files_widget)
+        self.extra_files_label = QtWidgets.QLabel("附加文件 / 文件夹")
+        self.extra_files_label.setStyleSheet("border: none;")
+        extra_files_layout.addWidget(self.extra_files_label)
+        self.extra_files_list = QtWidgets.QListWidget()
+        self.extra_files_list.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+        extra_files_layout.addWidget(self.extra_files_list)
+
+        extra_buttons_layout = QtWidgets.QHBoxLayout()
+        self.add_files_btn = QtWidgets.QPushButton("添加文件")
+        self.add_folder_btn = QtWidgets.QPushButton("添加文件夹")
+        self.remove_files_btn = QtWidgets.QPushButton("移除选中")
+        extra_buttons_layout.addWidget(self.add_files_btn)
+        extra_buttons_layout.addWidget(self.add_folder_btn)
+        extra_buttons_layout.addWidget(self.remove_files_btn)
+        extra_files_layout.addLayout(extra_buttons_layout)
+        main_layout.addWidget(self.extra_files_widget)
+        self.add_extra_paths(list(self.input_form["extra_files"]))
+
         self.on_pick_current()
         self.do_connections()
 
@@ -66,6 +87,42 @@ class ModWidget(QtWidgets.QWidget):
         self.ma_pick_btn.clicked.connect(self.on_pick_current)
         self.select_ma_btn.clicked.connect(self.on_pick_workfile)
         self.select_zb_btn.clicked.connect(self.on_pick_zbfile)
+        self.add_files_btn.clicked.connect(self.on_add_extra_files)
+        self.add_folder_btn.clicked.connect(self.on_add_extra_folder)
+        self.remove_files_btn.clicked.connect(self.on_remove_extra_files)
+
+    def on_add_extra_files(self):
+        file_paths, _ = QtWidgets.QFileDialog.getOpenFileNames(self, "添加文件")
+        self.add_extra_paths(file_paths)
+
+    def on_add_extra_folder(self):
+        folder_path = QtWidgets.QFileDialog.getExistingDirectory(self, "添加文件夹")
+        if folder_path:
+            self.add_extra_paths([folder_path])
+
+    def add_extra_paths(self, paths):
+        existing_paths = {
+            self.extra_files_list.item(index).text()
+            for index in range(self.extra_files_list.count())
+        }
+        for path in paths:
+            if path and path not in existing_paths:
+                item = QtWidgets.QListWidgetItem(path)
+                item.setToolTip(path)
+                self.extra_files_list.addItem(item)
+                existing_paths.add(path)
+        self.sync_extra_files()
+
+    def on_remove_extra_files(self):
+        for item in self.extra_files_list.selectedItems():
+            self.extra_files_list.takeItem(self.extra_files_list.row(item))
+        self.sync_extra_files()
+
+    def sync_extra_files(self):
+        self.input_form["extra_files"] = [
+            self.extra_files_list.item(index).text()
+            for index in range(self.extra_files_list.count())
+        ]
 
     def on_pick_zbfile(self):
         pick_dialog = QtWidgets.QFileDialog()
@@ -104,6 +161,7 @@ class CompInterface(InterFace):
         default_factory=lambda: {
             "ma_file": True,
             "zb_file": True,
+            "extra_files": True,
         }
     )
 

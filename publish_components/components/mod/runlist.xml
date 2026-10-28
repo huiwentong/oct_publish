@@ -62,6 +62,7 @@
         <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
         <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>
         <process type="maya_gen" name="copy_asset_images" mode="Publish"/>
+        <process type="mod" name="copy_extra_files" mode="Publish"/>
         <process type="mod" name="create_cfx_head" mode="Publish"/>
         <process type="mod" name="export_asset_ma" mode="Publish"/>
         <process type="mod" name="export_asset_usd" mode="Publish"/>

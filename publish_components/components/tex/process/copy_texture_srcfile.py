@@ -135,7 +135,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
         if need_link_src:
             path_acs.symlink_files(need_link_src, need_link_dst, remove_exists=True, hard_link=True)
-            write_manifest(manifest_files)
+        write_manifest(manifest_files)
 
     except Exception:
         return traceback.format_exc()

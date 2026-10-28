@@ -94,16 +94,17 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         mod_path = mod_path.replace('I:', 'i:', 1)
                         n_root.setAttr('modelPath', mod_path)
 
-                    if mod_path:
+                    if os.path.isfile(mod_path):
                         mod_path = mod_path.replace("\\", "/")
-                    asset_dir = os.path.dirname(os.path.dirname(version_dir))
-                    # 兼容“submit” 和 “publish” 发布， 从根目录开始对比
-                    asset_root = asset_dir.split('projects', 1)[1]
-                    mod_path_root = mod_path.split('projects', 1)[1]
+                        asset_dir = os.path.dirname(os.path.dirname(version_dir))
+                        # 兼容“submit” 和 “publish” 发布， 从根目录开始对比
+                        asset_root = asset_dir.split('projects', 1)[1]
+                        mod_path_root = mod_path.split('projects', 1)[1]
 
-                    if mod_path and not mod_path_root.startswith(asset_root):
-                        result = u"Root_grp 的 modelPath 属性值为{0} 不匹配当前资产.".format(mod_path)
-                        can_continue = False
+                        if mod_path and not mod_path_root.startswith(asset_root):
+                            result = u"Root_grp 的 modelPath 属性值为{0} 不匹配当前资产.".format(mod_path)
+                            can_continue = False
+
 
                     if can_continue and mod_path and os.path.isdir(os.path.dirname(mod_path)):
                         mod_version, mesh_xml = get_last_version(mod_version, mod_path)

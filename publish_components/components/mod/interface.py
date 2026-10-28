@@ -29,7 +29,7 @@ class ModWidget(QtWidgets.QWidget):
     def __init__(self,input_form, parent=None):
         super().__init__(parent)
         self.input_form = input_form
-        self.input_form.update({"zb_file": "test", "ma_file": "test", "extra_files": []})
+        self.input_form.update({"zb_file": "test", "ma_file": "test", "extra_files": ["None"]})
         main_layout = QtWidgets.QVBoxLayout(self)
 
         self.ma_widget = QtWidgets.QWidget()
@@ -106,7 +106,7 @@ class ModWidget(QtWidgets.QWidget):
             for index in range(self.extra_files_list.count())
         }
         for path in paths:
-            if path and path not in existing_paths:
+            if path and path != "None" and path not in existing_paths:
                 item = QtWidgets.QListWidgetItem(path)
                 item.setToolTip(path)
                 self.extra_files_list.addItem(item)
@@ -122,7 +122,7 @@ class ModWidget(QtWidgets.QWidget):
         self.input_form["extra_files"] = [
             self.extra_files_list.item(index).text()
             for index in range(self.extra_files_list.count())
-        ]
+        ] or ["None"]
 
     def on_pick_zbfile(self):
         pick_dialog = QtWidgets.QFileDialog()

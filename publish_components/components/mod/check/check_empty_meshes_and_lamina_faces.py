@@ -22,8 +22,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         return bad_face
 
     try:
-        # UE 场景资产不做这项检查
-        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG:
+        # UE 场景资产 以及 tag 为 “低模”的时候不做这项检查
+        if get_asset_kind(process_data.get('task_id')) != UE_SCENE_TAG and \
+            process_data['publish_tag_id'] != 1129:
             def check_meshes() -> str | None:
                 """Run all mesh access, checks and result formatting on Maya's main thread."""
                 high_node = process_data.get('high','|Root_grp|Geo_grp|high')

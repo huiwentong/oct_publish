@@ -48,6 +48,7 @@
             <check type="maya_gen" name="check_multi_uv_sets"/>
             <check type="maya_gen" name="check_uv_negative_value"/>
             <check type="maya_gen" name="check_empty_uv_set"/>
+            <check type="mod" name="check_chr_texture_size"/>
         </check_group>
     </checkcontainer>
 

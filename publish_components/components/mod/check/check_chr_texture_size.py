@@ -15,6 +15,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         def _check():
             error_list = []
             for node in pm.ls(type=['file', 'aiImage']):
+                if pm.referenceQuery(node, isNodeReferenced=True):
+                    continue
                 try:
                     tex_path = node.fileTextureName.get()
                 except:

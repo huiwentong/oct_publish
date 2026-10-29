@@ -49,6 +49,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if pm.objExists("{}.a".format(node.name())) or pm.objExists("{}.b".format(node.name())):
                     pm.select(node, add=True, ne=True)
 
+            # unexport reference nodes
+            export_nodes = [node for node in pm.selected()
+                            if not pm.referenceQuery(node, isNodeReferenced=True)]
+
+            pm.select(export_nodes, r=True, ne=True)
             pm.exportSelected(v_dir_ma_file, force=True, options="v=0;", type="mayaAscii", pr=True, es=True)
             pm.select(cl=True)
             reset_imgs(d_imgs)

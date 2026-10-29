@@ -25,6 +25,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
                     node = pm.PyNode(item)
 
+                    if node.longName().startswith("|Root_grp|Rig_grp"):
+                        continue
+
                     if isinstance(node, pm.nodetypes.Mesh):
                         shape = node
                         trans = node.getParent()

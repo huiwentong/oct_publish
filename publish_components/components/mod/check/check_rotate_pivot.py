@@ -5,6 +5,7 @@ import pymel.core as pm
 import maya.utils as utils
 from oct.pipeline.task_context import TaskContext
 from publish_components.utils import maya_utils
+from publish_components.utils.sg_helper import get_asset_kind, DEFAULT_ASSET_TAG
 reload(maya_utils)
 def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     """
@@ -15,14 +16,14 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             task_id = process_data['task_id']
             tc = TaskContext(task_id) or TaskContext.from_env()
             tc.refresh()
-            rig_task_status = None
-            for t in tc.entity.tasks:
-                if t.content == 'rigging':
-                    rig_task_status = t.sg_status_list
-                    break
+            is_scene_asset = get_asset_kind(task_id) != DEFAULT_ASSET_TAG
             error_nodes = []
-            if rig_task_status and rig_task_status != 'omt':
-                root = process_data.get("geo", pm.PyNode('|Root_grp'))
+            if not is_scene_asset:
+                root = process_data.get("root", '|Root_grp')
+                root_node = pm.PyNode(root)
+                root_r_pivot, root_s_pivot = root_node.getPivots(worldSpace=1)
+                if root_r_pivot.length() > 1e-4 and root_s_pivot.length() > 1e-4:
+                    error_nodes.append(root_node)
                 for trans in pm.listRelatives(root, ad=True, type='transform'):
                     rotate_pivot, scale_pivot = trans.getPivots(worldSpace=1)
                     # 父级带旋转/缩放时 setPivots 换算回来有 1e-13 量级残差，不能精确比 0。

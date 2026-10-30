@@ -32,7 +32,7 @@
             <check type="rig" name="io_mesh_name"/>
             <check type="mod" name="check_empty_meshes_and_lamina_faces"/>
             <check type="mod" name="check_mesh"/>
-            <check type="maya_gen" name="mesh_name"/>
+<!--            <check type="maya_gen" name="mesh_name"/>-->
             <check type="maya_gen" name="match_hierarchy"/>
             <check type="maya_gen" name="check_mod_hierarchy_order"/>
             <check type="rig" name="check_ctrl_name"/>

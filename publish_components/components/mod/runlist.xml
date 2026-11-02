@@ -60,7 +60,7 @@
         <process type="mod" name="clean_mod_scene" mode="Publish"/>
         <process type="maya_gen" name="maya_version_attr" mode="Publish"/>
         <process type="gen" name="create_v_dir" mode="Dailies"/>
-        <process type="gen" name="copy_preview_to_v_dir" mode="Dailies"/>
+        <process type="mod" name="copy_preview_to_v_dir" mode="Dailies"/>
         <process type="maya_gen" name="asset_mesh_xml" mode="Publish"/>
         <process type="maya_gen" name="copy_asset_images" mode="Publish"/>
         <process type="mod" name="copy_extra_files" mode="Publish"/>

@@ -3,14 +3,22 @@ import traceback
 import os
 import pymel.core as pm
 import maya.utils as utils
+from publish_components.utils.sg_helper import get_asset_kind, UE_SCENE_TAG
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """检查贴图色彩空间"""
     try:
+        task_id = process_data['task_id']
+        is_ue_scene = get_asset_kind(task_id) == UE_SCENE_TAG
+
         def check():
             color_map = {"sRGB": "Utility - sRGB - Texture", "Raw": "Utility - Raw"}
             ocio_f = pm.colorManagementPrefs(q=True, configFilePath=True)
+            valid_spaces = list(color_map.values())
+            # UE 场景会回到UE渲染，按 OCIO 全量输入空间放行，和 asb_split/check_colorspace 一致
+            if is_ue_scene and pm.colorManagementPrefs(q=True, cmEnabled=True):
+                valid_spaces = pm.colorManagementPrefs(q=True, inputSpaceNames=True)
             f_data = {}
             e_data = []
 
@@ -18,7 +26,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if node.isReferenced():
                     continue
                 color_space = node.getAttr("colorSpace")
-                if color_space in color_map.values():
+                if color_space in valid_spaces:
                     continue
 
                 fix_cs = color_map.get(color_space)

@@ -22,7 +22,7 @@ from publish_components.utils.runlist_db import RunListDB
 DCC_COMMANDS = {
     
     'cmd':
-        'rez-env PySide2 oct_publish -- python {script} {scene}',
+        'rez-env --paths "//tools02.ds.com/pipeline/packages/int;//tools02.ds.com/pipeline/packages/ext;//tools02.ds.com/pipeline/packages" PySide2 oct_publish -- python {script} {scene}',
 
     '.hip':
         'rez-env oct_houdini houdini-20.5 -- hython {script} {scene}',

@@ -18,6 +18,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         task_id = process_data.get("task_id")
         v_dir_usd = process_data["v_dir_usd"]
         version_dir = process_data["version_dir"]
+        publish_type = process_data.get("publish_type", "Publish")
         pm.loadPlugin('mayaUsdPlugin', quiet=True)
 
         if not os.path.exists(v_dir_usd):
@@ -52,7 +53,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         batch_export_tex_usd(maya_file, high_usd, uv_usd, **args)
         Usd.Stage.Open(high_usd)
         Usd.Stage.Open(uv_usd)
-        step_pub_usds.TexStepUsd(version_folder=version_dir,task_id=task_id)
+        step_pub_usds.TexStepUsd(version_folder=version_dir,task_id=task_id,version_type=publish_type)
 
     except Exception:
         return traceback.format_exc()

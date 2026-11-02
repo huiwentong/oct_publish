@@ -41,6 +41,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             lock_and_hide_channelBox_attrs('high')
             lock_and_hide_channelBox_attrs('Geo_grp')
 
+            default_light_intensity = "hardwareRenderingGlobals.defaultLightIntensity"
+            if mc.objExists(default_light_intensity):
+                mc.setAttr(default_light_intensity, 1)
+                logger.info(u"设置完成 {} - {}".format(default_light_intensity, 1))
+
             return None
 
         result = utils.executeInMainThreadWithResult(process)

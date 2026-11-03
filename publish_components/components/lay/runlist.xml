@@ -21,6 +21,8 @@
             <!-- 老 version_name_match：工程文件名和版本名一致 -->
             <check type="maya_gen" name="check_work_file"/>
             <check type="maya_shot" name="check_shot_hierarchy"/>
+            <!-- 特效示意 |lay|efx_grp：不允许 reference，只允许 Maya 自带材质，必须在 check_shot_hierarchy 补建组之后 -->
+            <check type="maya_shot" name="check_lay_efx_grp"/>
             <check type="maya_shot" name="check_cam_grp"/>
             <check type="maya_shot" name="check_mov_range"/>
             <check type="maya_shot" name="check_start_frame"/>

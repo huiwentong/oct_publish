@@ -391,6 +391,7 @@ class PublishFormPage(QWidget):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
         self._preview_items = []
+        self._preview_start_dir = ""
 
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
@@ -790,7 +791,7 @@ class PublishFormPage(QWidget):
 
     def _on_choose_file(self):
         files, _ = QFileDialog.getOpenFileNames(
-            self, "Select Preview Files", "",
+            self, "Select Preview Files", self._preview_start_dir,
             "Media Files (*.png *.jpg *.jpeg *.bmp *.tif *.mp4 *.mov *.avi)")
         for path in files:
             name = path.replace("\\", "/").split("/")[-1]
@@ -921,7 +922,17 @@ class PublishFormPage(QWidget):
         self._version_edit.setText('v' + str(vernum).zfill(3))
         if not cli.interface:
             raise RuntimeError(f'cli can not find interface!!!')
-        
+
+        # 预览文件对话框默认打开 task 的 work 目录，有 dcc 子目录就进到 work/<dcc>（同 check_work_file 的规则）
+        try:
+            from oct.pipeline.path_acs import old_get_path
+            work_dir = old_get_path('work', show_name=cli.task_entity.project.name.upper(),
+                                    entity_type='Task', id=cli.task_id).replace('\\', '/')
+            dcc_dir = f'{work_dir}/{cli.dcc.lower()}' if cli.dcc else ''
+            self._preview_start_dir = dcc_dir if os.path.isdir(dcc_dir) else work_dir
+        except Exception:
+            self._preview_start_dir = ""
+
         self._notify_combo.blockSignals(True)
         self.pp_model.clear()
         for pp in cli.all_active_pp:

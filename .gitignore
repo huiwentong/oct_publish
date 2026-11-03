@@ -15,3 +15,7 @@ wheels/
 .claude/skills/gitnexus/
 AGENTS.md
 CLAUDE.md
+
+# 本地开发文档
+doc/
+.vscode

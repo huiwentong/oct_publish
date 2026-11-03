@@ -23,6 +23,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         utils.executeInMainThreadWithResult(sync_anim_range)
 
         tc = TaskContext(process_data['task_id'])
+        # TaskContext 进程内缓存，不刷新的话 SG 改了 cut in / out 重跑检查也拿不到
+        tc.refresh()
         if tc.entity_type != 'Shot':
             return u"当前实体不是镜头：{0}".format(tc.entity_type)
         shot = tc.entity

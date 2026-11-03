@@ -14,6 +14,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     # 文件的播放范围必须和 SG 上镜头的 cut in / cut out 完全一致，不一致需要找动画制片确认镜头时长；不允许跳过。
     try:
         tc = TaskContext(process_data['task_id'])
+        # TaskContext 进程内缓存，不刷新的话 SG 改了 cut in / out 重跑检查也拿不到
+        tc.refresh()
         if tc.entity_type != 'Shot':
             return u"当前实体不是镜头：{0}".format(tc.entity_type)
         shot = tc.entity

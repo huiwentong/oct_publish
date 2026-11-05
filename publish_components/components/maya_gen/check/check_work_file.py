@@ -32,6 +32,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
             if context_info:
                 if context_info['disk'] == 'W:':
+                    if context_info['entity_code'] != tc.entity_name.lower():
+                        return u"当前资产名称不规范，请确认大小写"
                     if context_info['proj'].lower() == tc.project_name.lower() and \
                             context_info['entity_type'] == tc.entity_type.lower() and \
                             context_info['entity_code'] == tc.entity_name.lower() and \

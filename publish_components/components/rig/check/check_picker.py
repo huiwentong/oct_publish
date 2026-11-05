@@ -23,6 +23,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         if sg_asset_type != "CH":
             logger.info("当前资产不是角色(CH)，已跳过")
             return ""
+
+        task_name = tc.task_name.lower()
+        if task_name != 'rigging':
+            logger.info("当前任务不是rigging，已跳过")
+            return""
+
         project_name = tc.project_name.lower()
         asset_name = tc.entity_name
         picker_file_name = "{}.mgpkr".format(asset_name)

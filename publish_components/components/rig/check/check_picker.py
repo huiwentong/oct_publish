@@ -27,7 +27,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         task_name = tc.task_name.lower()
         if task_name != 'rigging':
             logger.info("当前任务不是rigging，已跳过")
-            return""
+            return ""
 
         project_name = tc.project_name.lower()
         asset_name = tc.entity_name
@@ -50,6 +50,11 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
             if not os.path.exists(source):
                 logger.warning(f"错误：源文件不存在 - {source}")
                 return False
+
+            if os.path.exists(target):
+                logger.info(f"目标文件已存在，跳过 - {target}")
+                return True
+
             else:
                 destination_dir = os.path.dirname(target)
                 if not os.path.exists(destination_dir):

@@ -14,6 +14,11 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
     try:
         v_dir_preview = process_data.get("v_dir_preview")
         l_preview_files = process_data.get("preview_paths", [])
+
+        origin_dir = os.path.dirname(v_dir_preview) + '/origin'
+        if not os.path.exists(origin_dir):
+            os.makedirs(origin_dir)
+
         task = SGEntity('Task', process_data['task_id'])
         entity = task.entity
         l_img_files = l_preview_files[:]
@@ -24,8 +29,35 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         else:
             duration = len(l_img_files)
 
-        if l_img_files:
-            is_deadline_job = process_data.get("is_deadline_job")
+        entity_name = task.entity.code
+        ordered_files = ['', '', '']
+        name_map = {
+            f"{entity_name}_Whole.mov": 0,
+            f"{entity_name}_Uper.mov": 1,
+            f"{entity_name}_Closeup.mov": 2,
+        }
+        if len(l_img_files) == 3 and all(f.endswith(".mov") for f in l_img_files):
+            for f in l_img_files:
+                idx = name_map.get(str(os.path.basename(f)))
+                if idx is not None:
+                    ordered_files[idx] = f
+
+            if not all(ordered_files):
+                return u"输出预览文件失败，文件不规范，排序失败"
+
+            for f in ordered_files:
+                shutil.copy2(f, origin_dir)
+
+        is_deadline_job = process_data.get("is_deadline_job")
+
+        if ordered_files:
+            duration = 3
+            if is_deadline_job:
+                create_shot_mov.create(ordered_files, v_dir_preview, duration, resolution=(720, 720), use='ffmpeg')
+            else:
+                create_shot_mov.create(ordered_files, v_dir_preview, duration, resolution=(720, 720))
+
+        elif l_img_files:
             if is_deadline_job:
                 create_shot_mov.create(l_img_files, v_dir_preview, duration, use='ffmpeg')
             else:

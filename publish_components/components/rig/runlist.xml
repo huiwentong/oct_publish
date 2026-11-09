@@ -25,6 +25,7 @@
             <check type="maya_gen" name="generic_check"/>
             <check type="maya_gen" name="check_reference_node"/>
             <check type="maya_gen" name="check_hierarchy_main"/>
+            <check type="rig" name="check_picker"/>
             <check type="rig" name="check_rig_hierarchy"/>
             <check type="maya_gen" name="check_non_unique_dag"/>
             <check type="maya_gen" name="no_name_space"/>
@@ -47,7 +48,6 @@
             <check type="maya_gen" name="check_texture_path_locked"/>
             <check type="maya_gen" name="check_facesets"/>
             <check type="maya_gen" name="check_jnts_attrs"/>
-            <check type="rig" name="check_picker"/>
         </check_group>
     </checkcontainer>
 
@@ -73,6 +73,7 @@
         <!--	<process type="mod" name="export_assembly" mode="Publish"/>-->
         <process type="rig" name="export_preview_data" mode="Publish"/>
         <process type="maya_gen" name="export_rig_fbx" mode="Publish"/>
+        <process type="rig" name="upload_picker_files" mode="Publish"/>
         <process type="rig" name="export_rigging_usd" mode="Publish"/>
         <process type="gen" name="create_manifest_file" mode="Publish"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>

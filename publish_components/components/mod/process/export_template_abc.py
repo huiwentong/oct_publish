@@ -24,6 +24,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             for node_full, abc_name in template_nodes_map.items():
                 if not pm.objExists(node_full):
                     logger.warning("模板节点不存在，无法导出abc：{}".format(node_full))
+                    continue
                 node = pm.PyNode(node_full)
                 if node.getShape() and node.getShape().type() == "camera":
                     node.setAttr("overscan", 1.0)

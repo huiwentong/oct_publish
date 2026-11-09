@@ -13,12 +13,26 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         def process():
             pm.delete(pm.ls(type='displayLayer'))
             pm.delete(pm.ls(type='animLayer'))
-            render_layers_to_delete = [
-                layer for layer in pm.ls(type='renderLayer')
-                if layer.name() not in RENDER_LAYER_WHITELIST
-            ]
-            if render_layers_to_delete:
-                pm.delete(render_layers_to_delete)
+            warn = logger.warning if logger is not None else pm.warning
+            for layer in pm.ls(type='renderLayer'):
+                layer_name = layer.name()
+                if layer_name in RENDER_LAYER_WHITELIST:
+                    continue
+                if layer.isReferenced():
+                    warn('跳过引用的 Render Layer: {}'.format(layer_name))
+                    continue
+
+                unlocked = False
+                try:
+                    if pm.lockNode(layer, query=True, lock=True)[0]:
+                        pm.lockNode(layer, lock=False)
+                        unlocked = True
+                    pm.delete(layer)
+                except RuntimeError as error:
+                    warn('无法删除 Render Layer {}: {}'.format(layer_name, error))
+                finally:
+                    if unlocked and pm.objExists(layer_name):
+                        pm.lockNode(layer, lock=True)
             pm.delete(pm.ls(type='shot'))
 
         utils.executeInMainThreadWithResult(process)

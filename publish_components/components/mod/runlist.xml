@@ -67,6 +67,7 @@
         <process type="mod" name="create_cfx_head" mode="Publish"/>
         <process type="mod" name="export_asset_ma" mode="Publish"/>
         <process type="mod" name="export_asset_usd" mode="Publish"/>
+        <process type="mod" name="export_template_abc" mode="Publish"/>
         <process type="mod" name="update_asset_poly_cnt" mode="Publish"/>
         <process type="mod" name="upload_zbrush_file" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>

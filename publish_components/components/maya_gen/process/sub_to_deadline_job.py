@@ -19,7 +19,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             dept = tc.step.short_name.lower()
             if dept == "mod":
                 version_dir = process_data.get("version_dir")
-                output_dir = version_dir + '/preview/'
+                output_dir = version_dir + '/preview/origin'
                 tt_api = TurntableAPI()
                 info = utils.executeInMainThreadWithResult(lambda :tt_api.render_all_cameras(output_dir=output_dir, step=dept, data=None,
                                                             asset_name=asset_name, template_key="TT_3points", remove_template=True))

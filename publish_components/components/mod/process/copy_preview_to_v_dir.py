@@ -16,8 +16,6 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         l_preview_files = process_data.get("preview_paths", [])
 
         origin_dir = os.path.dirname(v_dir_preview) + '/origin'
-        if not os.path.exists(origin_dir):
-            os.makedirs(origin_dir)
 
         task = SGEntity('Task', process_data['task_id'])
         entity = task.entity
@@ -43,8 +41,12 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
                 ordered_files.extend(temp)
 
         logger.info("ordered_files: {}".format(str(ordered_files)))
-        for f in ordered_files:
-            shutil.copy2(f, origin_dir)
+        if ordered_files:
+            if not os.path.exists(origin_dir):
+                os.makedirs(origin_dir)
+
+            for f in ordered_files:
+                shutil.copy2(f, origin_dir)
 
         is_deadline_job = process_data.get("is_deadline_job")
         if ordered_files:

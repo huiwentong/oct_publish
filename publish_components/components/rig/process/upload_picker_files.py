@@ -16,6 +16,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         asset_name = tc.entity_name
         upper_project_name = tc.project_name.upper()
 
+        sg_asset_type = tc.entity.sg_asset_type
+        if sg_asset_type != "CH":
+            logger.info("当前资产不是角色(CH)，已跳过")
+            return ""
+
+        task_name = tc.task_name.lower()
+        if task_name != 'rigging':
+            logger.info("当前任务不是rigging，已跳过")
+            return ""
+
         asset_picker_dir = "W:/projects/lib/Ani_lib/MG_picker" + '/' + upper_project_name + '/' + asset_name
         submit_picker_files = submit_data['submit_picker_files']
         for file in submit_picker_files:

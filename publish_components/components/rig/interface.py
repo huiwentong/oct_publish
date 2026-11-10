@@ -56,8 +56,9 @@ class PickerListWidget(QtWidgets.QListWidget):
         self.customContextMenuRequested.connect(self.on_context_menu)
 
         self.placeholder_text = (
-            "添加 .bmp / .jpg / .mgpkr 文件: 1.选中文件拖入  2.点击‘添加源文件’ \n"
-            "移除 .bmp / .jpg / .mgpkr 文件: 1.选中目标拖出  2.选中文件右击 ‘移除选中项’ "
+            "Picker 文件包括: Body_PkrImage.bmp、 cloth.jpg、 face.jpg、 hair.jpg、 资产名.mgpkr或default.mgpkr 共 5 个文件\n\n"
+            "添加:  方法1. 选中文件拖入  方法2. 点击 [添加Picker文件] \n"
+            "移除:  方法1. 选中目标拖出  方法2. 选中文件右键后点击 [移除选中项] "
         )
 
     def paintEvent(self, event):

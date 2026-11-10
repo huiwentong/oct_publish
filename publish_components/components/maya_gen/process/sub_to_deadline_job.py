@@ -12,7 +12,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         task_id = process_data.get("task_id")
         tc = TaskContext(task_id) or TaskContext.from_env()
-        ordered_files = process_data.get('ordered_files')
+        formated_mov_dic = process_data.get('formated_mov_dic')
 
         def submit_to_deadline_turntable():
             proj_name = tc.project_name.lower()
@@ -46,7 +46,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         # Maya场景 / UE场景资产不做 turntable
         is_scene_asset = get_asset_kind(task_id) in (MAYA_SCENE_TAG, UE_SCENE_TAG)
 
-        if not ordered_files and not is_scene_asset and tc.entity.sg_asset_type.lower() in ["chr", "ch", "prop", "prp"]:
+        if not formated_mov_dic and not is_scene_asset and tc.entity.sg_asset_type.lower() in ["chr", "ch", "prop", "prp"]:
             submit_to_deadline_turntable()
 
     except Exception:

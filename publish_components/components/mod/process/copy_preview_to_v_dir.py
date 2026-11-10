@@ -48,6 +48,7 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
 
         is_deadline_job = process_data.get("is_deadline_job")
         if ordered_files:
+            process_data['ordered_files'] = ordered_files
             duration = len(ordered_files)
             if is_deadline_job:
                 create_shot_mov.create(ordered_files, v_dir_preview, duration, resolution=(720, 720), use='ffmpeg')

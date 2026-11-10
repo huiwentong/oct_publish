@@ -32,6 +32,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 return None
 
             version_dir = process_data.get('version_dir', '')
+            if version_dir.endswith('.v001'):
+                logger.info(u"当前为 v001 版，已跳过该检查")
+                return None
+
             non_v_dir = version_dir[0:-5]
             controller_data_path = os.path.join(non_v_dir, "controller_data.json")
             controller_data = {}

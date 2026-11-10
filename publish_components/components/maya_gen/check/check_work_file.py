@@ -23,7 +23,10 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
             # parse_context_file_path 只认正斜杠；CLI 传进来的 Windows 路径可能是反斜杠
             work_file = (submit_data.get("ma_file") or '').replace('\\', '/')
             ext = work_file.split('.')[-1]
-            context_info = parse_context_file_path(work_file)
+            try:
+                context_info = parse_context_file_path(work_file)
+            except IndexError:
+                return u"路径解析失败，文件名要求：资产名.环节.任务名.版本号.ma，请通过 Oct-Tools 的 [打开文件] 来创建初始文件"
             is_right_path = False
 
             # 短名按老工具规则解析（description 优先）：绑定 -> rig，镜头 lay(ly) -> lay

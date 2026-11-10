@@ -15,58 +15,6 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 检查控制器名称，和上一版相比大小写有没有变化
     """
     try:
-        # def find_max_version(parent_dir, pattern=r"v(\d+)"):
-        #     """
-        #     非递归遍历 parent_dir，找到所有文件名中包含 v<数字> 的最大版本号。
-        #     例如：gouyao.rig.rigging.v011 -> 11
-        #     """
-        #     max_version = None
-        #
-        #     for entry in os.listdir(parent_dir):
-        #         match = re.search(pattern, entry)
-        #         if match:
-        #             version = int(match.group(1))
-        #             if max_version is None or version > max_version:
-        #                 max_version = version
-        #
-        #     return max_version
-        #
-        # def get_previous_version_path(file_path):
-        #     parent_dir = os.path.dirname(file_path)
-        #     file_name = os.path.basename(file_path)
-        #
-        #     # 从当前文件名中提取当前版本号
-        #     current_match = re.search(r"v(\d+)", file_name)
-        #     if not current_match:
-        #         raise ValueError(f"路径中未找到版本号：{file_path}")
-        #
-        #     current_version = int(current_match.group(1))
-        #
-        #     # 非递归遍历父目录，查找已存在的最大版本号
-        #     max_version = find_max_version(parent_dir)
-        #
-        #     if max_version is None:
-        #         raise ValueError(f"父目录中未找到任何版本号：{parent_dir}")
-        #
-        #     # 如果当前版本已经是最大版本，则减 1
-        #     if current_version == max_version:
-        #         new_version = current_version - 1
-        #     else:
-        #         # 如果当前版本不是最大版本，说明可能存在缺失版本，
-        #         # 这里仍然按“减少 1”处理
-        #         new_version = current_version - 1
-        #
-        #     if new_version < 0:
-        #         raise ValueError(f"版本号减 1 后小于 0：{file_path}")
-        #
-        #     # 保持原版本号位数，例如 v011 -> v010
-        #     digit_len = len(current_match.group(1))
-        #     new_version_str = f"v{new_version:0{digit_len}d}"
-        #
-        #     new_file_name = re.sub(r"v\d+", new_version_str, file_name, count=1)
-        #     new_file_path = os.path.join(parent_dir, new_file_name)
-        #
-        #     return new_file_path
         def get_all_ctrls(only_ctrl_itself=False, full_path=False):
             ctrl_list = mc.ls('*_ctrl', long=full_path)
             ctrl_list.extend(mc.ls('*_CTL', long=full_path))
@@ -124,12 +72,3 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
     except:
         return traceback.format_exc()
-
-# def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-#     try:
-#         def process():
-#             pass
-#
-#         return utils.executeInMainThreadWithResult(process)
-#     except:
-#         return traceback.format_exc()

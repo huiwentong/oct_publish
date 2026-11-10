@@ -3,7 +3,6 @@
 import os.path
 import traceback
 import json
-import re
 import maya.cmds as mc
 import maya.utils as utils
 from oct.pipeline.task_context import TaskContext

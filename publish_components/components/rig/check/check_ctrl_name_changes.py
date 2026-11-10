@@ -37,6 +37,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             non_v_dir = version_dir[0:-5]
             controller_data_path = os.path.join(non_v_dir, "controller_data.json")
+            if not os.path.exists(controller_data_path):
+                logger.info(u"未找到文件，已跳过: {}".format(controller_data_path))
+                return None
+
             controller_data = {}
             with open(controller_data_path, "r") as f:
                 controller_data = json.load(f)

@@ -11,11 +11,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 检查控制器名称，内部绑定应该都以_ctrl或_CTL结尾
     """
     try:
-        def collect_all_possible_ctrls(exclude_crvs: list[str]):
+        def collect_all_possible_ctrls(exclude_crvs: list[str], full_path=False):
             ctrl_list = []
             for crv in mc.ls(type='nurbsCurve'):
                 if not mc.listConnections(crv, d=0):
-                    trans = mc.listRelatives(crv, p=1)[0]
+                    trans = mc.listRelatives(crv, p=1, fullPath=full_path)[0]
 
                     if exclude_crvs:
                         if trans in exclude_crvs:
@@ -81,8 +81,13 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if process_data.get("is_internal_rig") is None:
                     process_data.update({"is_internal_rig": check_is_internal_rig(task_id)})
                 if process_data["is_internal_rig"]:
-                    all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'])
-                    for node in all_possible_ctrls:
+                    all_possible_ctrls = collect_all_possible_ctrls(exclude_crvs=['ctrlBox'], full_path=True)
+                    for full_node in all_possible_ctrls:
+                        if full_node.startswith('|Root_grp|Rig_grp|MotionSystem|') and not full_node.endswith(
+                                'master_ctrl'):
+                            continue
+
+                        node = full_node.split('|')[-1]
                         if node.endswith('_ctrl') or node.endswith('_CTL'):
                             continue
 

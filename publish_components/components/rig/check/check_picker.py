@@ -39,25 +39,21 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         if len(mgpkr_l) != 1:
             return u".mgpkr 文件数量不对，应该是 1 个"
 
-        mgpkr = mgpkr_l[0]
-        default_template = 'W:/projects/lib/Ani_lib/MG_picker/MK2/default_template'
-        if (os.path.basename(mgpkr) == 'default.mgpkr' and
-                not mgpkr.replace('\\', '/').lower().startswith(default_template.lower())):
-            return u"请将 mgpkr 文件改名，如果是默认的 mgpkr 文件，则必须来自 {}".format(default_template)
+        if len(set([os.path.basename(f) for f in submit_picker_files])) != len(submit_picker_files):
+            return u"发现同名文件来自不同文件夹"
 
-        if submit_picker_files and len(submit_picker_files) == 5:
-            for f in submit_picker_files:
-                if not os.path.exists(f):
-                    return u"文件不存在 {}".format(f)
-
-            for file_name in [os.path.basename(f) for f in submit_picker_files]:
-                if file_name not in file_name_list:
-                    return u"上传的Picker文件不对 - {0}，应该是 {1} 或 {2}， 一共5个".format(
-                        file_name, ', '.join(file_name_list[0: -1]), picker_file_name)
-            return u""
-        else:
+        if not submit_picker_files or len(submit_picker_files) != 5:
             return u"上传的Picker文件不对，应该是 {0} 或 {1}， 一共5个".format(
                 ', '.join(file_name_list[0: -1]), picker_file_name)
+
+        for f in submit_picker_files:
+            if not os.path.exists(f):
+                return u"文件不存在: {}".format(f)
+
+            file_name = os.path.basename(f)
+            if file_name not in file_name_list:
+                return u"上传的Picker文件不对: {0}，应该是 {1} 或 {2}".format(
+                    file_name, ', '.join(file_name_list[0: -1]), picker_file_name)
 
     except Exception:
         return traceback.format_exc()
@@ -102,45 +98,3 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     if file_paths:
         submit_data['submit_picker_files'] = [f.replace('\\', '/') for f in file_paths]
     print(submit_data['submit_picker_files'])
-
-    # if main(submit_data, process_data, parent_widget, logger):
-
-# def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
-#     def _move_rename(source, target):
-#         try:
-#             if not os.path.exists(source):
-#                 logger.warning(f"错误：源文件不存在 - {source}")
-#                 return False
-#
-#             if os.path.exists(target):
-#                 logger.info(f"目标文件已存在，跳过 - {target}")
-#                 return True
-#
-#             else:
-#                 destination_dir = os.path.dirname(target)
-#                 if not os.path.exists(destination_dir):
-#                     path_acs.make_dirs(destination_dir)
-#                 shutil.copy2(source, target)
-#                 logger.info(f"复制完成: {0} -> {1}".format(source, target))
-#                 return True
-#
-#         except Exception as e:
-#             logger.error('复制失败: {}'.format(str(e)))
-#             return False
-#
-#     try:
-#         file_name_list = ['Body_PkrImage.bmp', 'cloth.jpg', 'face.jpg', 'hair.jpg', 'default.mgpkr']
-#         default_picker_dir = "W:/projects/lib/Ani_lib/MG_picker/MK2/default_template"
-#         default_picker_file_list = [default_picker_dir + '/{}'.format(f) for f in file_name_list]
-#         picker_file_list = process_data['picker_file_list']
-#         msg = ''
-#         for source, target in zip(default_picker_file_list, picker_file_list):
-#             done = _move_rename(source, target)
-#             if not done:
-#                 msg += '复制失败: {} -> {},  '.format(source, target)
-#
-#         if msg:
-#             return msg
-#
-#     except Exception:
-#         return traceback.format_exc()

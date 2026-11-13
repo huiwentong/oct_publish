@@ -1,17 +1,12 @@
 # -*- coding: utf-8 -*-
 import traceback, os
 import importlib
-from oct.pipeline.task_context import TaskContext
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """导出模板相机和调色板 abc"""
     try:
         pm = importlib.import_module("pymel.core")
         utils = importlib.import_module("maya.utils")
-        task_id = process_data.get("task_id")
-        tc = TaskContext(task_id) or TaskContext.from_env()
-        has_publish_v = bool(tc.task.latest_published_version)
-
         def process():
             template_nodes_map = {
                 '|turntable_3points|rotate|cameras|wholeCam|Whole'             :    'camWhole.abc',
@@ -39,7 +34,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     j="-frameRange 1 50 -uvWrite -writeColorSets -worldSpace -dataFormat ogawa -root " + node_full + " -file " + abc_path
                 )
 
-        if has_publish_v and pm:
+        if pm:
             utils.executeInMainThreadWithResult(process)
 
 

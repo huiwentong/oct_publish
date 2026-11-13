@@ -67,11 +67,11 @@
         <process type="mod" name="create_cfx_head" mode="Publish"/>
         <process type="mod" name="export_asset_ma" mode="Publish"/>
         <process type="mod" name="export_asset_usd" mode="Publish"/>
-        <process type="mod" name="export_template_abc" mode="Publish"/>
+        <process type="mod" name="export_template_abc" mode="Dailies"/>
         <process type="mod" name="update_asset_poly_cnt" mode="Publish"/>
         <process type="mod" name="upload_zbrush_file" mode="Dailies"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
-        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="mod" name="sym_link_no_num_version" mode="Dailies"/>
         <process type="gen" name="create_manifest_file" mode="Publish"/>
         <process type="maya_gen" name="sub_to_deadline_job" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>

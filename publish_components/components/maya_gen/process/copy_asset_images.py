@@ -62,7 +62,24 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         if file_path.replace('\\', '/') != dst:
                             shutil.copyfile(file_path.replace('\\', '/'), dst)
 
-        utils.executeInMainThreadWithResult(process)
+        def process_on_default_layer():
+            from maya.app.renderSetup.model import renderSetup
+
+            setup = renderSetup.instance()
+            original_layer = setup.getVisibleRenderLayer()
+            default_layer = setup.getDefaultRenderLayer()
+            if original_layer == default_layer:
+                process()
+                return
+
+            # Material overrides can disconnect the asset's original shading groups.
+            try:
+                setup.switchToLayer(default_layer)
+                process()
+            finally:
+                setup.switchToLayer(original_layer)
+
+        utils.executeInMainThreadWithResult(process_on_default_layer)
 
     except Exception:
         return traceback.format_exc()

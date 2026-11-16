@@ -18,6 +18,7 @@
             <check type="maya_gen" name="check_work_file"/>
             <check type="asb_build" name="check_arch_is_new"/>
             <check type="asb_build" name="check_assets_hierarchy"/>
+            <check type="asb_build" name="check_stage_no_group"/>
             <check type="maya_shot" name="check_stage_dirty"/>
             <check type="asb_build" name="check_usd_relative_path"/>
             <check type="maya_shot" name="check_resources"/>

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import traceback, shutil
+import tempfile
 from pathlib import Path
-from uuid import uuid4
 from oct.pipeline import path_acs
 from oct.pipeline.task_context import TaskContext
 
@@ -32,12 +32,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not dst_dir.is_dir():
                 path_acs.make_dirs(str(dst_dir))
 
-            staging_dir = dst_dir / f".dailies-{uuid4().hex}"
-            # On Windows, mkdtemp can retry a share's permission error as a name collision.
-            path_acs.make_dirs(str(staging_dir))
+            staging_dir = Path(tempfile.mkdtemp(prefix="oct-dailies-"))
             backup_dir = dst_dir / "bake_up"
             originals = {}
-            replaced = []
+            written_files = []
+            written_backups = []
             keep_staging = False
             try:
                 for src_file in src_files:
@@ -47,11 +46,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         snapshot = staging_dir / (src_file.name + ".original")
                         shutil.copy2(dst_file, snapshot, follow_symlinks=False)
                         originals[dst_file] = snapshot
+                    elif dst_file.exists():
+                        raise OSError(f"ABC 目标路径已被占用：{dst_file}")
 
                 for src_file in src_files:
                     dst_file = dst_dir / src_file.name
-                    (staging_dir / src_file.name).replace(dst_file)
-                    replaced.append(dst_file)
+                    # A failed copy may have already changed the destination.
+                    written_files.append(dst_file)
+                    if dst_file.is_symlink():
+                        dst_file.unlink()
+                    shutil.copy2(staging_dir / src_file.name, dst_file)
 
                 # Keep the first backup and retain each snapshot until the update succeeds.
                 for dst_file, snapshot in originals.items():
@@ -60,23 +64,32 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         continue
                     if not backup_dir.is_dir():
                         path_acs.make_dirs(str(backup_dir))
-                    snapshot.replace(backup_file)
-                    originals[dst_file] = backup_file
-            except Exception:
+                    written_backups.append(backup_file)
+                    shutil.copy2(snapshot, backup_file, follow_symlinks=False)
+            except Exception as error:
                 rollback_errors = []
-                for dst_file in reversed(replaced):
+                for dst_file in reversed(written_files):
                     snapshot = originals.get(dst_file)
                     try:
                         if snapshot is None:
-                            dst_file.unlink()
+                            dst_file.unlink(missing_ok=True)
                         else:
-                            snapshot.replace(dst_file)
-                    except OSError as error:
-                        rollback_errors.append(f"{snapshot} -> {dst_file}: {error}")
+                            if snapshot.is_symlink():
+                                dst_file.unlink(missing_ok=True)
+                            shutil.copy2(snapshot, dst_file, follow_symlinks=False)
+                    except OSError as rollback_error:
+                        rollback_errors.append(f"{dst_file}: {rollback_error}")
+                for backup_file in reversed(written_backups):
+                    try:
+                        backup_file.unlink(missing_ok=True)
+                    except OSError as rollback_error:
+                        rollback_errors.append(f"{backup_file}: {rollback_error}")
                 if rollback_errors:
                     keep_staging = True
                     details = "\n".join(rollback_errors)
-                    logger.warning(f"恢复 ABC 失败，临时目录保留在 {staging_dir}\n{details}")
+                    logger.warning(f"更新 ABC 失败：{error}\n恢复失败，本机副本保留在 {staging_dir}\n{details}")
+                elif logger is not None:
+                    logger.warning(f"更新 ABC 已取消：{error}")
 
             finally:
                 if not keep_staging:

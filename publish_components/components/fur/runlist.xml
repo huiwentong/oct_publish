@@ -60,7 +60,7 @@
         <process type="fur" name="export_usd_utils" mode="Publish"/>
         <process type="gen" name="lock_v_dir" mode="Dailies"/>
         <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
-        <process type="maya_gen" name="sub_to_deadline_job" mode="Publish"/>
+        <process type="fur" name="sub_to_deadline_job_tmp" mode="Publish"/>
         <process type="gen" name="create_sg_version" mode="Dailies"/>
         <process type="gen" name="asset_reassembly" mode="Submit"/>
 

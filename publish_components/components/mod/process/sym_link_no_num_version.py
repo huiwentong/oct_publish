@@ -97,7 +97,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             finally:
                 if not keep_staging:
                     shutil.rmtree(staging_dir)
-                if staging_dir.is_dir():
+                if dst_dir.is_dir():
                     path_acs.lock_path(str(dst_dir))
                 if backup_dir.is_dir():
                     path_acs.lock_path(str(backup_dir))

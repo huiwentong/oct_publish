@@ -32,6 +32,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not dst_dir.is_dir():
                 path_acs.make_dirs(str(dst_dir))
 
+            path_acs.unlock_path(str(dst_dir))
             staging_dir = Path(tempfile.mkdtemp(prefix="oct-dailies-"))
             backup_dir = dst_dir / "bake_up"
             originals = {}
@@ -64,6 +65,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         continue
                     if not backup_dir.is_dir():
                         path_acs.make_dirs(str(backup_dir))
+
+                    path_acs.unlock_path(str(backup_dir))
                     written_backups.append(backup_file)
                     shutil.copy2(snapshot, backup_file, follow_symlinks=False)
             except Exception as error:
@@ -94,6 +97,10 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             finally:
                 if not keep_staging:
                     shutil.rmtree(staging_dir)
+                if staging_dir.is_dir():
+                    path_acs.lock_path(str(dst_dir))
+                if backup_dir.is_dir():
+                    path_acs.lock_path(str(backup_dir))
 
         if publish_type.lower() == 'submit':
             if not Path(dst).exists():

@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 import traceback, shutil
-import tempfile
 from pathlib import Path
+from uuid import uuid4
 from oct.pipeline import path_acs
 from oct.pipeline.task_context import TaskContext
 
@@ -32,7 +32,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             if not dst_dir.is_dir():
                 path_acs.make_dirs(str(dst_dir))
 
-            staging_dir = Path(tempfile.mkdtemp(prefix=".dailies-", dir=dst_dir))
+            staging_dir = dst_dir / f".dailies-{uuid4().hex}"
+            # On Windows, mkdtemp can retry a share's permission error as a name collision.
+            path_acs.make_dirs(str(staging_dir))
             backup_dir = dst_dir / "bake_up"
             originals = {}
             replaced = []
@@ -107,11 +109,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 src_files = [Path(src) / "alembic" / name for name in abc_names]
                 missing = [str(src_file) for src_file in src_files if not src_file.is_file()]
                 if not missing:
-                    path_acs.unlock_path(dst, True)
+                    path_acs.unlock_path(str(dst), True)
                     try:
                         update_dailies_abcs(src_files, Path(dst) / "alembic")
                     finally:
-                        path_acs.lock_path(dst, True)
+                        path_acs.lock_path(str(dst), True)
             else:
                 logger.warning("当前资产'{}'没有publish 过版本！ 无法链接abc！".format(tc.entity_name))
 

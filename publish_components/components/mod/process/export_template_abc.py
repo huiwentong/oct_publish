@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import traceback, os
 import importlib
+from oct.pipeline import path_acs
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """导出模板相机和调色板 abc"""
@@ -19,7 +20,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
             pm.loadPlugin('AbcExport', quiet=True)
             v_dir_abc = process_data['v_dir_abc']
             if not os.path.exists(v_dir_abc):
-                os.makedirs(v_dir_abc)
+                path_acs.make_dirs(v_dir_abc)
 
             for node_full, abc_name in template_nodes_map.items():
                 if not pm.objExists(node_full):

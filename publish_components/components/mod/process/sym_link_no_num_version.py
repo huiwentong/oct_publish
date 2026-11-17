@@ -74,8 +74,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 if rollback_errors:
                     keep_staging = True
                     details = "\n".join(rollback_errors)
-                    raise RuntimeError(f"恢复 ABC 失败，临时目录保留在 {staging_dir}\n{details}")
-                raise
+                    logger.warning(f"恢复 ABC 失败，临时目录保留在 {staging_dir}\n{details}")
+
             finally:
                 if not keep_staging:
                     shutil.rmtree(staging_dir)
@@ -106,13 +106,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                              'camCloseup.abc', 'colorpanelsCloseup.abc',]
                 src_files = [Path(src) / "alembic" / name for name in abc_names]
                 missing = [str(src_file) for src_file in src_files if not src_file.is_file()]
-                if missing:
-                    raise FileNotFoundError("缺少 Dailies ABC 文件：" + ", ".join(missing))
-                path_acs.unlock_path(dst, True)
-                try:
-                    update_dailies_abcs(src_files, Path(dst) / "alembic")
-                finally:
-                    path_acs.lock_path(dst, True)
+                if not missing:
+                    path_acs.unlock_path(dst, True)
+                    try:
+                        update_dailies_abcs(src_files, Path(dst) / "alembic")
+                    finally:
+                        path_acs.lock_path(dst, True)
             else:
                 logger.warning("当前资产'{}'没有publish 过版本！ 无法链接abc！".format(tc.entity_name))
 

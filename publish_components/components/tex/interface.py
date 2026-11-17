@@ -1,9 +1,11 @@
+# -*- coding: utf-8 -*-
 import traceback
 from dataclasses import dataclass, field
 from publish_components.core import InterFace
 from qtpy import QtWidgets, QtCore, QtGui
 from publish_gui.ui.theme import Color
 from .tex_dialog import TexWidget, MG
+
 
 @dataclass
 class CompInterface(InterFace):
@@ -19,20 +21,39 @@ class CompInterface(InterFace):
         default_factory=lambda: [952, 1009, 953]
     )
 
-    downstream_dcc_only:str | None = 'Maya'
-
+    downstream_dcc_only: str | None = 'Maya'
 
     def gui_pre_interface(self):
         pass
 
-
-    def init_ui(self, parent:QtWidgets.QWidget):
+    def init_ui(self, parent: QtWidgets.QWidget):
         tex_widget = TexWidget(self.input_form)
         publish_layout = QtWidgets.QVBoxLayout(parent.files_group)
         publish_layout.setContentsMargins(0, 0, 0, 0)
         publish_layout.addWidget(tex_widget)
-        self.update_version_num(parent)
 
+        # Turntable 渲染设置：开始帧和结束帧固定，仅 Step 可修改
+        turntable_group = QtWidgets.QGroupBox("Turntable 渲染设置")
+        turntable_layout = QtWidgets.QHBoxLayout(turntable_group)
+        turntable_layout.addWidget(QtWidgets.QLabel("开始帧: 1"))
+        turntable_layout.addWidget(QtWidgets.QLabel("结束帧: 200"))
+        turntable_layout.addWidget(QtWidgets.QLabel("Step:"))
+
+        step_spin = QtWidgets.QSpinBox()
+        step_spin.setRange(1, 200)
+        step_spin.setValue(4)
+        turntable_layout.addWidget(step_spin)
+        publish_layout.addWidget(turntable_group)
+
+        self.input_form["turntable_frame_step"] = 4
+        self.submit_form["turntable_frame_step"] = 4
+
+        def on_step_changed(value):
+            self.input_form["turntable_frame_step"] = int(value)
+            self.submit_form["turntable_frame_step"] = int(value)
+
+        step_spin.valueChanged.connect(on_step_changed)
+        self.update_version_num(parent)
 
     def gui_post_interface(self):
         pass
@@ -47,4 +68,3 @@ class CompInterface(InterFace):
                 parent._version_edit.setText(v_number)
         except:
             print(traceback.format_exc())
-

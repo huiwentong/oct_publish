@@ -50,10 +50,12 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
         for prim, comp_dict in comp_data.items():
             component = sg_task.get_or_create_component(name=prim)
+            sg_task.link_component(component)
             logger.info(u'link Component({0}) to Task({1})'.format(component.id, sg_task.id))
 
             if sg_lay_task:
                 for_lay_component = sg_lay_task.get_or_create_component(name=prim)
+                sg_lay_task.link_component(for_lay_component)
                 logger.info(u'link Component({0}) to Lay Task({1})'.format(for_lay_component.id, sg_lay_task.id))
 
             # 为 component 创建版本，版本号与当前文件版本一致

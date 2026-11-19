@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<root>
+    <checkcontainer>
+        <check_group name="Dailies">
+                 <check type="edt" name="version_name" />
+                 <check type="gen" name="version_up_going" />
+                <check type="gen" name="check_selected_preview" />
+                <check type="gen" name="check_status" />
+                <check type="edt" name="check_mov" />
+            </check_group>
+            <check_group name="Publish">
+                <check type="edt" name="check_preview" />
+                <check type="edt" name="check_clips" />
+            </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <process type="edt" name="create_daily" mode="Dailies"/>
+        <process type="edt" name="modify_shots" mode="Publish"/>
+        <process type="edt" name="create_publish" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+    </processcontainer>
+</root>

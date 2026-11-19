@@ -3,6 +3,7 @@ import traceback, os
 import subprocess
 import maya.utils as utils
 from oct.pipeline.task_context import TaskContext
+from publish_core.database.entity import get_step_short_name
 from oct_maya.tools.utils.oct_asset_turntable.core.api import TurntableAPI
 from publish_components.utils.sg_helper import get_asset_kind, MAYA_SCENE_TAG, UE_SCENE_TAG
 
@@ -17,13 +18,15 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         def submit_to_deadline_turntable():
             proj_name = tc.project_name.lower()
             asset_name = tc.entity_name
-            dept = tc.step.short_name.lower()
+            dept = get_step_short_name(tc.step)
             if dept == "mod":
-                version_dir = process_data.get("version_dir")
-                output_dir = version_dir + '/preview/origin'
+                version_info = process_data.get("sg_version", {})
+                version_id = version_info.get("id")
                 tt_api = TurntableAPI()
-                info = utils.executeInMainThreadWithResult(lambda :tt_api.render_all_cameras(output_dir=output_dir, step=dept, data=None,
-                                                            asset_name=asset_name, template_key="TT_3points", remove_template=True))
+                info = utils.executeInMainThreadWithResult(
+                        lambda :tt_api.render_all_cameras(step=dept, data=None, version_id=version_id,
+                                                          asset_name=asset_name, template_key="TT_3points",
+                                                          remove_template=True))
                 result = info.get("message")
                 logger.info(result)
 

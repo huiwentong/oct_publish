@@ -99,6 +99,10 @@ class PublishCli:
                     f'ASB 资产的 mod 环节只支持 model / assembly 任务，当前任务: {task_name}'
                 )
 
+        # 场次上的 lay 任务是整场次批量 layout 发布，和镜头 lay 分开
+        if stepname == 'lay' and self.task_entity.entity.type == 'Sequence':
+            stepname = 'seq_lay'
+
         module_path = f'publish_components.components.{stepname}.interface'
         try:
             module = importlib.import_module(module_path)
@@ -120,7 +124,10 @@ class PublishCli:
             self.log = PublishLog()
             self.log.info('publish cli initial!!')
 
-            if not self.publish_tag_id or not self.comment or not self.preview_paths:
+            # 组件声明 publish_preview_optional 时，非 Dailies 可以不给预览（如 seq_lay 自动合成镜头拍屏）
+            preview_optional = (getattr(module.CompInterface, 'publish_preview_optional', False)
+                                and self.publish_type != PublishType.DAILY)
+            if not self.publish_tag_id or not self.comment or not (self.preview_paths or preview_optional):
                 raise RuntimeError(
                     'In no-gui mode, the publish_tag_id, comment, and preview_paths arguments are required.'
                 )

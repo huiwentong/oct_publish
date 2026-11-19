@@ -8,6 +8,7 @@ from oct.pipeline.task_context import TaskContext
 from oct_maya.tools.lay.usd_lay_manager_new.core import (
     get_asb_stage_sublayers,
     get_asb_usd_path_mismatch,
+    get_asb_version_status,
     get_existing_asb_proxy,
     is_old_asb_architecture,
 )
@@ -17,7 +18,8 @@ from publish_components.utils.maya_utils import asb_build
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
     检查 Bk/An 的 ASB stage 是否为 layout 发布的场景结构：
-    必须是 sublayer 引入本镜头 layout 的 asb_all，不能是 layout 的 usda 或别的镜头的文件复制改名
+    必须是 sublayer 引入本镜头 layout 的 asb_all，不能是 layout 的 usda 或别的镜头的文件复制改名，
+    且 sublayer 指向的 layout 场景文件必须存在
     """
     # 两个环节的 stage 结构约定不同 (见 usd_utils.get_asb_stage_sublayers):
     #   Lay  : 按资产逐个 reference 组装, root layer 没有 subLayerPaths
@@ -58,12 +60,22 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                         u"疑似把 layout 的 usda 复制改名）\n"
                         u"请用 USD Lay Manager 点 \"填入layout场景\" 按钮重新填入")
 
-            if any(Path(p).name.startswith(layout_prefix) for p in sublayers):
-                return ""
+            layout_sublayers = [p for p in sublayers if Path(p).name.startswith(layout_prefix)]
+            if not layout_sublayers:
+                return (u"当前 asb 引用的不是本镜头的 layout 场景（疑似复制了别的镜头的文件）: {0}\n"
+                        u"应为 {1}.no_tex.usda，请用 USD Lay Manager 点 \"填入layout场景\" 按钮重新填入".format(
+                            Path(sublayers[0]).name, layout_prefix))
 
-            return (u"当前 asb 引用的不是本镜头的 layout 场景（疑似复制了别的镜头的文件）: {0}\n"
-                    u"应为 {1}.no_tex.usda，请用 USD Lay Manager 点 \"填入layout场景\" 按钮重新填入".format(
-                        Path(sublayers[0]).name, layout_prefix))
+            # 命名/结构/路径都对，但 sublayer 指向的 layout 场景文件可能不存在 (layout 没输出或被删)，
+            # 与 oct_maya 978d5603 (layout动画文件整理) 一致。填入 layout 场景也会失败，所以不提示重新填入。
+            # sublayer 可能是相对路径，相对于 usda 所在目录解析；绝对路径拼接后保持不变
+            usd_dir = Path(get_asb_version_status()['usd_file'] or '').parent
+            missing = [p for p in layout_sublayers if not (usd_dir / p).is_file()]
+            if missing:
+                return (u"layout 输出的场景文件不存在: {0}\n"
+                        u"请联系 layout 环节重新输出，或用 USD Lay Manager 功能集里的 "
+                        u"\"生成layout场景(迁移用)\" 生成".format(', '.join(missing)))
+            return ""
 
         result = utils.executeInMainThreadWithResult(check)
         if result:

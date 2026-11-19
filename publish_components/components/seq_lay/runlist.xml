@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<root>
+    <checkcontainer>
+        <check_group name="Dailies">
+            <check type="gen" name="check_dcc_rv"/>
+            <!-- 版本递增修复会另存工作文件，必须先于 version_name 生成发布路径 -->
+            <check type="maya_gen" name="version_up_going"/>
+            <check type="gen" name="version_name"/>
+            <!-- 场次预览：Dailies 必须选串屏 mov；Publish 可不选，由各镜头拍屏拼接 -->
+            <check type="seq_lay" name="check_seq_preview"/>
+            <check type="gen" name="check_status"/>
+            <check type="gen" name="check_publish_root"/>
+        </check_group>
+
+        <check_group name="Publish">
+            <!-- 老 this_is_maya + check_maya_unit + unknown_plugins + unlock_default_nodes -->
+            <check type="maya_gen" name="generic_check"/>
+            <!-- 老 this_is_picked_file：表单里选的文件必须是当前打开的场景 -->
+            <check type="maya_shot" name="check_picked_file_is_current"/>
+            <!-- 老 version_name_match：工程文件名和版本名一致 -->
+            <check type="maya_gen" name="check_work_file"/>
+            <check type="maya_shot" name="check_camera_attrs"/>
+            <!-- 老 check_hierarchy_seq，逻辑相同 -->
+            <check type="maya_shot" name="check_shot_hierarchy"/>
+            <check type="maya_shot" name="check_stage_arch_is_new"/>
+            <check type="maya_shot" name="check_stage_file_path"/>
+            <check type="maya_shot" name="check_stage_content"/>
+            <check type="maya_shot" name="check_stage_dirty"/>
+            <check type="maya_shot" name="check_resources"/>
+            <check type="maya_shot" name="check_ref_path"/>
+            <check type="maya_shot" name="check_nemo_rig"/>
+            <check type="maya_shot" name="check_omit_asset"/>
+            <check type="maya_shot" name="check_asset_version"/>
+            <check type="maya_shot" name="check_usd_hierarchy"/>
+            <check type="maya_shot" name="check_usd_namespace"/>
+            <check type="maya_shot" name="check_abnormal_dag_under_comp"/>
+            <check type="seq_lay" name="check_comp_input_source"/>
+            <check type="maya_gen" name="check_display_layers"/>
+            <!-- 算各镜头的版本号和路径，镜头工作目录有同号文件时报错；结果写进 process_data['linked_task_info'] -->
+            <check type="seq_lay" name="check_shot_versions"/>
+            <!-- 镜头已有 Bk / An Publish 版本时不允许再拆分发布，依赖 check_shot_versions 的 linked_task_info -->
+            <check type="seq_lay" name="check_shot_downstream_published"/>
+        </check_group>
+    </checkcontainer>
+
+    <processcontainer>
+        <process type="maya_gen" name="clean_scene" mode="Publish"/>
+        <process type="maya_shot" name="clean_ani_scene" mode="Publish"/>
+        <process type="gen" name="create_v_dir" mode="Dailies"/>
+        <!-- 选了预览就拷贝，没选就拼接 linked_task_info 里各镜头的拍屏 -->
+        <process type="seq_lay" name="copy_seq_preview" mode="Dailies"/>
+        <process type="seq_lay" name="create_linked_task_v_dir" mode="Publish"/>
+        <process type="seq_lay" name="copy_linked_task_preview" mode="Publish"/>
+        <process type="maya_shot" name="copy_resources_to_v_dir" mode="Publish"/>
+        <process type="maya_gen" name="save_scene" mode="Publish"/>
+        <process type="gen" name="copy_work_file_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="copy_usd_file_to_v_dir" mode="Publish"/>
+        <process type="maya_shot" name="edit_ma_file" mode="Publish"/>
+        <process type="maya_shot" name="restore_resource_path" mode="Publish"/>
+        <!-- 资源路径改回工作目录后再保存一次工作文件 -->
+        <process type="maya_gen" name="save_scene" mode="Publish"/>
+        <process type="gen" name="sym_link_no_num_version" mode="Publish"/>
+        <process type="seq_lay" name="sym_link_linked_task_no_num_version" mode="Publish"/>
+        <!-- 镜头任务信息写到场次版本目录，必须在 lock_v_dir 之前 -->
+        <process type="seq_lay" name="write_shot_job_info" mode="Publish"/>
+        <process type="gen" name="lock_v_dir" mode="Dailies"/>
+        <process type="seq_lay" name="lock_linked_task_v_dir" mode="Publish"/>
+        <process type="gen" name="create_sg_version" mode="Dailies"/>
+        <!-- 场次 ma 已在版本目录里，Deadline 只读它 -->
+        <process type="seq_lay" name="sub_to_deadline_export_seq_data" mode="Publish"/>
+    </processcontainer>
+
+</root>

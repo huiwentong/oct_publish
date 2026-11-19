@@ -11,7 +11,7 @@ import re
 from qtpy import QtCore, QtWidgets, QtGui
 from qtpy.QtCore import Qt, Signal, QSize #type: ignore
 from qtpy.QtGui import QPixmap
-from publish_core.cli import PublishCli, get_user
+from publish_core.cli import PublishCli, PublishType, get_user
 from publish_core.database.entity import SGEntity, get_step_short_name
 from publish_gui.ui.theme import Color, font_header
 from publish_gui.ui.screen_grab import ScreenGrabber, screen_capture_file
@@ -975,7 +975,10 @@ class PublishFormPage(QWidget):
         if not self._tag_combo.currentData(Qt.ItemDataRole.UserRole):
             QtWidgets.QMessageBox.warning(self, '警告', '缺少发布标签，无法提交!')
             return False
-        if not self._preview_items:
+        # 组件声明 publish_preview_optional 时，非 Dailies 可以不选预览（如 seq_lay 自动合成镜头拍屏）
+        preview_optional = (getattr(cli.interface, 'publish_preview_optional', False)
+                            and cli.publish_type != PublishType.DAILY)
+        if not self._preview_items and not preview_optional:
             QtWidgets.QMessageBox.warning(self, '警告', '缺少预览图片/视频，无法提交!')
             return False
         if not self._comment_edit.toPlainText():

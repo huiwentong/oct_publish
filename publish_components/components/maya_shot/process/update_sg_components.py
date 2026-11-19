@@ -7,7 +7,7 @@ import maya.utils as utils
 from oct.pipeline.shotgun.config import API_SCRIPTS
 from oct.pipeline.shotgun.models import Version
 from oct.pipeline.task_context import TaskContext
-from oct_maya.tools.lay.usd_lay_manager_new.core import export_usd_json
+from oct_maya.tools.lay.usd_lay_manager_new.core import export_usd_json, is_asb_sub_comp
 
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
@@ -49,11 +49,16 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                     break
 
         for prim, comp_dict in comp_data.items():
+            # asb 子组件只记在 make_usd.json，不建 SG Component
+            if is_asb_sub_comp(prim):
+                continue
             component = sg_task.get_or_create_component(name=prim)
+            sg_task.link_component(component)
             logger.info(u'link Component({0}) to Task({1})'.format(component.id, sg_task.id))
 
             if sg_lay_task:
                 for_lay_component = sg_lay_task.get_or_create_component(name=prim)
+                sg_lay_task.link_component(for_lay_component)
                 logger.info(u'link Component({0}) to Lay Task({1})'.format(for_lay_component.id, sg_lay_task.id))
 
             # 为 component 创建版本，版本号与当前文件版本一致

@@ -62,7 +62,7 @@ class ModWidget(QtWidgets.QWidget):
         self.extra_files_widget = QtWidgets.QWidget()
         self.extra_files_widget.setStyleSheet(STYLESHEET)
         extra_files_layout = QtWidgets.QVBoxLayout(self.extra_files_widget)
-        self.extra_files_label = QtWidgets.QLabel("附加文件 / 文件夹")
+        self.extra_files_label = QtWidgets.QLabel("预览变体材质文件 / 文件夹")
         self.extra_files_label.setStyleSheet("border: none;")
         extra_files_layout.addWidget(self.extra_files_label)
         self.extra_files_list = QtWidgets.QListWidget()

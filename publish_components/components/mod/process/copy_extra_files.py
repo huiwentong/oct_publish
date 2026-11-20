@@ -118,7 +118,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
     try:
         # extra_files 是 额外数据，可能是文件 可能是文件夹
         extra_files = submit_data["extra_files"]
-        dst_dir = process_data["v_dir_extra"]
+        dst_dir = process_data["v_dir_imgs"]
         os.makedirs(dst_dir, exist_ok=True)
         publish_root = process_data["publish_root"]
         version_key = process_data["version_key"]

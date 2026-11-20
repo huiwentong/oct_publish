@@ -93,11 +93,11 @@ def frame_range_from_sg_entity(entity_data: dict) -> FrameRange:
     """
     Build FrameRange from a ShotGrid Shot entity dict.
 
-    Expected fields: sg_cut_in, sg_cut_out, sg_head_in, sg_tail_out
+    Expected fields: sg_ani_cut_in, sg_ani_cut_out, sg_head_in, sg_tail_out
     """
     return build_frame_range(
-        cut_in=entity_data.get("sg_cut_in"),
-        cut_out=entity_data.get("sg_cut_out"),
+        cut_in=entity_data.get("sg_ani_cut_in"),
+        cut_out=entity_data.get("sg_ani_cut_out"),
         head_in=entity_data.get("sg_head_in"),
         tail_out=entity_data.get("sg_tail_out"),
     )
@@ -108,8 +108,8 @@ def frame_range_for_step(entity_data: dict, step_short_name: str) -> FrameRange:
     step = (step_short_name or "").strip().lower()
     padding = LGT_DEFAULT_HANDLE if step in ("lg", "lgt") else None
     return build_frame_range(
-        cut_in=entity_data.get("sg_cut_in"),
-        cut_out=entity_data.get("sg_cut_out"),
+        cut_in=entity_data.get("sg_ani_cut_in"),
+        cut_out=entity_data.get("sg_ani_cut_out"),
         head_in=entity_data.get("sg_head_in"),
         tail_out=entity_data.get("sg_tail_out"),
         missing_handle_padding=padding,

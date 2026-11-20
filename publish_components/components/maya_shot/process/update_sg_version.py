@@ -90,8 +90,8 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
 
             shot = Shot.get(id=tc.entity_id, fields=['id'])
             shot.assets = asset_list
-            shot.sg_cut_in = start_f
-            shot.sg_cut_out = end_f
+            shot.sg_ani_cut_in = start_f
+            shot.sg_ani_cut_out = end_f
             shot.save()
             logger.info(u"镜头 {0} 链接 {1} 个资产，cut 范围 {2}-{3}".format(
                 tc.entity_name, len(asset_list), start_f, end_f))

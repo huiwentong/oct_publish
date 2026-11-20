@@ -29,11 +29,11 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         shot = SGEntity(
             entity["type"],
             entity["id"],
-            fields=["sg_cut_in", "sg_cut_out", "sg_cut_duration"],
+            fields=["sg_ani_cut_in", "sg_ani_cut_out", "sg_cut_duration"],
         ).raw()
         if not shot.get("sg_cut_duration"):
-            cut_in = shot.get("sg_cut_in")
-            cut_out = shot.get("sg_cut_out")
+            cut_in = shot.get("sg_ani_cut_in")
+            cut_out = shot.get("sg_ani_cut_out")
             if cut_in is not None and cut_out is not None:
                 shot["sg_cut_duration"] = cut_out - cut_in + 1
         process_data["shot_data"] = shot

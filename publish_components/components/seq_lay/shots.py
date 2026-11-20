@@ -31,7 +31,7 @@ def query_shots(project_name, scene_shots):
     shots = []
     for code, start_f, end_f in scene_shots:
         info = {'shot': code, 'start_f': start_f, 'end_f': end_f,
-                'task_id': None, 'sg_cut_in': None, 'sg_cut_out': None,
+                'task_id': None, 'sg_ani_cut_in': None, 'sg_ani_cut_out': None,
                 'work_dir': '', 'preview': ''}
         tasks = Task.filter(project_name=project_name,
                             filters=[['entity.Shot.code', 'is', code],
@@ -44,8 +44,8 @@ def query_shots(project_name, scene_shots):
             movs = sorted(glob.glob(work_dir + '/*.v???.mov'),
                           key=lambda p: int(os.path.basename(p).split('.')[-2][1:]))
             info.update({'task_id': task.id,
-                         'sg_cut_in': task.entity.sg_cut_in,
-                         'sg_cut_out': task.entity.sg_cut_out,
+                         'sg_ani_cut_in': task.entity.sg_ani_cut_in,
+                         'sg_ani_cut_out': task.entity.sg_ani_cut_out,
                          'work_dir': work_dir,
                          'preview': movs[-1].replace('\\', '/') if movs else ''})
         shots.append(info)

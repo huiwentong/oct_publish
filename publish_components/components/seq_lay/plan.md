@@ -55,7 +55,7 @@ seq_lay/
 - 数据来自场景里 `ls(type='shot')` 的 `<code>_shot` 节点
 - 用 code 到 SG 上找 Shot 和它的 `rough_layout` 任务
 - 拍屏默认取该任务工作目录下最新的 `*.v???.mov`
-- 返回列表，每项包含 `shot / task_id / sg_cut_in / sg_cut_out / start_f / end_f / preview`
+- 返回列表，每项包含 `shot / task_id / sg_ani_cut_in / sg_ani_cut_out / start_f / end_f / preview`
 
 ### interface.py
 

@@ -14,7 +14,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         shot = SGEntity(
             entity["type"],
             entity["id"],
-            fields=["sg_cut_in", "sg_cut_out"],
+            fields=["sg_ani_cut_in", "sg_ani_cut_out"],
         )
         return to_framework_status(
             check_movie_range(process_data, shot_data=shot.raw()),

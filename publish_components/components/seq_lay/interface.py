@@ -57,7 +57,7 @@ class ShotTable(QtWidgets.QTableWidget):
                 check_item.setToolTip('SG 上找不到该镜头的 rough_layout 任务')
             self.setItem(row, 0, check_item)
 
-            values = [info['shot'], info['sg_cut_in'], info['sg_cut_out'],
+            values = [info['shot'], info['sg_ani_cut_in'], info['sg_ani_cut_out'],
                       info['start_f'], info['end_f'], info['preview']]
             for col, value in enumerate(values, start=1):
                 item = QtWidgets.QTableWidgetItem('' if value is None else str(value))

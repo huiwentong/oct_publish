@@ -40,8 +40,8 @@ def _require_publish_context(process_data: dict) -> dict:
 
 def cmp_publish_cut_duration(shot_data: dict) -> int:
     """Return the inclusive live Cut duration used by strict Publish EXR input."""
-    cut_in = shot_data.get("sg_cut_in")
-    cut_out = shot_data.get("sg_cut_out")
+    cut_in = shot_data.get("sg_ani_cut_in")
+    cut_out = shot_data.get("sg_ani_cut_out")
     if isinstance(cut_in, bool) or isinstance(cut_out, bool):
         raise CmpProcessError("CMP Publish Cut In/Out must be integer frame values")
     try:

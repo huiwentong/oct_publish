@@ -115,8 +115,8 @@ def check_cmp_cut_range(
             build_frame_range(data.get("cut_in"), data.get("cut_out"))
         else:
             build_frame_range(
-                shot_data.get("sg_cut_in"),
-                shot_data.get("sg_cut_out"),
+                shot_data.get("sg_ani_cut_in"),
+                shot_data.get("sg_ani_cut_out"),
             )
     except (FrameRangeError, ValueError) as exc:
         return CheckResult.fail(name, str(exc))
@@ -233,8 +233,8 @@ def check_cmp_publish_preview(
             frame_range = _frame_range(context)
         else:
             frame_range = build_frame_range(
-                shot_data.get("sg_cut_in"),
-                shot_data.get("sg_cut_out"),
+                shot_data.get("sg_ani_cut_in"),
+                shot_data.get("sg_ani_cut_out"),
             )
         analysis = analyze_numbered_sequence(
             selection.preview_paths,
@@ -291,8 +291,8 @@ def check_movie_range(
             frame_range = _frame_range(context)
         else:
             frame_range = build_frame_range(
-                shot_data.get("sg_cut_in"),
-                shot_data.get("sg_cut_out"),
+                shot_data.get("sg_ani_cut_in"),
+                shot_data.get("sg_ani_cut_out"),
             )
         frame_count = probe(selection.preview_paths[0])
     except Exception as exc:

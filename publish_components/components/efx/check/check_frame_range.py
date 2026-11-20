@@ -11,8 +11,8 @@ def main(submit_data:dict, process_data:dict, parent_widget=None, logger=None):
         import hou
         task = SGEntity('Task', process_data['task_id'])
 
-        start = int(task.entity.sg_cut_in)
-        end = int(task.entity.sg_cut_out)
+        start = int(task.entity.sg_ani_cut_in)
+        end = int(task.entity.sg_ani_cut_out)
 
         logger.info(hou.playbar.frameRange())
         if hou.playbar.frameRange()[0] != start or hou.playbar.frameRange()[1] != end:

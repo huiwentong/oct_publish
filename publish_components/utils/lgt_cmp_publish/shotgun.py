@@ -11,7 +11,7 @@ VERSION_FIELDS = [
 ]
 
 CUT_FIELDS = [
-    "sg_cut_in", "sg_cut_out", "sg_head_in", "sg_tail_out",
+    "sg_ani_cut_in", "sg_ani_cut_out", "sg_head_in", "sg_tail_out",
     "sg_cut_duration", "sg_client_shot_name", "code",
 ]
 
@@ -60,7 +60,7 @@ def query_shot_cut_info(sg, shot: dict) -> dict:
     """
     Query cut information for a shot.
 
-    Returns dict with: sg_cut_in, sg_cut_out, sg_head_in, sg_tail_out, sg_cut_duration
+    Returns dict with: sg_ani_cut_in, sg_ani_cut_out, sg_head_in, sg_tail_out, sg_cut_duration
     """
     try:
         result = sg.find_one(

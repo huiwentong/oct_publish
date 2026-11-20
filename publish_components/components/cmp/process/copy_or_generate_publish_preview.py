@@ -29,7 +29,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         shot = SGEntity(
             entity["type"],
             entity["id"],
-            fields=["sg_cut_in", "sg_cut_out", "sg_cut_duration"],
+            fields=["sg_ani_cut_in", "sg_ani_cut_out", "sg_cut_duration"],
         ).raw()
         # Publish EXR checks are strict against the inclusive Cut range, so the
         # generated review must use the same range even when sg_cut_duration is

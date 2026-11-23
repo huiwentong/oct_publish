@@ -7,6 +7,13 @@ import maya.utils as utils
 from oct_maya.tools.lay.usd_lay_manager_new.core import bump_asb_usd_to_maya_version, is_old_asb_architecture
 from publish_components.utils.maya_utils import shot_usd
 
+WORLD_ROOT = '|World|'
+
+
+def list_world_proxy_usd_paths():
+    """只取 |World 下的 Stage，World 外的临时/参考 Stage 不参与检查"""
+    return [(shape, path) for shape, path in shot_usd.list_proxy_usd_paths() if shape.startswith(WORLD_ROOT)]
+
 
 def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
     """
@@ -20,9 +27,9 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
         work_dir = os.path.dirname(maya_file)
 
         def check():
-            proxies = shot_usd.list_proxy_usd_paths()
+            proxies = list_world_proxy_usd_paths()
             if not proxies:
-                # 场景中没有 mayaUsdProxyShape 节点
+                # |World 下没有 mayaUsdProxyShape 节点
                 return ""
             if is_old_asb_architecture():
                 return u"请先将 USD Stage 转换为新架构"
@@ -57,7 +64,7 @@ def fix(submit_data: dict, process_data: dict, parent_widget=None, logger=None):
         def repair():
             if is_old_asb_architecture():
                 return u"请先将 USD Stage 转换为新架构"
-            for proxy_shape, usd_path in shot_usd.list_proxy_usd_paths():
+            for proxy_shape, usd_path in list_world_proxy_usd_paths():
                 abs_usd_path = shot_usd.resolve_usd_abs_path(usd_path, work_dir)
                 if not os.path.isfile(abs_usd_path):
                     return u"USD 文件不存在，无法自动修复: {0}".format(abs_usd_path)

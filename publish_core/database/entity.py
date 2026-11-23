@@ -142,7 +142,7 @@ class SGEntity:
 
 
         elif isinstance(value, list):
-            if isinstance(value[0], dict) and len(value) > 20:
+            if isinstance(value[0], dict) and len(value) > 200:
                 raise ValueError('this value contains too many entities, we do not suggests query shotgun entites with this method!')
             entity_list =  [
                 self._wrap(item)

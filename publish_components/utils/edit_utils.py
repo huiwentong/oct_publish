@@ -128,9 +128,9 @@ def split_video(video_path, clips, out_dir, fps=FPS):
 def split_audio(video_path, clips, out_dir, fps=FPS):
     """
     用 ffmpeg 按记录时间线拆分视频中的音频轨。
-    输出为独立音频文件，命名为 {clip_name}.m4a / .wav。
+    输出为独立音频文件，命名为 {clip_name}.wav。
     - 使用重新编码，确保每个切点采样级精确
-    - m4a(AAC) 兼容性好；若需要无损可改用 .wav + pcm_s16le
+    - wav(PCM s16le) 无损，兼容性最好
     """
     video_path = Path(video_path)
     out_dir = Path(out_dir)
@@ -141,17 +141,16 @@ def split_audio(video_path, clips, out_dir, fps=FPS):
     for c in clips:
         start_sec = frames_to_seconds(c['rec_in'], fps)
         end_sec = frames_to_seconds(c['rec_out'], fps)
-        out_file = out_dir / f"{c['clip_name']}.m4a"
+        out_file = out_dir / f"{c['clip_name']}.wav"   # ← 改扩展名
 
         cmd = [
             'ffmpeg', '-y',
-            '-ss', f"{start_sec:.6f}",        # 输入定位，快
+            '-ss', f"{start_sec:.6f}",
             '-to', f"{end_sec:.6f}",
             '-i', str(video_path),
-            '-map', '0:a:0',                   # 只取第一条音频流
-            '-vn',                             # 不要视频
-            '-c:a', 'aac', '-b:a', '192k',     # 重新编码保证切点精确
-            '-movflags', '+faststart',
+            '-map', '0:a:0',
+            '-vn',
+            '-c:a', 'pcm_s16le',                  
             str(out_file),
         ]
         print(f"[{c['order']:03d}] {c['clip_name']}: "

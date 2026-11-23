@@ -55,7 +55,7 @@ def main(submit_data: dict, process_data: dict, parent_widget=None, logger=None)
                 shot_data = {
                     'code': shot_name,
                     'project': project_entity,
-                    'entity': seq,
+                    'sg_sequence': seq,
                     **shot_fields,
                 }
                 shot_entity  = sg.create('Shot', shot_data)

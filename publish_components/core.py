@@ -18,6 +18,7 @@ import subprocess
 from publish_core.database.entity import SGEntity
 from publish_components.utils.register import unpack_xml
 from publish_components.utils.runlist_db import RunListDB
+from publish_core.log.core import PublishLog
 
 DCC_COMMANDS = {
     
@@ -404,6 +405,10 @@ from publish_core.log.core import PublishLog
 {import_module}
 
 logger = PublishLog(name="TEMP_PYTHON")
+# 子进程是新解释器，任务上下文要从父进程带过来，否则日志库里 project/entity/step 为空
+PublishLog.project = {log_project!r}
+PublishLog.entity = {log_entity!r}
+PublishLog.step = {log_step!r}
 def main():
     {load_file}
     parent_widget=None
@@ -413,9 +418,9 @@ def main():
 {all_funcs}
 if __name__ == "__main__":
     res = main()
-    logger.error(res)
     #后台退出 maya/arnold 时容易崩溃，但所有提交模块都执行完毕，修改成只要执行成功，强制返回0，失败返回1
     if res:
+        logger.error(res)
         print(res, flush=True)
         sys.stdout.flush()
         sys.stderr.flush()
@@ -443,7 +448,10 @@ if __name__ == "__main__":
             submit_data = getattr(self, 'submit_form'),
             process_data = self.process_data,
             all_funcs = '\n'.join(all_funcs),
-            load_file=body
+            load_file=body,
+            log_project=PublishLog.project,
+            log_entity=PublishLog.entity,
+            log_step=PublishLog.step,
         )
 
     def _capture_critical_errors(self, stdout):
@@ -469,8 +477,8 @@ if __name__ == "__main__":
         for raw_line in stdout:
             line = raw_line.rstrip('\r\n')
 
+            # 只打印到控制台；子进程自己会写日志库，这里再 log 一遍会在库里重复一份
             print(line, flush=True)
-            self.log.info(line)
 
             # 遇到 INFO，结束当前错误块
             if '[INFO]' in line:

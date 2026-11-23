@@ -9,6 +9,18 @@ import weakref
 from qtpy.QtCore import QObject, Signal, Slot, QThread, Qt
 from qtpy.QtWidgets import QApplication
 
+# oct_publish 根目录，日志 file 字段记录相对它的路径
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def _rel_path(path):
+    try:
+        path = os.path.relpath(path, _PROJECT_ROOT)
+    except ValueError:
+        # Windows 下跨盘符算不出相对路径，保留绝对路径
+        pass
+    return path.replace('\\', '/')
+
 class LogDB:
     def __init__(self, pool:SimpleConnectionPool) -> None:
         self.pool = pool
@@ -26,10 +38,13 @@ class LogDB:
                     message,
                     logger,
                     file,
-                    line
+                    line,
+                    project,
+                    entity,
+                    step
                 )
                 VALUES
-                (%s,%s,%s,%s,%s,%s)
+                (%s,%s,%s,%s,%s,%s,%s,%s,%s)
                 """,
                 (
                     data["level"],
@@ -38,6 +53,9 @@ class LogDB:
                     data["logger"],
                     data["file"],
                     data["line"],
+                    data["project"],
+                    data["entity"],
+                    data["step"],
                 )
             )
             conn.commit()
@@ -56,14 +74,18 @@ class DatabaseHandler(logging.Handler):
 
     def emit(self, record):
         try:
-            msg = self.format(record)
+            # 时间、级别、用户、行号都有单独的列，message 只存原始内容
+            msg = record.getMessage()
             log_data = {
                 "level": record.levelname,
                 "message": msg,
                 "logger": record.name,
-                "file": record.filename,
+                "file": _rel_path(record.pathname),
                 "line": record.lineno,
-                "user": getattr(record, "user", "")
+                "user": getattr(record, "user", ""),
+                "project": PublishLog.project,
+                "entity": PublishLog.entity,
+                "step": PublishLog.step,
             }
 
             self.db.insert_log(log_data)
@@ -133,6 +155,10 @@ class WidgetHandler(logging.Handler):
 class PublishLog:
     _initialized = False
     logDB = None
+    # 当前发布任务的上下文，由 PublishCli 在确定任务后写入，写数据库日志时带上
+    project = ''
+    entity = ''
+    step = ''
 
     @classmethod
     def setup(
@@ -175,7 +201,6 @@ class PublishLog:
             db_handler = DatabaseHandler(
                 cls.logDB
             )
-            db_handler.setFormatter(formatter)
             logger.addHandler(db_handler)
 
         if log_widget:
@@ -232,7 +257,9 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )
 
 
@@ -243,7 +270,9 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )
 
 
@@ -254,7 +283,9 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )
 
 
@@ -265,7 +296,9 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )
 
 
@@ -276,7 +309,9 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )
 
 
@@ -288,5 +323,7 @@ class PublishLog:
             msg,
             extra={
                 'user': self._user
-            }
+            },
+            # 跳过本封装方法，file/line 记录真正打日志的位置
+            stacklevel=2
         )

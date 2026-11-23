@@ -15,10 +15,10 @@ runlist_db:
 
 log_db:
   db_type: 'postgresql'
-  db_addr: '192.168.30.3'
+  db_addr: '192.168.15.22'
   db_port: 5432
-  db_user: 'my_database'
+  db_user: 'publish'
   db_name: 'publish_log'
-  db_password: '123456'
+  db_password: 'oct_publish_pwd'
 
 

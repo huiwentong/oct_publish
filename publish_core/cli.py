@@ -103,6 +103,12 @@ class PublishCli:
         if stepname == 'lay' and self.task_entity.entity.type == 'Sequence':
             stepname = 'seq_lay'
 
+        # 日志库按任务上下文记录；SG 链接字段自带 name，不用额外查询
+        task_raw = self.task_entity.raw()
+        PublishLog.project = (task_raw.get('project') or {}).get('name', '')
+        PublishLog.entity = (task_raw.get('entity') or {}).get('name', '')
+        PublishLog.step = stepname
+
         module_path = f'publish_components.components.{stepname}.interface'
         try:
             module = importlib.import_module(module_path)

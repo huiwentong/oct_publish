@@ -150,7 +150,9 @@ def split_audio(video_path, clips, out_dir, fps=FPS):
             '-i', str(video_path),
             '-map', '0:a:0',
             '-vn',
-            '-c:a', 'pcm_s16le',                  
+            '-c:a', 'pcm_s16le',
+            '-ar', '44100',
+            '-ac', '2',
             str(out_file),
         ]
         print(f"[{c['order']:03d}] {c['clip_name']}: "
